@@ -3,8 +3,10 @@ FROM library/photon
 
 # Install tornado library.
 RUN tdnf install yum
-RUN yum -y install gcc meson git wget numactl make curl python3-pip unzip zip gzip build-essential zlib-devel libbpf-devel libbpf libpcap-devel libpcap libmlx5 libhugetlbfs libhu
-getlbfs-devel ansible nmap-ncat tcpdump kexec-tools libnuma-devel libnuma nasm linux-drivers-gpu elfutils-libelf-devel
+RUN yum -y install gcc meson git wget numactl make curl \
+	python3-pip unzip zip gzip build-essential zlib-devel \
+	libbpf-devel libbpf libpcap-devel libpcap libmlx5 libhugetlbfs \
+	libhugetlbfs-devel nmap-ncat tcpdump kexec-tools libnuma-devel libnuma nasm linux-drivers-gpu elfutils-libelf-devel
 
 # Stage one we build first ipsec mb lib
 WORKDIR /root/
