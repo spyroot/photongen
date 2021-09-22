@@ -73,9 +73,9 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>>
 ```
 
-* Make sure GPU attached to worker node or baremetal when you run container.
+* Make sure GPU attached to worker node or baremetal where you run a container.
 
-In order to check
+In order to check GPU,   open python3 repl import tf and check list_physical_devices 
 
 ```
 sudo docker run --privileged --name photon_bash --rm -i -t photon_dpdk20.11:v1 python3
