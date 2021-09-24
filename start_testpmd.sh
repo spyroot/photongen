@@ -49,8 +49,10 @@ if [ -d "$default_dev_hugepage" ]; then
 		--cap-add NET_ADMIN --cap-add SYS_ADMIN \
 		--cap-add SYS_NICE \
 		--rm \
-		-i -t $default_img_name /usr/local/bin/dpdk-testpmd \
-		-- -i --forward-mode=$default_forward_mode --eth-peer=0,$default_peer_mac
+		-i -t $default_img_name /usr/local/bin/dpdk-testpmd -l 2-3 \
+		-- -i --disable-rss --rxq=4 --txq=4 \
+		--disable-device-start \
+	    --forward-mode=$default_forward_mode --eth-peer=0,$default_peer_mac
 else
 	"Warrning. Create hugepages in respected numa node."
 fi
