@@ -13,9 +13,11 @@ nodes=$(numactl --hardware | grep cpus | tr -cd "[:digit:] \n")
 IFS=', ' read -r -a nodelist <<< "$nodes"
 numa_node="${nodelist[0]}"
 numa_lcores="${nodelist[@]:1}"
+numa_low_lcore="${nodelist[0]}"
+numa_hi_lcore="${nodelist[-1]:1}"
 
-echo $numa_node
-echo $numa_lcores
+echo "Using" "$numa_node"
+echo "$numa_lcores" "lcore range $numa_low_lcore - $numa_hi_lcore"
 
 command -v numactl >/dev/null 2>&1 || \
 	{ echo >&2 "Require numactl but it's not installed.  Aborting."; exit 1; }
