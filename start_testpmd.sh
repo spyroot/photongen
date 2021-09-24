@@ -44,6 +44,15 @@ echo "$numa_lcores" "lcore range $numa_low_lcore - $numa_hi_lcore"
 [[ -z "$numa_low_lcore" ]] && { echo "Error: numa lower bound for num lcore is empty"; exit 1; }
 [[ -z "$numa_hi_lcore" ]] && { echo "Error: numa upper bound for num lcore is empty"; exit 1; }
 
+echo -n "Do wish to use default peer mac address program (y/n)? "
+read -r default_mac
+
+if [ "$default_mac" != "${default_mac#[Yy]}" ] ;then
+    echo "Using default peer mac" $default_peer_mac
+else
+    read -r default_mac
+fi
+
 # Take first VF and use it
 pci_dev=$(lspci -v | grep "Virtual Function" | awk '{print $1}')
 eth_dev=$(lshw -class network -businfo | grep "$pci_dev" | awk '{print $2}')
