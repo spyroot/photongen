@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script start container with DPDK test-pmd in interactive mode.
+# Script start container with DPDK pktgen in interactive mode.
 #
 #   First check Docker file and make sure container in 
 #   local image registry.
@@ -115,11 +115,9 @@ if [ -d "$default_dev_hugepage" ]; then
 		--cap-add NET_ADMIN --cap-add SYS_ADMIN \
 		--cap-add SYS_NICE \
 		--rm \
-		-i -t $default_img_name /usr/local/bin/dpdk-testpmd \
-		-l "$numa_low_lcore-$numa_hi_lcore" \
-		-- -i --disable-rss --rxq=$default_rxq --txq=$default_txq \
-		--disable-device-start \
-	    --forward-mode=$default_forward_mode --eth-peer=0,"$default_peer_mac"
+		-i -t $default_img_name pktgen \
+		-l "$numa_low_lcore-$numa_hi_lcore" --proc-type auto --log-level 7 \
+		--file-prefix pg -- -T --crc-strip
 else
 	"Warrning. Create hugepages in respected numa node."
 fi

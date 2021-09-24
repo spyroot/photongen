@@ -6,8 +6,10 @@ RUN tdnf install yum
 RUN yum -y install gcc meson git wget numactl make curl \
 	python3-pip unzip zip gzip build-essential zlib-devel \
 	libbpf-devel libbpf libpcap-devel libpcap libmlx5 libhugetlbfs \
-	libhugetlbfs-devel nmap-ncat tcpdump kexec-tools libnuma-devel libnuma nasm linux-drivers-gpu elfutils-libelf-devel
-
+	libhugetlbfs-devel nmap-ncat tcpdump kexec-tools libnuma-devel libnuma \
+	nasm linux-drivers-gpu elfutils-libelf-devel vim pciutils iproute \ 
+	lshw findutils vim-extra 
+	
 # Stage one we build first ipsec mb lib
 WORKDIR /root/
 RUN mkdir build
@@ -35,9 +37,13 @@ WORKDIR /root/build/rt-tests
 RUN make
 RUN make install
 
-# Sphix and TF2 gpu 
+# Sphix and TF2 gpu
 RUN pip3 install tensorflow-gpu
 RUN pip3 install sphinx
+RUN pip3 install pyelftools
+
+ENV TERM=xterm-256color
+
 
 # Last stage pkt-gen
 WORKDIR /root/build
