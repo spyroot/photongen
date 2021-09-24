@@ -49,14 +49,13 @@ read -r default_mac
 
 if [ "$default_mac" != "${default_mac#[Yy]}" ] ;then
     echo "Using default peer mac" $default_peer_mac
-	client_mac=$default_peer_mac
 else
 	echo -n "Peer mac address (format 00:50:56:b6:0d:dc): "
     read -r client_mac
+	[[ -z "$client_mac" ]] && { echo "Error: mac address is empty string"; exit 1; }
+	default_peer_mac=$client_mac
 fi
 
-[[ -z "$client_mac" ]] && { echo "Error: mac address is empty string"; exit 1; }
-default_peer_mac=$client_mac
 echo -n "Using peer mac address: " "$default_peer_mac"
 
 # Take first VF and use it
