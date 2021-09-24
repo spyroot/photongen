@@ -9,6 +9,16 @@ default_forward_mode="txonly"
 default_img_name="photon_dpdk20.11:v1"
 default_dev_hugepage="/dev/hugepages"
 
+nodes=$(numactl --hardware | grep cpus | tr -cd "[:digit:] \n")
+IFS=', ' read -r -a nodelist <<< "$nodes"
+numa_node="${nodelist[0]}"
+numa_lcores="${nodelist[@]:1}"
+
+echo $numa_node
+echo $numa_lcores
+
+command -v numactl >/dev/null 2>&1 || \
+	{ echo >&2 "Require numactl but it's not installed.  Aborting."; exit 1; }
 command -v ifconfig >/dev/null 2>&1 || \
 	{ echo >&2 "Require ifconfig but it's not installed.  Aborting."; exit 1; }
 command -v lspci >/dev/null 2>&1 || \
