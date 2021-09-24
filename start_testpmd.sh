@@ -1,11 +1,29 @@
 #!/bin/bash
-
-# Script start container with test-pmd.
-# 
-# - it gets list of all cores and construct a range from low to hi
-# - if interface bounded by kernel driver will shutdown and bind dpdk
-# - it passed device to container
-# - it check hugepages and passed dev to container
+# Script start container with DPDK test-pmd in interactive mode.
+#
+#   First check Docker file and make sure container in 
+#   local image registry.
+#  
+#   DPKD kernel module: Scripts requires uio_pci_generic, 
+#   The test-pmd will use a device node that will be added by uio_pci_generic interface 
+#   and therefore it must be bounded by DPKD.
+#   
+#   Hugepages: test-pmd and DPKD requires hugepages, make sure you do it 
+#   either manually or use init.sh script.
+#
+# - Script will gets list of all cores and construct a range from low to hi
+# - by default it will use all cores.
+#
+# - Script checks if interface already bounded by kernel driver and shutdown
+#   will shutdown kernel interface and re-bind dpdk. 
+#
+# - Script will a passed device to container.
+#
+# - It wil also check hugepages and passed dev to container.
+#
+# - Normally you want start two VM, each VM will need run test-pmd
+#   default mode set to txonly, in case of two VM's and two seperate container
+#   one container generate traffic and another container reciever.
 #
 # Author Mustafa Bayramov 
 
@@ -17,6 +35,7 @@ default_dev_hugepage="/dev/hugepages"
 default_dpkd_bind="/usr/local/bin"
 default_rxq="4"
 default_txq="4"
+#--stats-period PERIOD
 
 command -v numactl >/dev/null 2>&1 || \
 	{ echo >&2 "Require numactl but it's not installed.  Aborting."; exit 1; }
