@@ -51,11 +51,11 @@ if [ "$default_mac" != "${default_mac#[Yy]}" ] ;then
     echo "Using default peer mac" $default_peer_mac
 else
 	echo -n "Provide peer mac address: "
-    read -r $default_peer_mac
+    read -r client_mac
 fi
 
 [[ -z "$default_mac" ]] && { echo "Error: mac address is empty"; exit 1; }
-
+default_peer_mac=$client_mac
 echo -n "Using peer mac address: " "$default_peer_mac"
 
 
