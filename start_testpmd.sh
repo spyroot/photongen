@@ -1,6 +1,12 @@
 #!/bin/bash
 
-# Script start container with test-pmd
+# Script start container with test-pmd.
+# 
+# - it gets list of all cores and construct a range from low to hi
+# - if interface bounded by kernel driver will shutdown and bind dpdk
+# - it passed device to container
+# - it check hugepages and passed dev to container
+#
 # Author Mustafa Bayramov 
 
 default_device0="/dev/uio0"
@@ -37,14 +43,14 @@ pci_dev=$(lspci -v | grep "Virtual Function" | awk '{print $1}')
 eth_dev=$(lshw -class network -businfo | grep "$pci_dev" | awk '{print $2}')
 
 if [ "$eth_dev" == "network" ]; then
-	echo " $pci_dev unbounded from kernel"
+	echo " A pci device $pci_dev already unbounded from kernel."
 	eth_up="DOWN"
 else
 	eth_up=$(ifconfig eth1 | grep BROADCAST | awk '{print $1}')
 fi
 
 if [ "$eth_up" == "UP" ]; then
-	echo "$pci_dev $eth_dev is kernel bounded $eth_up"
+	echo "A pci device $pci_dev $eth_dev is bounded by kernel as $eth_up"
 	ifconfig "$eth_dev" down
 	/usr/local/bin/dpdk-devbind.py -b uio_pci_generic "$pci_dev"
 else
