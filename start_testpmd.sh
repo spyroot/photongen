@@ -50,7 +50,7 @@ read -r default_mac
 if [ "$default_mac" != "${default_mac#[Yy]}" ] ;then
     echo "Using default peer mac" $default_peer_mac
 else
-	echo -n "Provide peer mac address: "
+	echo -n "Peer mac address (format 00:50:56:b6:0d:dc): "
     read -r client_mac
 fi
 
@@ -61,6 +61,8 @@ echo -n "Using peer mac address: " "$default_peer_mac"
 
 # Take first VF and use it
 pci_dev=$(lspci -v | grep "Virtual Function" | awk '{print $1}')
+[[ -z "$pci_dev" ]] && { echo "Error: pci device not found. Check lspci -v"; exit 1; }
+
 eth_dev=$(lshw -class network -businfo | grep "$pci_dev" | awk '{print $2}')
 
 if [ "$eth_dev" == "network" ]; then
