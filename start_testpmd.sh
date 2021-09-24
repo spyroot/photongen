@@ -37,8 +37,8 @@ numa_lcores="${nodelist[@]:1}"
 numa_low_lcore="${nodelist[0]}"
 numa_hi_lcore="${nodelist[-1]}"
 
-echo "Using" "$numa_node"
-echo "$numa_lcores" "lcore range $numa_low_lcore - $numa_hi_lcore"
+echo "Using numa node" "$numa_node"
+echo "List of cores in system" "$numa_lcores" "lcore range $numa_low_lcore - $numa_hi_lcore"
 
 [[ -z "$numa_node" ]] && { echo "Error: numa node value empty"; exit 1; }
 [[ -z "$numa_low_lcore" ]] && { echo "Error: numa lower bound for num lcore is empty"; exit 1; }
@@ -57,7 +57,6 @@ fi
 [[ -z "$default_mac" ]] && { echo "Error: mac address is empty"; exit 1; }
 default_peer_mac=$client_mac
 echo -n "Using peer mac address: " "$default_peer_mac"
-
 
 # Take first VF and use it
 pci_dev=$(lspci -v | grep "Virtual Function" | awk '{print $1}')
@@ -95,7 +94,7 @@ if [ -d "$default_dev_hugepage" ]; then
 		-i -t $default_img_name /usr/local/bin/dpdk-testpmd -l "$numa_low_lcore-$numa_hi_lcore" \
 		-- -i --disable-rss --rxq=4 --txq=4 \
 		--disable-device-start \
-	    --forward-mode=$default_forward_mode --eth-peer=0,$default_peer_mac
+	    --forward-mode=$default_forward_mode --eth-peer=0,"$default_peer_mac"
 else
 	"Warrning. Create hugepages in respected numa node."
 fi
