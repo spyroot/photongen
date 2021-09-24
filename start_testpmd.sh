@@ -9,12 +9,14 @@ default_forward_mode="txonly"
 default_img_name="photon_dpdk20.11:v1"
 default_dev_hugepage="/dev/hugepages"
 
+# get list of all cores and numa node
+# pass entire range of lcores to DPKD
 nodes=$(numactl --hardware | grep cpus | tr -cd "[:digit:] \n")
 IFS=', ' read -r -a nodelist <<< "$nodes"
 numa_node="${nodelist[0]}"
 numa_lcores="${nodelist[@]:1}"
 numa_low_lcore="${nodelist[0]}"
-numa_hi_lcore="${nodelist[-1]:1}"
+numa_hi_lcore="${nodelist[-1]}"
 
 echo "Using" "$numa_node"
 echo "$numa_lcores" "lcore range $numa_low_lcore - $numa_hi_lcore"
@@ -61,7 +63,7 @@ if [ -d "$default_dev_hugepage" ]; then
 		--cap-add NET_ADMIN --cap-add SYS_ADMIN \
 		--cap-add SYS_NICE \
 		--rm \
-		-i -t $default_img_name /usr/local/bin/dpdk-testpmd -l 2-3 \
+		-i -t $default_img_name /usr/local/bin/dpdk-testpmd -l "$numa_low_lcore-$numa_hi_lcore" \
 		-- -i --disable-rss --rxq=4 --txq=4 \
 		--disable-device-start \
 	    --forward-mode=$default_forward_mode --eth-peer=0,$default_peer_mac
