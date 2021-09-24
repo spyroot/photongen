@@ -15,18 +15,6 @@ default_forward_mode="txonly"
 default_img_name="photon_dpdk20.11:v1"
 default_dev_hugepage="/dev/hugepages"
 
-# get list of all cores and numa node
-# pass entire range of lcores to DPKD
-nodes=$(numactl --hardware | grep cpus | tr -cd "[:digit:] \n")
-IFS=', ' read -r -a nodelist <<< "$nodes"
-numa_node="${nodelist[0]}"
-numa_lcores="${nodelist[@]:1}"
-numa_low_lcore="${nodelist[0]}"
-numa_hi_lcore="${nodelist[-1]}"
-
-echo "Using" "$numa_node"
-echo "$numa_lcores" "lcore range $numa_low_lcore - $numa_hi_lcore"
-
 command -v numactl >/dev/null 2>&1 || \
 	{ echo >&2 "Require numactl but it's not installed.  Aborting."; exit 1; }
 command -v ifconfig >/dev/null 2>&1 || \
@@ -37,6 +25,24 @@ command -v lshw >/dev/null 2>&1 || \
 	{ echo >&2 "Require lshs but it's not installed.  Aborting."; exit 1; }
 command -v dpdk-devbind.py >/dev/null 2>&1 || \
 	{ echo >&2 "Require foo but it's not installed.  Aborting."; exit 1; }
+
+# get list of all cores and numa node
+# pass entire range of lcores to DPKD
+nodes=$(numactl --hardware | grep cpus | tr -cd "[:digit:] \n")
+[[ -z "$nodes" ]] && { echo "Error: numa nodes string empty"; exit 1; }
+
+IFS=', ' read -r -a nodelist <<< "$nodes"
+numa_node="${nodelist[0]}"
+numa_lcores="${nodelist[@]:1}"
+numa_low_lcore="${nodelist[0]}"
+numa_hi_lcore="${nodelist[-1]}"
+
+echo "Using" "$numa_node"
+echo "$numa_lcores" "lcore range $numa_low_lcore - $numa_hi_lcore"
+
+[[ -z "$numa_node" ]] && { echo "Error: numa node value empty"; exit 1; }
+[[ -z "$numa_low_lcore" ]] && { echo "Error: numa lower bound for num lcore is empty"; exit 1; }
+[[ -z "$numa_hi_lcore" ]] && { echo "Error: numa upper bound for num lcore is empty"; exit 1; }
 
 # Take first VF and use it
 pci_dev=$(lspci -v | grep "Virtual Function" | awk '{print $1}')
