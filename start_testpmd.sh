@@ -42,7 +42,7 @@ if [ -c "$default_device0" ]; then
 	echo "Attaching $default_device0."
 fi
 
-if [ -c "$default_dev_hugepage" ]; then
+if [ -d "$default_dev_hugepage" ]; then
 	docker run --privileged --name photon_testpmd --device=/sys/bus/pci/devices/* \
 		-v "$default_dev_hugepage":/dev/hugepages  \
 		--cap-add=SYS_RAWIO --cap-add IPC_LOCK \
