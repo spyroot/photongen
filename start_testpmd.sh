@@ -14,6 +14,9 @@ default_peer_mac="00:50:56:b6:0d:dc"
 default_forward_mode="txonly"
 default_img_name="photon_dpdk20.11:v1"
 default_dev_hugepage="/dev/hugepages"
+default_dpkd_bind="/usr/local/bin"
+default_rxq="4"
+default_txq="4"
 
 command -v numactl >/dev/null 2>&1 || \
 	{ echo >&2 "Require numactl but it's not installed.  Aborting."; exit 1; }
@@ -44,6 +47,7 @@ echo "List of cores in system" "$numa_lcores" "lcore range $numa_low_lcore - $nu
 [[ -z "$numa_low_lcore" ]] && { echo "Error: numa lower bound for num lcore is empty"; exit 1; }
 [[ -z "$numa_hi_lcore" ]] && { echo "Error: numa upper bound for num lcore is empty"; exit 1; }
 
+# Prompt for peer mac address.
 echo -n "Do wish to use default peer mac address program (y/n)? "
 read -r default_mac
 
@@ -58,7 +62,8 @@ fi
 
 echo -n "Using peer mac address: " "$default_peer_mac"
 
-# Take first VF and use it
+# Take first VF and use it as device.
+#  - if device already bounded by kernel unload and bind DPKD
 pci_dev=$(lspci -v | grep "Virtual Function" | awk '{print $1}')
 [[ -z "$pci_dev" ]] && { echo "Error: pci device not found. Check lspci -v"; exit 1; }
 
@@ -74,10 +79,10 @@ fi
 if [ "$eth_up" == "UP" ]; then
 	echo "A pci device $pci_dev $eth_dev is bounded by kernel as $eth_up"
 	ifconfig "$eth_dev" down
-	/usr/local/bin/dpdk-devbind.py -b uio_pci_generic "$pci_dev"
+	$default_dpkd_bind/dpdk-devbind.py -b uio_pci_generic "$pci_dev"
 else
 	#is_loadded=$(/usr/local/bin/dpdk-devbind.py -s | grep $pci_dev | grep drv=uio_pci_generic)
-	/usr/local/bin/dpdk-devbind.py -b uio_pci_generic "$pci_dev"
+	$default_dpkd_bind/dpdk-devbind.py -b uio_pci_generic "$pci_dev"
 fi
 
 if [ -c "$default_device0" ]; then
@@ -91,8 +96,9 @@ if [ -d "$default_dev_hugepage" ]; then
 		--cap-add NET_ADMIN --cap-add SYS_ADMIN \
 		--cap-add SYS_NICE \
 		--rm \
-		-i -t $default_img_name /usr/local/bin/dpdk-testpmd -l "$numa_low_lcore-$numa_hi_lcore" \
-		-- -i --disable-rss --rxq=4 --txq=4 \
+		-i -t $default_img_name /usr/local/bin/dpdk-testpmd \
+		-l "$numa_low_lcore-$numa_hi_lcore" \
+		-- -i --disable-rss --rxq=$default_rxq --txq=$default_txq \
 		--disable-device-start \
 	    --forward-mode=$default_forward_mode --eth-peer=0,"$default_peer_mac"
 else
