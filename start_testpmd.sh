@@ -50,8 +50,14 @@ read -r default_mac
 if [ "$default_mac" != "${default_mac#[Yy]}" ] ;then
     echo "Using default peer mac" $default_peer_mac
 else
-    read -r default_mac
+	echo -n "Provide peer mac address: "
+    read -r "$default_mac"
 fi
+
+[[ -z "$default_mac" ]] && { echo "Error: mac address is empty"; exit 1; }
+
+echo -n "Using peer mac address: " "$default_mac"
+
 
 # Take first VF and use it
 pci_dev=$(lspci -v | grep "Virtual Function" | awk '{print $1}')
