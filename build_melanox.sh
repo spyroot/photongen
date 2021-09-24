@@ -34,5 +34,7 @@ tar xf dpdk*
 cd /root/build/dpdk-stable-20* || exit
 
 kernel_ver=$(uname -r)
-meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/"$kernel_ver" -Dibverbs_link=shared -Dwerror=true build
+meson -Dplatform=native -Dexamples=all -Denable_kmods=true \
+    -Dkernel_dir=/lib/modules/"$kernel_ver" \
+    -Dibverbs_link=shared -Dwerror=true build
 ninja -C build install
