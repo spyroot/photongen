@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 # flake8: noqa
-# Original source: http://engweb.eng.vmware.com/~neben/cyclictest-plot-80us.py
-# Commented code removed. But otherwise not cleaned up. Don't QA this file.
-
 # Copyright (c) 2021 VMware, Inc. All rights reserved.
 
 
