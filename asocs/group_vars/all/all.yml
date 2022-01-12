@@ -9,6 +9,8 @@ dc_folder: "Datacenter/vm"
 dc_template_folder: "Datacenter/vm/templates"
 cluster_name: "collapsed"
 
+druid_password: "VMware1!"
+
 # storage where we will put all VM, templates etc
 datast: "das-3.5tb-1"
 

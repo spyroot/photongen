@@ -1,7 +1,7 @@
 - name: Create a login user
   user:
     name: "vmware"
-    password: "{{ VMware1! | password_hash('sha512') }}"
+    password: "{{ druid_password | password_hash('sha512') }}"
     groups:
       - root
     state: present
