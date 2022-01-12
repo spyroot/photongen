@@ -86,3 +86,80 @@
     groups:
     - "infra"
 
+
+- name: Configure Toolbox VM
+  block:
+  - name: Configure Kubernetes repo
+    ansible.builtin.yum_repository:
+      name: docker
+      description: Repository to install kubectl
+      baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+      gpgkey:
+        - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+        - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+      state: present
+
+  - name: Add repo for Powershell
+    shell: curl https://packages.microsoft.com/config/rhel/7/prod.repo | tee /etc/yum.repos.d/microsoft.repo
+
+  - name: Install packages on Toolbox VM
+    yum:
+      name:
+        - curl
+        - epel-release
+        - wget
+        - powershell
+        - kubectl
+      state: present
+  - yum:
+      name: jq # that's because it is in the epel-release
+      state: present
+
+  - name: Install PowerCLI
+    shell: |
+      pwsh -c "Set-PSRepository -Name "PSGallery" -InstallationPolicy "Trusted"" && \
+      pwsh -c "Find-Module "VMware.PowerCLI" | Install-Module -Scope "AllUsers" -AllowClobber"
+
+  - name: Install jp
+    shell: "wget https://github.com/jmespath/jp/releases/latest/download/jp-linux-amd64 -O /usr/local/bin/jp  && chmod +x /usr/local/bin/jp"
+
+  - name: Download Tanzu CLI tarball
+    get_url:
+      url: "{{ tanzu_cli_path }}"
+      dest: /tmp/tanzu-cli-bundle-{{ virtualLabComponents.toolbox.tanzuVersion }}.tar
+      mode: 0644
+
+  - name: Install Tanzu CLI
+    shell: |
+      tar xf tanzu-cli-bundle-{{ virtualLabComponents.toolbox.tanzuVersion }}.tar && \
+      install cli/core/v{{ virtualLabComponents.toolbox.tanzuVersion }}/tanzu-core-linux_amd64 /usr/local/bin/tanzu && \
+      tanzu plugin install --local cli all
+    args:
+      chdir: /tmp/
+
+  - name: Make config dirs
+    file:
+      path: "{{ item }}"
+      state: directory
+      owner: root
+      group: root
+      mode: 0700
+    loop:
+      - "/root/.kube"
+      - "/root/.kube-tkg"
+      - "/root/.tanzu"
+      - "/root/.ssh"
+
+  - name: Copy Tanzu CLI config file
+    copy:
+      src: "{{ lookup('env','PWD') }}/base/files/virtual/02-vms/toolbox/tanzu-cli-config.yaml"
+      dest: "/root/.tanzu/config.yaml"
+      mode: 0600
+      force: true
+      owner: root
+      group: root
+
+  delegate_to: druid.cnfdemo.io
+
+
+
