@@ -30,7 +30,7 @@
     datacenter: "{{ dc }}"
     cluster: "{{ cluster_name }}"
     datastore: "{{ datast }}"
-    name: asocs_template
+    name: druid_centos_template
     power_on: no
     ovf: "{{ centos_ova }}"
   delegate_to: localhost
