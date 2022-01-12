@@ -321,6 +321,7 @@
     state: present
     name: asocs_cu_template
     is_template: yes
+  delegate_to: localhost
 
 - name: Convert asocs cu vm to du master vm template
   community.vmware.vmware_guest:
@@ -333,3 +334,4 @@
     state: present
     name: asocs_du_template
     is_template: yes
+  delegate_to: localhost
