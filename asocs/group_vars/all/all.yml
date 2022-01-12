@@ -1,0 +1,60 @@
+vc_name: "10.248.2.250"
+vc_user: "administrator@vsphere.local"
+vc_pass: "VMware1!"
+
+# datacenter and cluster spec
+dc: "Datacenter"
+dc_folder: "Datacenter/vm"
+dc_template_folder: "Datacenter/vm/templates"
+cluster_name: "collapsed"
+
+# storage where we will put all VM, templates etc
+datast: "das-3.5tb-1"
+
+# first switch infrastructure,  vsan, mgmt etc.
+dvs_core_name: "core-infra"
+dvs_sriov_name: "dvs-sriov"
+
+# network mapping
+tenant_networks:
+  - vid: 1115 
+    vlan_name: asocs_c_plane
+    ipv4_gw: 10.248.15.254/24
+    pg_name: "cu_plane"
+    pg_vlan: 1107
+  - vid: 1116
+    vlan_name: asocs_u_plane
+    ipv4_gw: 10.248.16.254/24
+    pg_name: "cu_plane"
+    pg_vlan: 1107
+
+# Shared DNS
+vm_dns: 10.241.28.1
+dumpfacts: False
+
+# defaults
+dvs_ver: 7.0.2
+dvs_default_uplink: 4
+
+# asocs CU default
+cu_memory_mb: 24576
+cu_num_cpus: 6
+cu_num_cpu_cores_per_socket: 1
+cu_mem_limit: 24576
+cu_mem_reservation: 24576
+cu_cpu_limit: 12924
+cu_cpu_reservation: 12924
+
+# asocs DU default
+du_memory_mb: 24576
+du_num_cpus: 6
+du_num_cpu_cores_per_socket: 1
+du_mem_limit: 24576
+du_mem_reservation: 24576
+du_cpu_limit: 12924
+du_cpu_reservation: 12924
+
+
+# default prefix for interface     
+IntPrefix: Vlan
+

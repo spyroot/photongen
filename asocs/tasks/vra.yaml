@@ -1,0 +1,99 @@
+---
+- name: Setup VMware VRA
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    vc_name: "10.248.2.250"
+    vc_user: "administrator@vsphere.local"
+    vc_pass: "VMware1!"
+    # first switch infrastructure,  vsan, mgmt etc.
+    dvs_core_name: "core-infra"
+    dvs_sriov_name: "dvs-sriov"
+    dc: "Datacenter"
+    dc_folder: "Datacenter/vm"
+    dc_template_folder: "Datacenter/vm/templates"
+    cluster_name: "collapsed"
+    datast: "das-3.5tb-1"
+    # pg that create / vlan
+    # All network definition.
+    pg_cu_name: "cu_plane"
+    pg_cu_vlan: 1107
+    #
+    pg_wnet_uc_name: "wnet-u-c"
+    pg_wnet_uc_vlan: 1107
+    # mgmt shared
+    pg_mgmt_name: "vlan1107.10.248.7.254"
+    pg_mgmt_vlan: 1107
+    pg_mgmt_ip: 10.248.7.0
+    pg_mgmt_mask: 255.255.255.0
+    pg_mgmt_gw: 10.248.7.254
+    #
+    # U plane and C Plane
+    pg_cnet_uc_name: "cnet_uc"
+    pg_cnet_uc_vlan: 1107
+    #
+    # dnet
+    pg_dnet_name: "dnet"
+    pg_dnet_vlan: 1107
+    #
+    # mnet
+    pg_mnet_name: "mnet"
+    pg_mnet_vlan: 1107
+    #
+    # Shared DNS
+    vm_dns: 10.241.28.1
+    vm_ntp: 10.252.88.106
+    vm_domain: "cnfdemo.io"
+    dumpfacts: False
+
+    # VNware stack
+    vra_fqdn: vra-pod04.cnfdemo.io
+    vra_ip: 10.248.7.130
+    vra_location: "/root/images/vra/O11N_VA-8.3.0.15012-17535332_OVF10.ova"
+    vra_password: "VMware1!"
+
+  tasks:
+  - name: Gather all registered dvswitch
+    community.vmware.vmware_dvswitch_info:
+      hostname: "{{ vc_name }}"
+      username: "{{ vc_user }}"
+      password: "{{ vc_pass }}"
+      validate_certs: False
+    delegate_to: localhost
+    register: dvswitch_info
+
+  # Upload ova and convert to template
+  - community.vmware.vmware_deploy_ovf:
+      allow_duplicates: False
+      validate_certs: False
+      hostname: "{{ vc_name }}"
+      username: "{{ vc_user }}"
+      password: "{{ vc_pass }}"
+      datacenter: "{{ dc }}"
+      cluster: "{{ cluster_name }}"
+      datastore: "{{ datast }}"
+      name: "{{ vra_fqdn }}"
+      power_on: yes
+      ovf: "{{ vra_location }}"
+      disk_provisioning: "thin"
+      networks: "{u'Network 1':u'{{ pg_mgmt_name }}'}"
+      properties:
+          "vami.hostname": "{{ vra_fqdn }}"
+          "hostname": "{{ vra_fqdn }}"
+          "varoot-password": "{{ vra_password }}"
+          "va-ssh-enabled": "True"
+          "ntp-servers": "{{ vm_ntp }}"
+          "fips-mode": "disabled"
+          "vami.gateway.VMware_vRealize_Orchestrator_Appliance": "{{ pg_mgmt_gw }}"
+          "vami.domain.VMware_vRealize_Orchestrator_Appliance": "{{ vm_domain }}"
+          "vami.searchpath.VMware_vRealize_Orchestrator_Appliance": "{{ vm_domain }}"
+          "vami.DNS.VMware_vRealize_Orchestrator_Appliance": "{{ vm_dns }}"
+          "vami.ip0.VMware_vRealize_Orchestrator_Appliance": "{{ vra_ip }}"
+          "vami.netmask0.VMware_vRealize_Orchestrator_Appliance": "{{ pg_mgmt_mask }}"
+          "k8s-cluster-cidr": "100.64.0.0/22"
+          "k8s-service-cidr": "100.64.4.0/22"
+    delegate_to: localhost
+    
+
+      
