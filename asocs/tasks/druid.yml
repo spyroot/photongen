@@ -47,9 +47,9 @@
     state: present
     name: druid_centos_template
     convert: thin
-    hotadd_cpu: True
-    hotremove_cpu: True
-    hotadd_memory: True
+#    hotadd_cpu: True
+#    hotremove_cpu: True
+#    hotadd_memory: True
     version: 14
     networks:
       - name: "{{ pg_mgmt_name }}"
