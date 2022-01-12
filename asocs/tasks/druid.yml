@@ -47,10 +47,6 @@
     state: present
     name: druid_centos_template
     convert: thin
-#    hotadd_cpu: True
-#    hotremove_cpu: True
-#    hotadd_memory: True
-    version: 14
     networks:
       - name: "{{ pg_mgmt_name }}"
     #is_template: no
@@ -61,6 +57,10 @@
 #      controller_number: 0
 #      unit_number: 1
     hardware:
+      hotadd_cpu: True
+      hotremove_cpu: True
+      hotadd_memory: True
+      version: "{{ druid.hw_ver | default('14') }}"
       memory_mb: "{{ druid.memory_mb | default('8192') }}"
       num_cpus: "{{ druid.num_cpus | default('2') }}"
       num_cpu_cores_per_socket: "{{ druid.num_cpu_cores_per_socket | default('1') }}"
