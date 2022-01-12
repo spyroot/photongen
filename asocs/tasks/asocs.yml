@@ -1,7 +1,7 @@
 # Playbook create ASOCS stack.
 #  
 #  - It populate all DVS.
-#  - Create required Port-groups on seperate DVS, dedicated for all SRIOV.
+#  - Create required Port-groups on separate DVS, dedicated for all SRIOV.
 #  - Take reference OVA , upload as master template.
 #  - Re-create two template , each template for CU and DU.
 #  - Create new network adapters and maps each to SRIOV.
@@ -276,6 +276,7 @@
 # Now, we do the same for a DU. Note we keep it separately
 # in case we need have different configs and specs
 - name: Adjust asocs du template vm and make template
+  delegate_to: localhost
   community.vmware.vmware_guest:
     validate_certs: False
     hostname: "{{ vc_name }}"
