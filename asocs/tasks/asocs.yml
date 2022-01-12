@@ -90,7 +90,7 @@
     datastore: "{{ datast }}"
     name: asocs_template
     power_on: no
-    ovf: /root/CentOS7-xfs-0.15.ovf
+    ovf: "{{ asocs_ova }}"
   delegate_to: localhost
 
 # First we adjust all defaults for VM, then we convert to 

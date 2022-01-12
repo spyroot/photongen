@@ -31,6 +31,8 @@ tenant_networks:
     pg_vlan: 1116
     dvs_switch_name: "dvs-sriov"
 
+asocs_ova: /root/images/asocs/CentOS7-xfs-0.15.ovf
+
 # Shared DNS
 vm_dns: 10.241.28.1
 dumpfacts: False
