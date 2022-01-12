@@ -8,333 +8,328 @@
 #  - Serialize back all VM as templates.
 #
 # In case of issue mbayramo@vmware.com
----
-- name: Create a ASOC stack.
-  hosts: localhost
-  connection: local
-  gather_facts: no
-  tasks:
-  # First we get all DVS.
-  - name: Gather all registered dvswitch
-    community.vmware.vmware_dvswitch_info:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      validate_certs: False
-    delegate_to: localhost
-    register: dvswitch_info
 
-  # Note, if switch already presented and VM attach, 
-  # you can't update value on create.
-  - name: Create core-infra switch
-    community.vmware.vmware_dvswitch:
-      hostname: '{{ vc_name }}'
-      username: '{{ vc_user }}'
-      password: '{{ vc_pass }}'
-      validate_certs: False
-      datacenter: '{{ dc }}'
-      switch: "{{ dvs_core_name }}"
-      version: "{{ dvs_ver }}"
-      # mtu: 9000
-      uplink_quantity: "{{ dvs_default_uplink }}"
-      # if you need lldp enable
-      # discovery_protocol: lldp
-      # discovery_operation: both
-      state: present
-    delegate_to: localhost
+# First we get all DVS.
+- name: Gather all registered dvswitch
+  community.vmware.vmware_dvswitch_info:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    validate_certs: False
+  delegate_to: localhost
+  register: dvswitch_info
 
-  # Now we create separate DVS switch for sriov.
-  # Note it has no uplink.
-  - name: Create core-sriov switch
-    community.vmware.vmware_dvswitch:
-      hostname: '{{ vc_name }}'
-      username: '{{ vc_user }}'
-      password: '{{ vc_pass }}'
-      validate_certs: False
-      datacenter: '{{ dc }}'
-      switch: "{{ dvs_sriov_name }}"
-      version: "{{ dvs_ver }}"
-      mtu: 9000
-      uplink_quantity: "{{ dvs_default_uplink }}"
-      discovery_protocol: lldp
-      discovery_operation: both
-      state: present
-    delegate_to: localhost
+# Note, if switch already presented and VM attach, 
+# you can't update value on create.
+- name: Create core-infra switch
+  community.vmware.vmware_dvswitch:
+    hostname: '{{ vc_name }}'
+    username: '{{ vc_user }}'
+    password: '{{ vc_pass }}'
+    validate_certs: False
+    datacenter: '{{ dc }}'
+    switch: "{{ dvs_core_name }}"
+    version: "{{ dvs_ver }}"
+    # mtu: 9000
+    uplink_quantity: "{{ dvs_default_uplink }}"
+    # if you need lldp enable
+    # discovery_protocol: lldp
+    # discovery_operation: both
+    state: present
+  delegate_to: localhost
 
-  # Now we create port groups
-  # Note we use separate task , in case we need map to different dvs.
-  - name: Create CU portgroup require for deployment
-    community.vmware.vmware_dvs_portgroup:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      validate_certs: False
-      portgroup_name: "{{ item.pg_name }}"
-      switch_name: "{{ item.dvs_switch_name }}"
-      vlan_id: "{{ pg_cu_vlan }}"
-      state: present
-      port_binding: static
-      num_ports: 120
-      # if we need adjust policy
-      # network_policy:
-      #   promiscuous: true
-      #   forged_transmits: true
-      #   mac_changes: true
-    with_items: "{{ tenant_networks }}"
-    delegate_to: localhost
+# Now we create separate DVS switch for sriov.
+# Note it has no uplink.
+- name: Create core-sriov switch
+  community.vmware.vmware_dvswitch:
+    hostname: '{{ vc_name }}'
+    username: '{{ vc_user }}'
+    password: '{{ vc_pass }}'
+    validate_certs: False
+    datacenter: '{{ dc }}'
+    switch: "{{ dvs_sriov_name }}"
+    version: "{{ dvs_ver }}"
+    mtu: 9000
+    uplink_quantity: "{{ dvs_default_uplink }}"
+    discovery_protocol: lldp
+    discovery_operation: both
+    state: present
+  delegate_to: localhost
 
-  # Now we can Upload ova and convert to template.
-  - community.vmware.vmware_deploy_ovf:
-      allow_duplicates: False
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      datastore: "{{ datast }}"
-      name: asocs_template
-      power_on: no
-      ovf: /root/CentOS7-xfs-0.15.ovf
-    delegate_to: localhost
+# Now we create port groups
+# Note we use separate task , in case we need map to different dvs.
+- name: Create CU portgroup require for deployment
+  community.vmware.vmware_dvs_portgroup:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    validate_certs: False
+    portgroup_name: "{{ item.pg_name }}"
+    switch_name: "{{ item.dvs_switch_name }}"
+    vlan_id: "{{ pg_cu_vlan }}"
+    state: present
+    port_binding: static
+    num_ports: 120
+    # if we need adjust policy
+    # network_policy:
+    #   promiscuous: true
+    #   forged_transmits: true
+    #   mac_changes: true
+  with_items: "{{ tenant_networks }}"
+  delegate_to: localhost
 
-  # First we adjust all defaults for VM, then we convert to 
-  # template without any network adapters.
-  - name: Adjusting default asoc's ova vm attributes
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      state: present
-      name: asocs_template
-        #is_template: no
-      disk:
-      # slot 0 we don't touch
-      - size_gb: 40
-        controller_type: 'paravirtual'
-        controller_number: 0
-        unit_number: 1
-      hardware:
-        memory_mb: 24576
-        num_cpus: 6
-        num_cpu_cores_per_socket: 1
-        mem_limit: 24576
-        mem_reservation: 24576
-        cpu_limit: 12924
-        cpu_reservation: 12924
-    register: asoc_origin
-  # - debug:
-  #     var: asoc_origin
+# Now we can Upload ova and convert to template.
+- community.vmware.vmware_deploy_ovf:
+    allow_duplicates: False
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    datastore: "{{ datast }}"
+    name: asocs_template
+    power_on: no
+    ovf: /root/CentOS7-xfs-0.15.ovf
+  delegate_to: localhost
 
-  # We need vm uuid
-  - name: Gather asocs template vm uuid
-    community.vmware.vmware_guest_info:
-      validate_certs: No
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      name: asocs_template
-      schema: "vsphere"
-      properties:
-    delegate_to: localhost
-    register: vminfo
-  - debug:
-      var: vminfo.instance.config.uuid
+# First we adjust all defaults for VM, then we convert to 
+# template without any network adapters.
+- name: Adjusting default asoc's ova vm attributes
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    state: present
+    name: asocs_template
+      #is_template: no
+    disk:
+    # slot 0 we don't touch
+    - size_gb: 40
+      controller_type: 'paravirtual'
+      controller_number: 0
+      unit_number: 1
+    hardware:
+      memory_mb: 24576
+      num_cpus: 6
+      num_cpu_cores_per_socket: 1
+      mem_limit: 24576
+      mem_reservation: 24576
+      cpu_limit: 12924
+      cpu_reservation: 12924
+  register: asoc_origin
+# - debug:
+#     var: asoc_origin
 
-  # We need to remove all network adapters, 
-  # in order adjust all SRIOV idempotently.
-  # A bit tricky.  
-  # First we need get list of all current mac address. 
-  # That mandatory by VC API, mac address is a mandatory key.
-  - name: Removing network adapter settings from asocs template vm
-    community.vmware.vmware_guest_network:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      uuid: "{{ vminfo.instance.config.uuid }}"
-      validate_certs: No
-      gather_network_info: yes
-    delegate_to: localhost
-    register: network_info
-  # - debug:
-  #     var: network_info.network_data
+# We need vm uuid
+- name: Gather asocs template vm uuid
+  community.vmware.vmware_guest_info:
+    validate_certs: No
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    name: asocs_template
+    schema: "vsphere"
+    properties:
+  delegate_to: localhost
+  register: vminfo
+- debug:
+    var: vminfo.instance.config.uuid
 
-  # Now, we iterate over all and delete one by one.
-  # Then we can re-create based on mapping.
-  - name: Removing network adapter settings from asocs template vm
-    community.vmware.vmware_guest_network:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      uuid: "{{ vminfo.instance.config.uuid }}"
-      validate_certs: No
-      mac_address: "{{ item.value.mac_addr | default(omit) }}"
-      gather_network_info: no
-      state: absent
-    loop: "{{ network_info.network_data | dict2items }}"
-  # - debug:
-  #     var: "{{ item.value.mac_addr }}"
-    delegate_to: localhost
+# We need to remove all network adapters, 
+# in order adjust all SRIOV idempotently.
+# A bit tricky.  
+# First we need get list of all current mac address. 
+# That mandatory by VC API, mac address is a mandatory key.
+- name: Removing network adapter settings from asocs template vm
+  community.vmware.vmware_guest_network:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    uuid: "{{ vminfo.instance.config.uuid }}"
+    validate_certs: No
+    gather_network_info: yes
+  delegate_to: localhost
+  register: network_info
+# - debug:
+#     var: network_info.network_data
 
-  # We adjusted setting, first we convert to template without any nics
-  # Remeber it SRIOV so we need release it.
-  - name: Convert asoc ova to master vm template
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      state: present
-      name: asocs_template
-      is_template: yes
+# Now, we iterate over all and delete one by one.
+# Then we can re-create based on mapping.
+- name: Removing network adapter settings from asocs template vm
+  community.vmware.vmware_guest_network:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    uuid: "{{ vminfo.instance.config.uuid }}"
+    validate_certs: No
+    mac_address: "{{ item.value.mac_addr | default(omit) }}"
+    gather_network_info: no
+    state: absent
+  loop: "{{ network_info.network_data | dict2items }}"
+# - debug:
+#     var: "{{ item.value.mac_addr }}"
+  delegate_to: localhost
 
-  # Second phase delete CU, DU tempalates in order to make it always idempotent.
-  #  if we failed before that will release all SRIOV's.
-  - name: Delete if needed asocs cu/du template vm and make template
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      name: "{{ item.template_name }}"
-      state: absent
-    loop:
-      - template_name: "asocs_cu_template"
-      - template_name: "asocs_du_template"
+# We adjusted setting, first we convert to template without any nics
+# Remeber it SRIOV so we need release it.
+- name: Convert asoc ova to master vm template
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    state: present
+    name: asocs_template
+    is_template: yes
 
-  # Third, We take master template, no IO and clone to two seperate tempalate
-  #  - Master template has no NIC, therefor we can create new, and add SRIOVs.
-  #  - if client forgot to enable SRIOV it will fail , on next re-run we delete 
-  #  - template anyway, therefor it idempotent.
-  - name: Cloning a master asocs template to custom cu/du template
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      folder: "{{ dc_folder }}"
-      state: present
-      template: "asocs_template"
-      name: "{{ item.template_name }}"
-    loop:
-      - template_name: "asocs_cu_template"
-      - template_name: "asocs_du_template"
-    delegate_to: localhost
-  
-  # Now we adjust all defaults for each VM, and  convert to reference 
-  # template. 
-  # One for CU and another one for DU.
-  # Note we don't touch disk 0.
-  - name: Adjust asocs cu template vm and make template
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      state: present
-      name: asocs_cu_template
-      disk:
-      # slot 0 we don't touch
-      - size_gb: 40
-        controller_type: 'paravirtual'
-        controller_number: 0
-        unit_number: 1
-      hardware:
-        memory_mb: "{{ cu_memory_mb }}"
-        num_cpus: "{{ cu_num_cpus }}"
-        num_cpu_cores_per_socket: "{{ cu_num_cpu_cores_per_socket }}"
-        mem_limit: "{{ cu_mem_limit }}"
-        mem_reservation: "{{ cu_mem_reservation }}"
-        cpu_limit: "{{ cu_cpu_limit }}"
-        cpu_reservation: "{{ cu_cpu_reservation }}"
-      networks:
-      # first adapter mgmt
-      - name: VM Network
-        device_type: vmxnet3
-      - name: VM Network
-        device_type: sriov
-      - name: VM Network
-        device_type: sriov
-      - name: VM Network
-        device_type: sriov
-      - name: VM Network
-        device_type: sriov
+# Second phase delete CU, DU tempalates in order to make it always idempotent.
+#  if we failed before that will release all SRIOV's.
+- name: Delete if needed asocs cu/du template vm and make template
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    name: "{{ item.template_name }}"
+    state: absent
+  loop:
+    - template_name: "asocs_cu_template"
+    - template_name: "asocs_du_template"
 
-  # Now, we do the same for a DU. Note we keep it seperatly
-  # in case we need have different configs and specs
-  - name: Adjust asocs du template vm and make template
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      state: present
-      name: asocs_du_template
-      disk:
-      # slot 0 we don't touch
-      - size_gb: 40
-        controller_type: 'paravirtual'
-        controller_number: 0
-        unit_number: 1
-      hardware:
-        memory_mb: "{{ du_memory_mb }}"
-        num_cpus: "{{ du_num_cpus }}"
-        num_cpu_cores_per_socket: "{{ du_num_cpu_cores_per_socket }}"
-        mem_limit: "{{ du_mem_limit }}"
-        mem_reservation: "{{ du_mem_reservation }}"
-        cpu_limit: "{{ du_cpu_limit }}"
-        cpu_reservation: "{{ du_cpu_reservation }}"
-      networks:
-      # first adapter mgmt
-      - name: VM Network
-        device_type: vmxnet3
-      - name: VM Network
-        device_type: sriov
-      - name: VM Network
-        device_type: sriov
-      - name: VM Network
-        device_type: sriov
-      - name: VM Network
-        device_type: sriov
+# Third, We take master template, no IO and clone to two seperate tempalate
+#  - Master template has no NIC, therefor we can create new, and add SRIOVs.
+#  - if client forgot to enable SRIOV it will fail , on next re-run we delete 
+#  - template anyway, therefor it idempotent.
+- name: Cloning a master asocs template to custom cu/du template
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    folder: "{{ dc_folder }}"
+    state: present
+    template: "asocs_template"
+    name: "{{ item.template_name }}"
+  loop:
+    - template_name: "asocs_cu_template"
+    - template_name: "asocs_du_template"
+  delegate_to: localhost
 
-   # We adjusted the setting, now we convert both CU and DU 
-   # to the template with SRIOV etc.
-  - name: Convert asocs ova vm to cu master vm template
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      state: present
-      name: asocs_cu_template
-      is_template: yes
+# Now we adjust all defaults for each VM, and  convert to reference 
+# template. 
+# One for CU and another one for DU.
+# Note we don't touch disk 0.
+- name: Adjust asocs cu template vm and make template
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    state: present
+    name: asocs_cu_template
+    disk:
+    # slot 0 we don't touch
+    - size_gb: 40
+      controller_type: 'paravirtual'
+      controller_number: 0
+      unit_number: 1
+    hardware:
+      memory_mb: "{{ cu_memory_mb }}"
+      num_cpus: "{{ cu_num_cpus }}"
+      num_cpu_cores_per_socket: "{{ cu_num_cpu_cores_per_socket }}"
+      mem_limit: "{{ cu_mem_limit }}"
+      mem_reservation: "{{ cu_mem_reservation }}"
+      cpu_limit: "{{ cu_cpu_limit }}"
+      cpu_reservation: "{{ cu_cpu_reservation }}"
+    networks:
+    # first adapter mgmt
+    - name: VM Network
+      device_type: vmxnet3
+    - name: VM Network
+      device_type: sriov
+    - name: VM Network
+      device_type: sriov
+    - name: VM Network
+      device_type: sriov
+    - name: VM Network
+      device_type: sriov
 
-  - name: Convert asocs cu vm to du master vm template
-    community.vmware.vmware_guest:
-      validate_certs: False
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      datacenter: "{{ dc }}"
-      cluster: "{{ cluster_name }}"
-      state: present
-      name: asocs_du_template
-      is_template: yes
+# Now, we do the same for a DU. Note we keep it seperatly
+# in case we need have different configs and specs
+- name: Adjust asocs du template vm and make template
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    state: present
+    name: asocs_du_template
+    disk:
+    # slot 0 we don't touch
+    - size_gb: 40
+      controller_type: 'paravirtual'
+      controller_number: 0
+      unit_number: 1
+    hardware:
+      memory_mb: "{{ du_memory_mb }}"
+      num_cpus: "{{ du_num_cpus }}"
+      num_cpu_cores_per_socket: "{{ du_num_cpu_cores_per_socket }}"
+      mem_limit: "{{ du_mem_limit }}"
+      mem_reservation: "{{ du_mem_reservation }}"
+      cpu_limit: "{{ du_cpu_limit }}"
+      cpu_reservation: "{{ du_cpu_reservation }}"
+    networks:
+    # first adapter mgmt
+    - name: VM Network
+      device_type: vmxnet3
+    - name: VM Network
+      device_type: sriov
+    - name: VM Network
+      device_type: sriov
+    - name: VM Network
+      device_type: sriov
+    - name: VM Network
+      device_type: sriov
+
+  # We adjusted the setting, now we convert both CU and DU 
+  # to the template with SRIOV etc.
+- name: Convert asocs ova vm to cu master vm template
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    state: present
+    name: asocs_cu_template
+    is_template: yes
+
+- name: Convert asocs cu vm to du master vm template
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    state: present
+    name: asocs_du_template
+    is_template: yes

@@ -1,18 +1,18 @@
 ---
   # First we prepare fabric , add all vlan , layer 3 interface etc.
-  - hosts: leaf
-    vars:
-      ansible_connection: network_cli
-      ansible_network_os: nxos
-      become: no
-      nxos_provider:
-        username: "{{ user }}"
-        password: "{{ pwd }}"
-        transport: nxapi
-        host: "{{ inventory_hostname }}"
-    tasks:
-      - include_tasks: tasks/enable_nxosapi.yml
-      - include_tasks: tasks/add_vlan.yml
+  # - hosts: leaf
+  #   vars:
+  #     ansible_connection: network_cli
+  #     ansible_network_os: nxos
+  #     become: no
+  #     nxos_provider:
+  #       username: "{{ user }}"
+  #       password: "{{ pwd }}"
+  #       transport: nxapi
+  #       host: "{{ inventory_hostname }}"
+  #   tasks:
+  #     - include_tasks: tasks/enable_nxosapi.yml
+  #     - include_tasks: tasks/add_vlan.yml
 
   # Then we deploy ASOCS.
   - hosts: vim
