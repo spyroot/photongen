@@ -85,6 +85,9 @@
     ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
     groups: "druid"
 
+- name: Display all variables/facts known for a host
+  debug: var="{{ ansible_all_ipv4_addresses.0 }}"
+
 - name: Configure nodes
   hosts: druid
   become: true
