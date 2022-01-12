@@ -83,22 +83,25 @@
     ansible_ssh_pass: "centos"
     ansible_become: false
     ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
-    groups:
-    - "druid"
+    groups: "druid"
 
-- name: Create user on a druid server.
+- name: Configure nodes
   hosts: druid
-  become: yes
+  become: true
+  gather_facts: false
 
-- name: Install packages.
-  hosts: druid
-  yum:
-    name:
-      - curl
-      - epel-release
-      - wget
-      - powershell
-      - kubectl
-    state: present
+  tasks:
+    - name: Wait for SSH banners
+      wait_for_connection:
+        delay: 5
+        timeout: 300
 
+    - name: Install apps
+      apt:
+        state: present
+        name: ["git", "htop"]
+        update_cache: true
 
+    - name: Pause play to interact with the servers
+      pause:
+        prompt: "Playbook paused... hit <enter> to continue or <ctrl-c a> to abort"
