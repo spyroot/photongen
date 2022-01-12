@@ -46,6 +46,7 @@
     cluster: "{{ cluster_name }}"
     state: present
     name: druid_centos_template
+    convert: thin
     networks: "{u'Network 1':u'{{ pg_mgmt_name }}'}"
     #is_template: no
     disk:
