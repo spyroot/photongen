@@ -1,0 +1,7 @@
+- name: Create a login user
+  user:
+    name: "vmware"
+    password: "VMware1!"
+    groups:
+      - root
+    state: present

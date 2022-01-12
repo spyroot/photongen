@@ -8,7 +8,6 @@
 #  - Serialize back all VM as templates.
 #
 # In case of issue mbayramo@vmware.com
-
 # First we get all DVS.
 - name: Gather all registered dvswitch
   community.vmware.vmware_dvswitch_info:
@@ -79,37 +78,8 @@
 - name: Add druid to local ansible inventory
   add_host:
     name: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
-    hostname: "druid.cnfdemo.io"
+    hostname: druid.cnfdemo.io
     ansible_ssh_user: "centos"
     ansible_ssh_pass: "centos"
-    ansible_user: centos
-    ansible_become: false
     ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
-    instance_name:  "druid.cnfdemo.io"
-    groups: "druid"
-
-- name: Display all variables/facts known for a host
-  debug: var="{{ ansible_all_ipv4_addresses.0 }}"
-
-- name: Configure nodes
-  block:
-  - name: Configure nodes
-    hosts: druid
-    become: true
-    gather_facts: false
-
-  # tasks:
-  #   - name: Wait for SSH banners
-  #     wait_for_connection:
-  #       delay: 5
-  #       timeout: 300
-
-  #   - name: Install apps
-  #     apt:
-  #       state: present
-  #       name: ["git", "htop"]
-  #       update_cache: true
-
-  #   - name: Pause play to interact with the servers
-  #     pause:
-  #       prompt: "Playbook paused... hit <enter> to continue or <ctrl-c a> to abort"
+    groups: created
