@@ -70,13 +70,8 @@
     state: present
     port_binding: static
     num_ports: 120
-    # if we need adjust policy
-     network_policy:
-       promiscuous: true
-         when: "'promiscuous' in {{item}}"
-       forged_transmits: true
-         when: "'forged_transmits' in {{item}}"
-       mac_changes: true
-         when: "'mac_changes' in {{item}}"
+    network_policy:
+       promiscuous: true 
+       when: "'promiscuous' in {{item}}"
   with_items: "{{ tenant_networks }}"
   delegate_to: localhost
