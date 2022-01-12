@@ -1,3 +1,4 @@
+# target vcenter
 vc_name: "10.248.2.250"
 vc_user: "administrator@vsphere.local"
 vc_pass: "VMware1!"
@@ -15,6 +16,10 @@ datast: "das-3.5tb-1"
 dvs_core_name: "core-infra"
 dvs_sriov_name: "dvs-sriov"
 
+# dvs defaults
+dvs_ver: 7.0.2
+dvs_default_uplink: 4
+
 # network mapping
 tenant_networks:
   - vid: 1115 
@@ -31,17 +36,49 @@ tenant_networks:
     pg_vlan: 1116
     dvs_switch_name: "dvs-sriov"
 
+  - vid: 1117
+    vlan_name: asocs_u_plane
+    ipv4_gw: 10.248.16.254/24
+    pg_name: "vlan116.10.248.16.254.cu.plane"
+    pg_vlan: 1116
+    dvs_switch_name: "dvs-sriov"
+
+  - vid: 1118
+    vlan_name: asocs_u_plane
+    ipv4_gw: 10.248.16.254/24
+    pg_name: "vlan116.10.248.16.254.cu.plane"
+    pg_vlan: 1116
+    dvs_switch_name: "dvs-sriov"
+
+  - vid: 1119
+    vlan_name: asocs_u_plane
+    ipv4_gw: 10.248.16.254/24
+    pg_name: "vlan116.10.248.16.254.cu.plane"
+    pg_vlan: 1116
+    dvs_switch_name: "dvs-sriov"
+
+  - vid: 1120
+    vlan_name: asocs_u_plane
+    ipv4_gw: 10.248.16.254/24
+    pg_name: "vlan116.10.248.16.254.cu.plane"
+    pg_vlan: 1116
+    dvs_switch_name: "dvs-sriov"
+
+  - vid: 1121
+    vlan_name: asocs_u_plane
+    ipv4_gw: 10.248.16.254/24
+    pg_name: "vlan116.10.248.16.254.cu.plane"
+    pg_vlan: 1116
+    dvs_switch_name: "dvs-sriov"
+
+# list of ova and images for asocs
 asocs_ova: /root/images/asocs/CentOS7-xfs-0.15.ovf
 
-# Shared DNS
+# shared services dns, ntp etc
 vm_dns: 10.241.28.1
 vm_ntp: 10.252.88.106
 vm_domain: "cnfdemo.io"
 dumpfacts: False
-
-# defaults
-dvs_ver: 7.0.2
-dvs_default_uplink: 4
 
 # asocs CU default
 cu_memory_mb: 24576
@@ -61,11 +98,10 @@ du_mem_reservation: 24576
 du_cpu_limit: 12924
 du_cpu_reservation: 12924
 
-
-# default prefix for interface     
+# Fabric default prefix for interface     
 IntPrefix: Vlan
 
-# VNware stack
+# VMware stack components
 vra_fqdn: vra-pod04.cnfdemo.io
 vra_ip: 10.248.7.130
 vra_location: "/root/images/vra/O11N_VA-8.3.0.15012-17535332_OVF10.ova"
