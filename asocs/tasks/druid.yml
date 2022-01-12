@@ -84,15 +84,14 @@
     ansible_become: false
     ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
     groups:
-    - "infra"
+    - "druid"
 
 - name: Create user on a druid server.
-  hosts: druid.cnfdemo.io
+  hosts: druid
   become: yes
-  gather_facts: true
 
 - name: Install packages.
-  hosts: druid.cnfdemo.io
+  hosts: druid
   yum:
     name:
       - curl
