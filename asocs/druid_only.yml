@@ -3,6 +3,9 @@
   - hosts: vim
     tasks:
       - include_tasks: tasks/druid.yml
-  - hosts: created
+
+  - hosts: created_nodes
+    become: true
+    gather_facts: false
     tasks:
       - include_tasks: tasks/created_nodes.yml

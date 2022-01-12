@@ -72,14 +72,11 @@
   delegate_to: localhost
   register: druid_origin
 
-# - set_fact:
-#     toolbox_ip: "{{ json_query('druid_origin.hw_eth0.ipaddresses[0]') }}"
-    
-- name: Add druid to local ansible inventory
+- name: Create in-memory Ansible inventory
   add_host:
     name: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
-    hostname: druid.cnfdemo.io
+    groups: created_nodes
+    ansible_user: centos
     ansible_ssh_user: "centos"
     ansible_ssh_pass: "centos"
-    ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
-    groups: created
+    ansible_connection: ssh
