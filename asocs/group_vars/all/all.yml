@@ -35,6 +35,8 @@ asocs_ova: /root/images/asocs/CentOS7-xfs-0.15.ovf
 
 # Shared DNS
 vm_dns: 10.241.28.1
+vm_ntp: 10.252.88.106
+vm_domain: "cnfdemo.io"
 dumpfacts: False
 
 # defaults
@@ -63,3 +65,8 @@ du_cpu_reservation: 12924
 # default prefix for interface     
 IntPrefix: Vlan
 
+# VNware stack
+vra_fqdn: vra-pod04.cnfdemo.io
+vra_ip: 10.248.7.130
+vra_location: "/root/images/vra/O11N_VA-8.3.0.15012-17535332_OVF10.ova"
+vra_password: "VMware1!"

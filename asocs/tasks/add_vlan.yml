@@ -44,9 +44,9 @@
      state: merged
    with_items: "{{ tenant_networks }}"
 
-# We take all and add to route-map
-# We can merge to one line, since VLAN id distinct value we use vlan id as seq number
-# that make changes idempotent
+ # We take all and add to route-map
+ # We can merge to one line, since VLAN id distinct value we use vlan id as seq number
+ # that make changes idempotent
  - name: Adding layer 3 interface to route map.
    cisco.nxos.nxos_route_maps:
      config:
