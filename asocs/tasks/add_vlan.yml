@@ -5,7 +5,7 @@
 
  # Add all required vlans.
  # - Note tenant_networks list of key-values
- - name: Add global vlans configuration.
+ - name: Adding global vlans in switch fabric configuration.
    nxos_vlans:
      config:
        - vlan_id: "{{ item.vid }}"
@@ -17,7 +17,7 @@
    with_items: "{{ tenant_networks }}"
 
  # Now for each VLAN we add SVI
- - name: Adding layer 3 SVI interfaces.
+ - name: Adding layer 3 SVI interfaces in switch fabric.
    cisco.nxos.nxos_interfaces:
      config:
      - name: Vlan + "{{ item.vid }}"
