@@ -20,6 +20,8 @@ dvs_sriov_name: "dvs-sriov"
 dvs_ver: 7.0.2
 dvs_default_uplink: 4
 
+pg_mgmt_name: "vlan1107.10.248.7.254"
+
 # network mapping
 tenant_networks:
   - vid: 1115
