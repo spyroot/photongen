@@ -92,22 +92,24 @@
   debug: var="{{ ansible_all_ipv4_addresses.0 }}"
 
 - name: Configure nodes
-  hosts: druid
-  become: true
-  gather_facts: false
+  block:
+  - name: Configure nodes
+    hosts: druid
+    become: true
+    gather_facts: false
 
-  tasks:
-    - name: Wait for SSH banners
-      wait_for_connection:
-        delay: 5
-        timeout: 300
+  # tasks:
+  #   - name: Wait for SSH banners
+  #     wait_for_connection:
+  #       delay: 5
+  #       timeout: 300
 
-    - name: Install apps
-      apt:
-        state: present
-        name: ["git", "htop"]
-        update_cache: true
+  #   - name: Install apps
+  #     apt:
+  #       state: present
+  #       name: ["git", "htop"]
+  #       update_cache: true
 
-    - name: Pause play to interact with the servers
-      pause:
-        prompt: "Playbook paused... hit <enter> to continue or <ctrl-c a> to abort"
+  #   - name: Pause play to interact with the servers
+  #     pause:
+  #       prompt: "Playbook paused... hit <enter> to continue or <ctrl-c a> to abort"
