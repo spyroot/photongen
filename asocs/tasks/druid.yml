@@ -79,8 +79,8 @@
 - name: Add druid to local inventory
   add_host:
     hostname: "druid.cnfdemo.io"
-    ansible_ssh_user: "root"
-    ansible_ssh_pass: "VMware1!"
+    ansible_ssh_user: "centos"
+    ansible_ssh_pass: "centos"
     ansible_become: false
     ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
     groups:
