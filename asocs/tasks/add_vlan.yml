@@ -46,15 +46,15 @@
 
 # We take all and add to route-map
 # We can merge to one line, since VLAN id distinct value we use vlan id as seq number
-# that make changes idenpotent
-- name: Adding layer 3 interface to route map.
-  cisco.nxos.nxos_route_maps:
-    config:
-      - route_map: direct->bgp-ipv4-unicast
-        entries:
-          - sequence: "{{ item.vid }}"
-            action: permit
-            description: auto-generated
-            match:
-              interfaces: "{{ IntPrefix }}{{ item.vid }}"
-  with_items: "{{ tenant_networks }}"
+# that make changes idempotent
+ - name: Adding layer 3 interface to route map.
+   cisco.nxos.nxos_route_maps:
+     config:
+       - route_map: direct->bgp-ipv4-unicast
+         entries:
+           - sequence: "{{ item.vid }}"
+             action: permit
+             description: auto-generated
+             match:
+               interfaces: "{{ IntPrefix }}{{ item.vid }}"
+   with_items: "{{ tenant_networks }}"
