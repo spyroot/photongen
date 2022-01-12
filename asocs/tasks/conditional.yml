@@ -72,6 +72,8 @@
     num_ports: 120
     network_policy:
       promiscuous: true
-    when: "'promiscuous' in {{item}}"
+      forged_transmits: true
+      mac_changes: true
+    # when: "'promiscuous' in {{item}}"
   with_items: "{{ tenant_networks }}"
   delegate_to: localhost
