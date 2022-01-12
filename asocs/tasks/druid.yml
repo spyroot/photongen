@@ -78,11 +78,14 @@
     
 - name: Add druid to local ansible inventory
   add_host:
+    name: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
     hostname: "druid.cnfdemo.io"
     ansible_ssh_user: "centos"
     ansible_ssh_pass: "centos"
+    ansible_user: centos
     ansible_become: false
     ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
+    instance_name:  "druid.cnfdemo.io"
     groups: "druid"
 
 - name: Display all variables/facts known for a host
