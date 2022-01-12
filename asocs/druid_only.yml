@@ -2,4 +2,4 @@
   # Then we deploy ASOCS.
   - hosts: vim
     tasks:
-      - include_tasks: tasks/asocs.yml
+      - include_tasks: tasks/druid.yml

@@ -76,6 +76,7 @@ tenant_networks:
 
 # list of ova and images for asocs
 asocs_ova: /root/images/asocs/CentOS7-xfs-0.15.ovf
+centos_ova: /root/images/centos/CentOS_7.9.2009_VMM_LinuxVMImages.ovf
 
 # shared services dns, ntp etc
 vm_dns: 10.241.28.1
