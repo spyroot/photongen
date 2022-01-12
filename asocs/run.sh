@@ -5,6 +5,10 @@ conda activate asocs
 apt-get install ansible-lint -y
 
 pip3 install ansible
+pip3 install paramiko
+
+pip3 install paramiko
+
 ansible-galaxy collection install community.vmware
 ansible-galaxy install vmware.govc
 pip3 install pyvmomi
