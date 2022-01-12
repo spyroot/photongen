@@ -179,7 +179,7 @@
 
 # We adjusted setting, first we convert to template without any nics
 # Remember it SRIOV so we need release it.
-- name: Convert asoc ova to master vm template
+- name: Converting ASOCS master ova to master vm template
   community.vmware.vmware_guest:
     validate_certs: False
     hostname: "{{ vc_name }}"
@@ -190,6 +190,7 @@
     state: present
     name: asocs_template
     is_template: yes
+  delegate_to: localhost
 
 # Second phase delete CU, DU templates in order to make it always idempotent.
 #  if we failed before that will release all SRIOV's.
@@ -310,7 +311,7 @@
 
   # We adjusted the setting, now we convert both CU and DU 
   # to the template with SRIOV etc.
-- name: Convert asocs ova vm to cu master vm template
+- name: Convert asocs ova vm to master CU VM template
   community.vmware.vmware_guest:
     validate_certs: False
     hostname: "{{ vc_name }}"
@@ -323,7 +324,7 @@
     is_template: yes
   delegate_to: localhost
 
-- name: Convert asocs cu vm to du master vm template
+- name: Convert asocs DU vm to master DU VM template
   community.vmware.vmware_guest:
     validate_certs: False
     hostname: "{{ vc_name }}"
