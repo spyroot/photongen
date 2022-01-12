@@ -68,5 +68,21 @@
       mem_reservation: "{{ druid.mem_reservation | default('0') }}"
       cpu_limit: "{{ druid.cpu_limit | default('0') }}"
       cpu_reservation: "{{ druid.cpu_reservation | default('0') }}"
+  wait_for_ip_address: true
+  wait_for_ip_address_timeout: 800
   delegate_to: localhost
   register: druid_origin
+
+- set_fact:
+    toolbox_ip: "{{ druid_origin.hw_eth0.ipaddresses[0] }}"
+    
+# - name: Add druid to local inventory
+#   add_host:
+#     hostname: "toolbox.5gcec.lab"
+#     ansible_ssh_user: "root"
+#     ansible_ssh_pass: "VMware1!"
+#     ansible_become: false
+#     ansible_host: "{{ druid_origin.hw_eth0.ipaddresses[0] }}"
+#     groups:
+#     - "infra"
+
