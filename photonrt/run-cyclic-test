@@ -9,6 +9,7 @@ import click
 
 import utils
 
+
 @click.command()
 @click.option("-D", "--duration", default="5m", show_default=True)
 @click.option("--histfile", default="cyclictest.hist", show_default=True)
@@ -18,7 +19,7 @@ import utils
 @click.option(
     "--dry-run", is_flag=True,
     help="Just print the command to run. So you can tweak and run it yourself "
-    "manually later.")
+         "manually later.")
 def run(duration, histfile, max_latency, priority, interval, dry_run):
     cpus_count = len(list(utils.get_isol_cpus()))
     isol_cpus_text = utils.get_isol_cpus_text()
@@ -31,6 +32,7 @@ def run(duration, histfile, max_latency, priority, interval, dry_run):
     print(" ".join(cyclictest_args))
     if not dry_run:
         subprocess.run(cyclictest_args, check=True)
+
 
 if __name__ == '__main__':
     run()
