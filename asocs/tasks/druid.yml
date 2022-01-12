@@ -86,13 +86,10 @@
     groups:
     - "infra"
 
-- name: Create user on a druid server
+- name: Create user on a druid server.
   hosts: druid.cnfdemo.io
   become: yes
-  gather_facts: false
-  vars:
-    - user: vmware
-    - password: VMware1!
+  gather_facts: true
 
 - name: Install packages.
   hosts: druid.cnfdemo.io
