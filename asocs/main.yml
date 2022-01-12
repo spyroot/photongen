@@ -1,4 +1,5 @@
---- 
+---
+  # First we prepare fabric , add all vlan , layer 3 interface etc.
   - hosts: leaf
     vars:
       ansible_connection: network_cli
@@ -12,7 +13,8 @@
     tasks:
       - include_tasks: tasks/enable_nxosapi.yml
       - include_tasks: tasks/add_vlan.yml
-      
+
+  # Then we deploy ASOCS.
   - hosts: vim
     tasks:
       - include_tasks: tasks/asocs.yml
