@@ -140,7 +140,7 @@
   register: vminfo
 
 # We need to remove all network adapters, 
-# in order adjust all SRIOV idempotently.
+# in order adjust all SRIOV idempotent.
 # A bit tricky.  
 # First we need get list of all current mac address. 
 # That mandatory by VC API, mac address is a mandatory key.

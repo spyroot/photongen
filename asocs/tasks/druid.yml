@@ -34,3 +34,32 @@
     power_on: no
     ovf: "{{ centos_ova }}"
   delegate_to: localhost
+
+# Adjust centos template
+- name: Adjusting default druid ova vm attributes
+  community.vmware.vmware_guest:
+    validate_certs: False
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    cluster: "{{ cluster_name }}"
+    state: present
+    name: druid_centos_template
+      #is_template: no
+    disk:
+    # slot 0 we don't touch
+    - size_gb: 40
+      controller_type: 'paravirtual'
+      controller_number: 0
+      unit_number: 1
+    hardware:
+      memory_mb: "{{ druid.memory_mb | default('8192') }}"
+      num_cpus: "{{ druid.num_cpus | default('2') }}"
+      num_cpu_cores_per_socket: "{{ druid.num_cpu_cores_per_socket | default('1') }}"
+      mem_limit: "{{ druid.mem_limit | default('0') }}"
+      mem_reservation: "{{ druid.mem_reservation | default('0') }}"
+      cpu_limit: "{{ druid.cpu_limit | default('0') }}"
+      cpu_reservation: "{{ druid.cpu_reservation | default('0') }}"
+  delegate_to: localhost
+  register: druid_origin
