@@ -62,15 +62,15 @@
     delegate_to: localhost
 
   # Now we create port groups
-  # Note we use seperate task , in case we need map to different dvs.
+  # Note we use separate task , in case we need map to different dvs.
   - name: Create CU portgroup require for deployment
     community.vmware.vmware_dvs_portgroup:
       hostname: "{{ vc_name }}"
       username: "{{ vc_user }}"
       password: "{{ vc_pass }}"
       validate_certs: False
-      portgroup_name: "{{ pg_cu_name }}"
-      switch_name: "{{ dvs_sriov_name }}"
+      portgroup_name: "{{ item.pg_name }}"
+      switch_name: "{{ item.dvs_switch_name }}"
       vlan_id: "{{ pg_cu_vlan }}"
       state: present
       port_binding: static
@@ -80,81 +80,7 @@
       #   promiscuous: true
       #   forged_transmits: true
       #   mac_changes: true
-    delegate_to: localhost
-
-  - name: Create WNet_UC portgroup require for deployment
-    community.vmware.vmware_dvs_portgroup:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      validate_certs: False
-      portgroup_name: "{{ pg_wnet_uc_name }}"
-      switch_name: "{{ dvs_sriov_name }}"
-      vlan_id: "{{ pg_wnet_uc_vlan }}"
-      state: present
-      port_binding: static
-      num_ports: 120
-      # if we need adjust policy
-      # network_policy:
-      #   promiscuous: true
-      #   forged_transmits: true
-      #   mac_changes: true
-    delegate_to: localhost
-
-  - name: Create CNET_UC portgroup require for deployment
-    community.vmware.vmware_dvs_portgroup:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      validate_certs: False
-      switch_name: "{{ dvs_sriov_name }}"
-      portgroup_name: "{{ pg_cnet_uc_name }}"
-      vlan_id: "{{ pg_cnet_uc_vlan }}"
-      state: present
-      port_binding: static
-      num_ports: 120
-      # network_policy:
-      #   promiscuous: true
-      #   forged_transmits: true
-      #   mac_changes: true
-    delegate_to: localhost
-
-  # required for druid core
-  - name: Create DNET portgroup require for deployment
-    community.vmware.vmware_dvs_portgroup:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      validate_certs: False
-      switch_name: "{{ dvs_sriov_name }}"
-      portgroup_name: "{{ pg_dnet_name }}"
-      vlan_id: "{{ pg_dnet_vlan }}"
-      state: present
-      port_binding: static
-      num_ports: 120
-      # network_policy:
-      #   promiscuous: true
-      #   forged_transmits: true
-      #   mac_changes: true
-    delegate_to: localhost
-
-  # mnet required for RMU VM
-  - name: Create mnet portgroup require for deployment
-    community.vmware.vmware_dvs_portgroup:
-      hostname: "{{ vc_name }}"
-      username: "{{ vc_user }}"
-      password: "{{ vc_pass }}"
-      validate_certs: False
-      switch_name: "{{ dvs_sriov_name }}"
-      portgroup_name: "{{ pg_mnet_name }}"
-      vlan_id: "{{ pg_mnet_vlan }}"
-      state: present
-      port_binding: static
-      num_ports: 120
-      # network_policy:
-      #   promiscuous: true
-      #   forged_transmits: true
-      #   mac_changes: true
+    with_items: "{{ tenant_networks }}"
     delegate_to: localhost
 
   # Now we can Upload ova and convert to template.

@@ -1,52 +1,52 @@
-# # First we gather all data
-# - name: Gather vlans facts from the device using nxos_vlans
-#   cisco.nxos.nxos_vlans:
-#     state: gathered
+ # First we gather all data
+ - name: Gather vlans facts from the device using nxos_vlans
+   cisco.nxos.nxos_vlans:
+     state: gathered
 
-# # Add all required vlans.
-# # - Note tenant_networks list of key-values
-# - name: Add global vlans configuration.
-#   nxos_vlans:
-#     config:
-#       - vlan_id: "{{ item.vid }}"
-#         name: "{{ item.vlan_name }}"
-#         state: active
-#         enabled: yes
-#         mode: ce        
-#     state: merged
-#   with_items: "{{ tenant_networks }}"
+ # Add all required vlans.
+ # - Note tenant_networks list of key-values
+ - name: Add global vlans configuration.
+   nxos_vlans:
+     config:
+       - vlan_id: "{{ item.vid }}"
+         name: "{{ item.vlan_name }}"
+         state: active
+         enabled: yes
+         mode: ce
+     state: merged
+   with_items: "{{ tenant_networks }}"
 
-# # Now for each VLAN we add SVI
-# - name: Adding layer 3 SVI interfaces.
-#   cisco.nxos.nxos_interfaces:
-#     config:
-#     - name: Vlan + "{{ item.vid }}"
-#       description: Automated dep , tenant "{{ item.vlan_name }}"
-#       enabled: true
-#       mode: layer3
-#       mtu: 9216
-#     state: merged
-#   with_items: "{{ tenant_networks }}"
+ # Now for each VLAN we add SVI
+ - name: Adding layer 3 SVI interfaces.
+   cisco.nxos.nxos_interfaces:
+     config:
+     - name: Vlan + "{{ item.vid }}"
+       description: Automated dep , tenant "{{ item.vlan_name }}"
+       enabled: true
+       mode: layer3
+       mtu: 9216
+     state: merged
+   with_items: "{{ tenant_networks }}"
 
-# # Pool data.
-# - name: Gather l3 interfaces facts
-#   cisco.nxos.nxos_l3_interfaces:
-#     state: gathered
+ # Pool data.
+ - name: Gather l3 interfaces facts
+   cisco.nxos.nxos_l3_interfaces:
+     state: gathered
 
-# # Add layer IPv4
-# # - Note each tenant_networks must have correct keys
-# - name: Adding layer 3 SVI ipv4 address.
-#   cisco.nxos.nxos_l3_interfaces:
-#     config:
-#     - name: Vlan + "{{ item.vid }}"
-#       ipv4:
-#       - address: "{{ item.ipv4_gw }}"
-#     state: merged
-#   with_items: "{{ tenant_networks }}"
+ # Add layer IPv4
+ # - Note each tenant_networks must have correct keys
+ - name: Adding layer 3 SVI ipv4 address.
+   cisco.nxos.nxos_l3_interfaces:
+     config:
+     - name: Vlan + "{{ item.vid }}"
+       ipv4:
+       - address: "{{ item.ipv4_gw }}"
+     state: merged
+   with_items: "{{ tenant_networks }}"
 
-# We take all and add to route-map
-#  - We can merge to one line, since VLAN id distinct value we use vlan id as seq number
-#    that make changes idenpotent
+ We take all and add to route-map
+  - We can merge to one line, since VLAN id distinct value we use vlan id as seq number
+    that make changes idenpotent
 - name: Adding layer 3 interface to route map.
   cisco.nxos.nxos_route_maps:
     config:

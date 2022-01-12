@@ -20,13 +20,16 @@ tenant_networks:
   - vid: 1115 
     vlan_name: asocs_c_plane
     ipv4_gw: 10.248.15.254/24
-    pg_name: "cu_plane"
-    pg_vlan: 1107
+    pg_name: "vlan116.10.248.15.254.cu.plane"
+    pg_vlan: 1115
+    dvs_switch_name: "dvs-sriov"
+
   - vid: 1116
     vlan_name: asocs_u_plane
     ipv4_gw: 10.248.16.254/24
-    pg_name: "cu_plane"
-    pg_vlan: 1107
+    pg_name: "vlan116.10.248.16.254.cu.plane"
+    pg_vlan: 1116
+    dvs_switch_name: "dvs-sriov"
 
 # Shared DNS
 vm_dns: 10.241.28.1
