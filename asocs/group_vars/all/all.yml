@@ -28,9 +28,9 @@ tenant_networks:
     pg_name: "vlan1115.10.248.15.254"
     pg_vlan: 1115
     dvs_switch_name: "dvs-sriov"
-    promiscuous: True
-    forged_transmits: True
-    mac_changes: True
+    promiscuous: true
+    forged_transmits: true
+    mac_changes: true
 
   - vid: 1116
     vlan_name: asocs_wnet-uc_plane

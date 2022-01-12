@@ -71,9 +71,8 @@
     port_binding: static
     num_ports: 120
     network_policy:
-      promiscuous: true
-      forged_transmits: true
-      mac_changes: true
-    # when: "'promiscuous' in {{item}}"
+      promiscuous: "{{ item.promiscuous | default('False') }}"
+      forged_transmits: "{{ item.forged_transmits | default('False') }}"
+      mac_changes: "{{ item.mac_changes | default('False') }}"
   with_items: "{{ tenant_networks }}"
   delegate_to: localhost
