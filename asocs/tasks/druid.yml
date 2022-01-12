@@ -47,7 +47,9 @@
     state: present
     name: druid_centos_template
     convert: thin
-    networks: "{u'Network 1':u'{{ pg_mgmt_name }}'}"
+    networks:
+      - name: {{ pg_mgmt_name }}
+        device_type: vmxnet3
     #is_template: no
     disk:
     # slot 0 we don't touch
