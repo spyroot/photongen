@@ -1,17 +1,15 @@
 - name: Create a login user
   user:
     name: "vmware"
-    password: "VMware1!"
+    password: "{{ VMware1! | password_hash('sha512') }}"
     groups:
       - root
     state: present
 
-- name: Install packages on Toolbox VM
+- name: Install a list of packages.
   yum:
-    name: 
-      - curl
-      - epel-release
-      - wget
-      - powershell
-      - kubectl
-    state: present
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - curl
+    - wget
