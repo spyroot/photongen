@@ -58,7 +58,7 @@
 
 # Now we create port groups
 # Note we use separate task , in case we need map to different dvs.
-- name: Create CU portgroup require for deployment
+- name: Create SRIOV portgroups required for deployment
   community.vmware.vmware_dvs_portgroup:
     hostname: "{{ vc_name }}"
     username: "{{ vc_user }}"
@@ -79,7 +79,8 @@
   delegate_to: localhost
 
 # Now we can Upload ova and convert to template.
-- community.vmware.vmware_deploy_ovf:
+- name: "Deploy OVF template"
+  community.vmware.vmware_deploy_ovf:
     allow_duplicates: False
     validate_certs: False
     hostname: "{{ vc_name }}"
@@ -137,9 +138,7 @@
     properties:
   delegate_to: localhost
   register: vminfo
-- debug:
-    var: vminfo.instance.config.uuid
-
+  
 # We need to remove all network adapters, 
 # in order adjust all SRIOV idempotently.
 # A bit tricky.  
