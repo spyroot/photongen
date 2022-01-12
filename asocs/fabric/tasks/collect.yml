@@ -1,0 +1,27 @@
+---
+- name: "Verify Fabric"
+  register: underlay_output
+  ios_command:
+    provider: "{{ ios_provider }}"
+    commands:
+      - show ip ospf neighbors
+      - show ip bgp sum | b Network
+      - show ip pim neighbor
+      - show mac address-table | b ---
+  tags: underlay
+- debug: var=underlay_output.stdout_lines
+  tags: underlay
+
+- name: "Verify Overlay"
+  register: overlay_output
+  ios_command:
+    provider: "{{ ios_provider }}"
+    commands:
+      - show nve vni
+      - show nve peer
+      - show ip route vrf Tenant-1
+      - show bgp l2vpn evpn
+      - show l2route evpn mac-ip all
+  tags: overlay
+- debug: var=overlay_output.stdout_lines
+  tags: overlay
