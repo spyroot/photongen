@@ -5,3 +5,13 @@
     groups:
       - root
     state: present
+
+- name: Install packages on Toolbox VM
+  yum:
+    name: 
+      - curl
+      - epel-release
+      - wget
+      - powershell
+      - kubectl
+    state: present
