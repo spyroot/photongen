@@ -46,13 +46,14 @@
     cluster: "{{ cluster_name }}"
     state: present
     name: druid_centos_template
-      #is_template: no
+    networks: "{u'Network 1':u'{{ pg_mgmt_name }}'}"
+    #is_template: no
     disk:
     # slot 0 we don't touch
-    - size_gb: 40
-      controller_type: 'paravirtual'
-      controller_number: 0
-      unit_number: 1
+#    - size_gb: 40
+#      controller_type: 'paravirtual'
+#      controller_number: 0
+#      unit_number: 1
     hardware:
       memory_mb: "{{ druid.memory_mb | default('8192') }}"
       num_cpus: "{{ druid.num_cpus | default('2') }}"
