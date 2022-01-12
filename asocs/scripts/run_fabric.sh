@@ -13,10 +13,10 @@ ansible-galaxy collection install cisco.nxos
 # upgrade 
 #sudo pip install --ignore-installed --upgrade ansible
 
-ansible-lint fabric.yml
-ansible-playbook fabric.yml --syntax-check
+ansible-lint main.yml
+ansible-playbook main.yml --syntax-check
 
-ansible-playbook fabric.yml
+ansible-playbook main.yml
 
 # debug mode
 # ansible-playbook fabric.yml -vvvv
