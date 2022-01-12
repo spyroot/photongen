@@ -138,7 +138,7 @@
     properties:
   delegate_to: localhost
   register: vminfo
-  
+
 # We need to remove all network adapters, 
 # in order adjust all SRIOV idempotently.
 # A bit tricky.  
