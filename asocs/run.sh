@@ -4,9 +4,8 @@ conda activate asocs
 # install linter
 apt-get install ansible-lint -y
 
+# install ansible and paramiko
 pip3 install ansible
-pip3 install paramiko
-
 pip3 install paramiko
 
 ansible-galaxy collection install community.vmware
