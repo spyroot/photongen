@@ -11,8 +11,8 @@
         transport: nxapi
         host: "{{ inventory_hostname }}"
     tasks:
-      # - include_tasks: tasks/enable_nxosapi.yml
-      # - include_tasks: tasks/add_vlan.yml
+       - include_tasks: tasks/enable_nxosapi.yml
+       - include_tasks: tasks/add_vlan.yml
 
   # Then we deploy ASOCS.
   - hosts: vim
