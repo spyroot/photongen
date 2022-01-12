@@ -49,7 +49,6 @@
     convert: thin
     networks:
       - name: "{{ pg_mgmt_name }}"
-        device_type: vmxnet3
     #is_template: no
     disk:
     # slot 0 we don't touch
