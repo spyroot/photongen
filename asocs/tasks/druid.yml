@@ -44,7 +44,7 @@
     password: "{{ vc_pass }}"
     datacenter: "{{ dc }}"
     cluster: "{{ cluster_name }}"
-    state: present
+    state: poweredon
     name: druid_centos_template
     convert: thin
     networks:
