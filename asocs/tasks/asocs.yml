@@ -195,6 +195,7 @@
 # Second phase delete CU, DU templates in order to make it always idempotent.
 #  if we failed before that will release all SRIOV's.
 - name: Delete if needed asocs cu/du template vm and make template
+  delegate_to: localhost
   community.vmware.vmware_guest:
     validate_certs: False
     hostname: "{{ vc_name }}"
@@ -213,6 +214,7 @@
 #  - if client forgot to enable SRIOV it will fail , on next re-run we delete 
 #  - template anyway, therefore it idempotent.
 - name: Cloning a master asocs template to custom cu/du template
+  delegate_to: localhost
   community.vmware.vmware_guest:
     validate_certs: False
     hostname: "{{ vc_name }}"
@@ -227,13 +229,13 @@
   loop:
     - template_name: "asocs_cu_template"
     - template_name: "asocs_du_template"
-  delegate_to: localhost
 
-# Now we adjust all defaults for each VM, and  convert to reference 
+# Now we adjust all defaults for each VM, and  convert to reference
 # template. 
 # One for CU and another one for DU.
 # Note we don't touch disk 0.
 - name: Adjust asocs cu template vm and make template
+  delegate_to: localhost
   community.vmware.vmware_guest:
     validate_certs: False
     hostname: "{{ vc_name }}"
@@ -269,6 +271,7 @@
       device_type: sriov
     - name: VM Network
       device_type: sriov
+
 
 # Now, we do the same for a DU. Note we keep it separately
 # in case we need have different configs and specs
