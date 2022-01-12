@@ -48,7 +48,7 @@
     name: druid_centos_template
     convert: thin
     networks:
-      - name: {{ pg_mgmt_name }}
+      - name: "{{ pg_mgmt_name }}"
         device_type: vmxnet3
     #is_template: no
     disk:
