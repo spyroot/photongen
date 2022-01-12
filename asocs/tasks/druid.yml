@@ -82,7 +82,7 @@
     ansible_ssh_user: "root"
     ansible_ssh_pass: "VMware1!"
     ansible_become: false
-    ansible_host: "{{ druid_origin.hw_eth0.ipaddresses.0 }}"
+    ansible_host: "{{ druid_origin.instance.hw_eth0.ipaddresses.0 }}"
     groups:
     - "infra"
 
