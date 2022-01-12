@@ -86,7 +86,16 @@
     groups:
     - "infra"
 
-- name: Install packages on Toolbox VM
+- name: Create user on a druid server
+  hosts: druid.cnfdemo.io
+  become: yes
+  gather_facts: false
+  vars:
+    - user: <username here>
+    - password: <Password hash generated>
+
+- name: Install packages.
+  hosts: druid.cnfdemo.io
   yum:
     name:
       - curl
@@ -95,7 +104,5 @@
       - powershell
       - kubectl
     state: present
-  delegate_to: druid.cnfdemo.io
-
 
 
