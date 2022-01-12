@@ -1,8 +1,0 @@
-[all:vars]
-ansible_connection = local
-user=admin
-pwd=VMware1!
-gather_fact=no
-
-[leaf]
-10.241.255.94

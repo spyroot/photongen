@@ -22,53 +22,53 @@ dvs_default_uplink: 4
 
 # network mapping
 tenant_networks:
-  - vid: 1115 
-    vlan_name: asocs_c_plane
+  - vid: 1115
+    vlan_name: asocs_cu_plane
     ipv4_gw: 10.248.15.254/24
-    pg_name: "vlan116.10.248.15.254.cu.plane"
+    pg_name: "vlan1115.10.248.15.254"
     pg_vlan: 1115
     dvs_switch_name: "dvs-sriov"
 
   - vid: 1116
-    vlan_name: asocs_u_plane
+    vlan_name: asocs_wnet-uc_plane
     ipv4_gw: 10.248.16.254/24
-    pg_name: "vlan116.10.248.16.254.cu.plane"
+    pg_name: "vlan1116.10.248.16.254"
     pg_vlan: 1116
     dvs_switch_name: "dvs-sriov"
 
   - vid: 1117
-    vlan_name: asocs_u_plane
-    ipv4_gw: 10.248.16.254/24
-    pg_name: "vlan116.10.248.16.254.cu.plane"
-    pg_vlan: 1116
+    vlan_name: asocs_m_plane
+    ipv4_gw: 10.248.17.254/24
+    pg_name: "vlan1117.10.248.17.254"
+    pg_vlan: 1117
     dvs_switch_name: "dvs-sriov"
 
   - vid: 1118
-    vlan_name: asocs_u_plane
-    ipv4_gw: 10.248.16.254/24
-    pg_name: "vlan116.10.248.16.254.cu.plane"
-    pg_vlan: 1116
+    vlan_name: asocs_cuc_plane
+    ipv4_gw: 10.248.18.254/24
+    pg_name: "vlan1118.10.248.18.254"
+    pg_vlan: 1118
     dvs_switch_name: "dvs-sriov"
 
   - vid: 1119
-    vlan_name: asocs_u_plane
-    ipv4_gw: 10.248.16.254/24
-    pg_name: "vlan116.10.248.16.254.cu.plane"
-    pg_vlan: 1116
+    vlan_name: asocs_druid_plane
+    ipv4_gw: 10.248.19.254/24
+    pg_name: "vlan116.10.248.19.254"
+    pg_vlan: 1119
     dvs_switch_name: "dvs-sriov"
 
   - vid: 1120
-    vlan_name: asocs_u_plane
-    ipv4_gw: 10.248.16.254/24
-    pg_name: "vlan116.10.248.16.254.cu.plane"
-    pg_vlan: 1116
+    vlan_name: rmu_m_plane
+    ipv4_gw: 10.248.20.254/24
+    pg_name: "vlan116.10.248.20.254"
+    pg_vlan: 1120
     dvs_switch_name: "dvs-sriov"
 
   - vid: 1121
-    vlan_name: asocs_u_plane
-    ipv4_gw: 10.248.16.254/24
-    pg_name: "vlan116.10.248.16.254.cu.plane"
-    pg_vlan: 1116
+    vlan_name: asocs_reserved
+    ipv4_gw: 10.248.21.254/24
+    pg_name: "vlan116.10.248.21.254"
+    pg_vlan: 1121
     dvs_switch_name: "dvs-sriov"
 
 # list of ova and images for asocs
