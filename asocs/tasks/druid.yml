@@ -68,8 +68,8 @@
       mem_reservation: "{{ druid.mem_reservation | default('0') }}"
       cpu_limit: "{{ druid.cpu_limit | default('0') }}"
       cpu_reservation: "{{ druid.cpu_reservation | default('0') }}"
-  wait_for_ip_address: true
-  wait_for_ip_address_timeout: 800
+    wait_for_ip_address: true
+    wait_for_ip_address_timeout: 800
   delegate_to: localhost
   register: druid_origin
 
