@@ -1,0 +1,25 @@
+# First we build list of all hosts attached
+- name: Gather cluster info from given datacenter
+  community.vmware.vmware_cluster_info:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    validate_certs: False
+  when: vc_name is defined and vc_user is defined and vc_pass is defined
+  register: cluster_info
+  delegate_to: "{{ 'localhost' if vhost is undefined else omit }}"
+
+# 
+- name: Enable PCI device passthrough on all esxi
+  community.vmware.vmware_host_passthrough:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    validate_certs: false
+    esxi_hostname: "{{ item.name }}"
+    devices:
+      - device_name: "{{ esx_hosts_specs[item.name] }}"
+    state: present
+  loop: "{{ cluster_info.clusters[cluster_name]['hosts'] }}"
+  delegate_to: "{{ 'localhost' if vhost is undefined else omit }}"

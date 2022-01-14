@@ -16,11 +16,26 @@ datast: "das-3.5tb-1"
 
 # first switch infrastructure,  vsan, mgmt etc.
 dvs_core_name: "core-infra"
+# second for sriov and default pnic that we use to attach
+# note esxi_hosts_specs can overwrite host by host.
 dvs_sriov_name: "dvs-sriov"
+dvs_sriov_vmnics: vmnic6
+
+# a list of overwrites
+esx_hosts_specs:
+  - spec: 10.248.2.250
+    dvs_sriov_vmnics: 
+      - vmnic6
+    passthrough: 
+      -  "name"
+
+# won't delegate to a local host if defined
+vhost: true
 
 # dvs defaults
 dvs_ver: 7.0.2
 dvs_default_uplink: 4
+dvs_mtu: 9000
 
 pg_mgmt_name: "vlan1107.10.248.7.254"
 

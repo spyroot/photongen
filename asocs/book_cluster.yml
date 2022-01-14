@@ -1,0 +1,5 @@
+---
+  # Add sriov pnic to all hosts
+  - hosts: vim
+    tasks:
+      - include_tasks: tasks/add_sriov_pnic.yml

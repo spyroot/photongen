@@ -1,0 +1,71 @@
+# First we build list of all hosts attached
+- name: Gather cluster info from given datacenter
+  community.vmware.vmware_cluster_info:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    datacenter: "{{ dc }}"
+    validate_certs: False
+  when: vc_name is defined and vc_user is defined and vc_pass is defined
+  register: cluster_info
+  delegate_to: "{{ 'localhost' if vhost is undefined else omit }}"
+
+- name: Build in memory list of esxi hosts.
+  debug:
+    msg: "{{ item.name }}"
+  loop:  "{{ cluster_info.clusters[cluster_name]['hosts'] }}"
+
+# Adds each esxi to a dvs switch and add physical switch uplinks.
+- name: Add each esxi host to a dvs
+  community.vmware.vmware_dvs_host:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    validate_certs: False
+    esxi_hostname: "{{ item.name }}"
+    switch_name: "{{ dvs_sriov_name }}"
+    vmnics: "{{ dvs_sriov_vmnics }}"
+    state: present
+  loop: "{{ cluster_info.clusters[cluster_name]['hosts'] }}"
+  delegate_to: "{{ 'localhost' if vhost is undefined else omit }}"
+
+#   Lag need to defined as dict in following format
+#   Executed if is_lag defined
+#        - lag
+#          vmnics:
+#              - vmnic0
+#              - vmnic1
+#        - lag: lag2
+#          vmnics:
+#              - vmnic2
+#              - vmnic3
+- name: Adds esxi host vmnics as lags group.
+  community.vmware.vmware_dvs_host:
+    hostname: "{{ vc_name }}"
+    username: "{{ vc_user }}"
+    password: "{{ vc_pass }}"
+    validate_certs: False
+    esxi_hostname: "{{ item.name }}"
+    switch_name: "{{ dvs_sriov_name }}"
+    lag_uplinks: " {{ lags }} "
+    state: present
+  loop: "{{ cluster_info.clusters[cluster_name]['hosts'] }}"
+  delegate_to: "{{ 'localhost' if vhost is undefined else omit }}"
+  when: is_lag is defined
+
+# Executed when is_adjust_dvs
+- name: Adjust switch parameters
+  community.vmware.vmware_dvswitch:
+    hostname: '{{ vc_name }}'
+    username: '{{ vc_user }}'
+    password: '{{ vc_pass }}'
+    datacenter: '{{ dc }}'
+    switch: "{{ dvs_sriov_name }}"
+    version: "{{ dvs_ver }}"
+    mtu: " {{ dvs_mtu }} "
+    uplink_quantity: "{{ dvs_default_uplink }}"
+    discovery_protocol: "{{ discovery_proto }}"
+    discovery_operation: both
+    state: present
+  delegate_to: "{{ 'localhost' if vhost is undefined else omit }}"
+  when: is_adjust_dvs is defined

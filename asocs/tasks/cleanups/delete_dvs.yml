@@ -1,0 +1,9 @@
+- name: Delete sriov dvs switch
+  community.vmware.vmware_dvswitch:
+    hostname: '{{ vcenter_hostname }}'
+    username: '{{ vcenter_username }}'
+    password: '{{ vcenter_password }}'
+    datacenter: '{{ dc }}'
+    switch: "{{ dvs_sriov_name }}"
+    state: absent
+  delegate_to: "{{ 'localhost' if vhost is undefined else omit }}"
