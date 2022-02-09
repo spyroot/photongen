@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script start container with test-pmd.
+# Script start container and lands to bash shell.
 # 
 # - it gets list of all cores and construct a range from low to hi
 # - if interface bounded by kernel driver will shutdown and bind dpdk
@@ -28,6 +28,14 @@ command -v lshw >/dev/null 2>&1 || \
 	{ echo >&2 "Require lshs but it's not installed.  Aborting."; exit 1; }
 command -v dpdk-devbind.py >/dev/null 2>&1 || \
 	{ echo >&2 "Require foo but it's not installed.  Aborting."; exit 1; }
+
+
+pages=$(grep "Hugepagesize:" /proc/meminfo | awk -F ' ' '{print $2}' | sed 's/ //g')
+if [ -n "$pages" ] && [ "$pages" -eq "$pages" ] 2>/dev/null; then
+  echo "-Hugepages in the system $pages"
+else
+  echo "Aborting"; exit 1; 
+fi
 
 # get list of all cores and numa node
 # pass entire range of lcores to DPKD

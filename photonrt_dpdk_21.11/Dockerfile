@@ -24,7 +24,7 @@ RUN ldconfig
 ENV TERM=xterm-256color
 
 RUN yum -y install python3-libcap-ng python3-devel
-RUN pip3 install pyelftools
+RUN pip3 install pyelftools sphinx
 
 WORKDIR /root/build
 RUN wget http://fast.dpdk.org/rel/dpdk-21.11.tar.xz
@@ -34,5 +34,18 @@ RUN meson -Dexamples=all build
 RUN ninja -C build
 WORKDIR /root/build/dpdk-21.11/build
 RUN ninja install
+
+RUN pip3 install tensorflow-gpu
+
+ENV TERM=xterm-256color
+
+# Last stage pkt-gen
+WORKDIR /root/build
+RUN git clone http://dpdk.org/git/apps/pktgen-dpdk
+WORKDIR /root/build/pktgen-dpdk
+RUN export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/; meson build
+RUN ninja -C build
+RUN ninja -C build install
+RUN ldconfig
 
 CMD ["ldconfig; /bin/bash"]
