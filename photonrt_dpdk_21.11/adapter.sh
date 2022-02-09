@@ -1,0 +1,1 @@
+lshw -c network -businfo
