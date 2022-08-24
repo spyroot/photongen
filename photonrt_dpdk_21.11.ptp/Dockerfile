@@ -21,7 +21,7 @@ ENV PTP_ENV_VER ${PTP_VERSION}
 ARG AVX_VERSION=4.5.3
 ENV AVX_ENV_VER ${AVX_VERSION}
 ARG KERNEL_VERSION=5.10.118-14.ph4
-ENV KERNEL_ENV_VER ${KEN_VERSION}
+ENV KERNEL_ENV_VER ${KERNEL_VERSION}
 ARG DPDK_VERSION=21.11
 ENV DPKD_ENV_VER ${DPDK_VERSION}
 
@@ -93,7 +93,7 @@ WORKDIR /root/build
 RUN wget http://fast.dpdk.org/rel/dpdk-$DPKD_ENV_VER.tar.xz
 RUN tar xf dpdk*
 WORKDIR /root/build/dpdk-$DPKD_ENV_VER
-RUN meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/$KERNEL_ENV_VER -Dibverbs_link=shared -Dwerror=true build 
+RUN meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/$KERNEL_ENV_VER -Dibverbs_link=shared -Dwerror=true build
 RUN ninja -C build
 WORKDIR /root/build/dpdk-$DPKD_ENV_VER/build
 RUN ninja install
