@@ -1,7 +1,22 @@
 # photongen
 
-Photon OS DPDK and packet generator , cyclictest , TF2 with CUDA docker image.
+Photon OS DPDK with all shared libs includes packet generator, cyclictest, 
+TF2 with CUDA docker image.
 
+The DPDK build with Mellanox and Intel PMD support.  It also includes all crypto toolkits.
+As part of the build, it updates Linux PTP implementation to the latest version.  
+It also builds a respected intel driver for 8xx card. Photon OS DPDK with all shared libs 
+it includes packet generator , cyclictest,  TF2 with CUDA docker image.
+
+Note currently I don't do any cleanup.  if you need 
+'''
+yum clean all
+'''
+
+And you can delete entire /root/build dir post install, it will strip down entire build.
+Lastly everything mostly build from source, you want re-adjust CPU count on docker desktop
+if build on desktop system. For speedup you can adjust paraller build for 
+cmake and ninja.
 
 ## DPKD libs
 
@@ -9,6 +24,7 @@ Photon OS DPDK and packet generator , cyclictest , TF2 with CUDA docker image.
 * The docker image build poccess builds all example apps test-pmd etc.
 * PktGen installed globally and linked to LTS DPKD build.
 * The DPKD compiled with github.com/intel/intel-ipsec-mb.git support.
+* The DPKD include MLX4/5 PMD and iverbs.  All kernel model in usual place.
 * All Melanox libs included.  (Don't foget install all dependancies in OS itself)
 
 # Build Instruction
