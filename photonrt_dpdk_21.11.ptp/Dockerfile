@@ -37,7 +37,7 @@ RUN pip3 install pyelftools sphinx
 RUN yum install -y rdma-core-devel util-linux-devel zip zlib zlib-devel \
 	libxml2-devel libudev-devel
 
-# libnl for rmda-core
+# libnl we need that for latest rmda-core
 WORKDIR /root/build
 RUN wget https://www.infradead.org/~tgr/libnl/files/libnl-NL_ENV_VER.tar.gz
 RUN mkdir libnl
@@ -65,18 +65,14 @@ WORKDIR /root/build
 RUN wget http://www.mellanox.com/downloads/ofed/MLNX_OFED-5.4-1.0.3.0/MLNX_OFED_SRC-debian-5.4-1.0.3.0.tgz --directory-prefix=/root/build -O MLNX_OFED_SRC-debian-5.4-1.0.3.0.tgz 
 RUN mkdir mlnx_ofed_src
 RUN tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1
+
+# pyelf tools and both normal kernel src and rt
 RUN pip3 install pyelftools
-
-#kernel_ver=$(uname -r)
-#meson -Dplatform=native -Dexamples=all -Denable_kmods=true \
-#    -Dkernel_dir=/lib/modules/"$kernel_ver" \
-#    -Dibverbs_link=shared -Dwerror=true build
-#ninja -C build install
-
 RUN yum -y install stalld dkms \
         linux-devel linux-rt-devel
 RUN ln -s /usr/src/linux-headers-5.10.118-14.ph4/ /usr/src/linux
 
+# build all modules / including ibverbs, the only missing one for now cuda
 WORKDIR /root/build
 RUN wget http://fast.dpdk.org/rel/dpdk-21.11.tar.xz
 RUN tar xf dpdk*
@@ -87,7 +83,7 @@ WORKDIR /root/build/dpdk-21.11/build
 RUN ninja install
 ENV TERM=xterm-256color
 
-# Last stage pkt-gen
+# stage pkt-gen
 WORKDIR /root/build
 RUN git clone http://dpdk.org/git/apps/pktgen-dpdk
 WORKDIR /root/build/pktgen-dpdk
@@ -104,7 +100,7 @@ RUN tar -zxvf linuxptp-* -C linuxptp --strip-components=1
 WORKDIR /root/build/linuxptp
 RUN make && make install
 
-# latest iavf
+# latest intel iavf (change link to permanent if needed )
 WORKDIR /root/build
 RUN wget https://downloadmirror.intel.com/738727/iavf-4.5.3.tar.gz --directory-prefix=/root/build -O iavf-4.5.3.tar.gz 
 RUN mkdir iavf
