@@ -124,4 +124,9 @@ RUN tar -zxvf iavf-* -C iavf --strip-components=1
 WORKDIR /root/build/iavf/src
 RUN make && make install
 
+# tinytkg
+RUN yum install -y ebtables ethtool socat conntrack apparmor-profiles rpm-build
+# RUN rpm -i http://httpd.mgmt.vmw-nfv.rocks/iso/photon/ztp/tinykube-0.0.1-1.x86_64.rpm
+RUN yum -y install iptables
+
 CMD ["ldconfig; /bin/bash"]
