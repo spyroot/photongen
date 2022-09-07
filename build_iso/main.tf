@@ -63,7 +63,7 @@ data "vsphere_content_library_item" "library_item_photon" {
    datacenter         = var.vsphere_datacenter
    datastore          = var.vsphere_datastore
    source_file        = var.photon_iso_image_name
-   destination_file   = "/ISO/${photon_iso_image_name}"
+   destination_file   = "/ISO/${var.photon_iso_image_name}"
    create_directories = true
  }
 
