@@ -1,3 +1,4 @@
+*.iso
 /asocs/cisco.yaml
 /.idea/.gitignore
 /.idea/misc.xml
