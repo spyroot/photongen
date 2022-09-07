@@ -1,4 +1,7 @@
 #!/bin/bash
+# create hashi corp vault where we store all secrets including VC pass.
+# token.txt contains a token for a vault. Make sure you set right tf env.
+# Author Mustafa Bayramov 
 
 current_os=$(uname -a)
 if [[ ! $current_os == *"xnu"* ]]; 
@@ -17,7 +20,6 @@ else
 	brew install hashicorp/tap/packer
 	brew upgrade hashicorp/tap/packer
 	brew install cdrtools
-
 fi
 
 vault_pid=$(pgrep "vault")

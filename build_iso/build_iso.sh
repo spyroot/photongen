@@ -1,5 +1,13 @@
 #!/bin/bash
 
+current_os=$(uname -a)
+if [[ $current_os == *"xnu"* ]]; 
+then
+echo "You must run the script inside docker runtime."
+exit 2
+fi
+
+
 workspace_dir=$(pwd)
 
 umount /tmp/photon-iso
@@ -43,5 +51,3 @@ mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -eltorito-alt-boot --eltorito-boot boot/grub2/efiboot.img -no-emul-boot \
                 -V "PHOTON_$(date +%Y%m%d)" . > $workspace_dir/ph4-rt-refresh_adj.iso
 popd
-
-

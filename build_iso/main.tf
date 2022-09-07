@@ -63,40 +63,43 @@ data "vsphere_content_library_item" "library_item_photon" {
 # }
 
 # Upload iso file to datacenter
-resource "vsphere_file" "photon_iso_upload" {
-  datacenter         = var.vsphere_datacenter
-  datastore          =  var.vsphere_datastore
-  source_file        = "ph4-rt-refresh_adj.iso"
-  destination_file   = "/ISO/ph4-rt-refresh_adj.iso"
-  create_directories = true
-}
-
-# resource "vsphere_virtual_machine" "vm" {
-#   name             = "foo"
-#   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
-#   datastore_id     = data.vsphere_datastore.datastore.id
-#   num_cpus         = 4
-#   memory           = 8192
-#   guest_id         = "other3xLinux64Guest"
-
-#   cdrom {
-#     datastore_id = data.vsphere_datastore.datastore.id
-#     path         = "/ISO/ph4-rt-refresh.iso"
-#   }
-
-#   network_interface {
-#     network_id = data.vsphere_network.network.id
-#   }
-#   disk {
-#     label = "disk0"
-#     size  = 40
-#   }
-# #   extra_config = {
-# #     "guestinfo.metadata"          = base64encode(file("${path.module}/metadata.yml"))
-# #     "guestinfo.metadata.encoding" = "base64"
-# #     "guestinfo.userdata"          = base64encode(file("${path.module}/userdata.yml"))
-# #     "guestinfo.userdata.encoding" = "base64"
-# #   }
+# Note normally we would like to use content lib
+# I open a bug to fix issue so we can boot VM with CDROM that uses iso from content library.
+# For now we just use vsan datastore.
+# resource "vsphere_file" "photon_iso_upload" {
+#   datacenter         = var.vsphere_datacenter
+#   datastore          = var.vsphere_datastore
+#   source_file        = "ph4-rt-refresh_adj.iso"
+#   destination_file   = "/ISO/ph4-rt-refresh_adj.iso"
+#   create_directories = true
 # }
+
+resource "vsphere_virtual_machine" "vm" {
+  name             = "foo01"
+  resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
+  datastore_id     = data.vsphere_datastore.datastore.id
+  num_cpus         = 4
+  memory           = 8192
+  guest_id         = "other3xLinux64Guest"
+
+  cdrom {
+    datastore_id = data.vsphere_datastore.datastore.id
+    path         = "/ISO/ph4-rt-refresh_adj.iso"
+  }
+
+  network_interface {
+    network_id = data.vsphere_network.network.id
+  }
+  disk {
+    label = "disk0"
+    size  = 40
+  }
+#   extra_config = {
+#     "guestinfo.metadata"          = base64encode(file("${path.module}/metadata.yml"))
+#     "guestinfo.metadata.encoding" = "base64"
+#     "guestinfo.userdata"          = base64encode(file("${path.module}/userdata.yml"))
+#     "guestinfo.userdata.encoding" = "base64"
+#   }
+}
 
 
