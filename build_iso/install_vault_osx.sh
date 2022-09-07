@@ -33,5 +33,8 @@ vault server -dev > vault.log &
 TOKEN=$(cat vault.log | grep Root | awk '{print $3}')
 echo $TOKEN > token.txt
 
+export VAULT_ADDR='http://127.0.0.1:8200'"
+export VAULT_TOKEN=$TOKEN"
+
 vault secrets enable -path=vcenter kv
-vault kv put vcenter/vcenterpass password="DEFAULT
+vault kv put vcenter/vcenterpass password="DEFAULT"

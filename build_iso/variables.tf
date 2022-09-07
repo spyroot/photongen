@@ -22,3 +22,6 @@ variable "vm_firmware" {}
 
 variable "vm_efi_secure_boot_enabled" {}
 
+variable "photon_iso_image_name" {}
+
+variable "photon_iso_catalgo_name" {}

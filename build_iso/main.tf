@@ -4,6 +4,7 @@ provider "vault" {
   token           = var.vault_token
 }
 
+# vc password store in vault
 data "vault_generic_secret" "vcenterpass" {
   path = "vcenter/vcenterpass"
 }
@@ -38,20 +39,18 @@ data "vsphere_content_library" "iso_library" {
   name = var.iso_library
 }
 
-# Upload iso file to content lib
-# Note it will take time..
+# Upload iso file to content lib, note it will take time..
 resource "vsphere_content_library_item" "photon_iso" {
-  name        = "ph4-rt-refresh_adj"
-  description = "ph4-rt-refresh_adj"
-  file_url    = "ph4-rt-refresh_adj.iso"
+  name        = var.photon_iso_catalgo_name
+  description = var.photon_iso_catalgo_name
+  file_url    = "${var.photon_iso_catalgo_name}.iso"
   library_id  = data.vsphere_content_library.iso_library.id
   type        = "iso"
 }
 
-# Upload iso file to content lib
-# Note it will take time..
+# Upload iso file to content lib, note it will take time..
 data "vsphere_content_library_item" "library_item_photon" {
-   name       = "ph4-rt-refresh_adj"
+   name       = var.photon_iso_catalgo_name
    type       = "iso"
    library_id = data.vsphere_content_library.iso_library.id
  }
@@ -63,8 +62,8 @@ data "vsphere_content_library_item" "library_item_photon" {
  resource "vsphere_file" "photon_iso_upload" {
    datacenter         = var.vsphere_datacenter
    datastore          = var.vsphere_datastore
-   source_file        = "ph4-rt-refresh_adj.iso"
-   destination_file   = "/ISO/ph4-rt-refresh_adj.iso"
+   source_file        = var.photon_iso_image_name
+   destination_file   = "/ISO/${photon_iso_image_name}"
    create_directories = true
  }
 
@@ -73,7 +72,7 @@ resource "random_id" "server" {
 }
 
 resource "vsphere_virtual_machine" "vm" {
-  name             = "foo01 ${random_id.server.hex}"
+  name             = "foo01-${random_id.server.hex}"
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
   num_cpus         = 4
@@ -82,7 +81,7 @@ resource "vsphere_virtual_machine" "vm" {
 
   cdrom {
     datastore_id = data.vsphere_datastore.datastore.id
-    path         = "/ISO/ph4-rt-refresh_adj.iso"
+    path         = "/ISO/${var.photon_iso_image_name}"
   }
 
   network_interface {
