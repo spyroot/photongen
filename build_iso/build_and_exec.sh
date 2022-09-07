@@ -19,6 +19,26 @@ then
     fi
 fi
 
+if [[ $current_os == *"linux"* ]];
+then
+	apt-get update
+	apt-get install ca-certificates curl gnupg lsb-release
+	FILE=/etc/apt/keyrings/docker.gpg
+	if [ -f "$FILE" ]; then
+    	echo "$FILE exists."
+	else
+		mkdir -p /etc/apt/keyrings
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+		echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  		$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+fi
+
+if [[ $current_os == *"linux"* ]];
+then
+	apt-get update
+	apt-get install -y aufs-tools cgroupfs-mount docker-ce docker-ce-cli containerd.io docker-compose-plugin
+fi
+
 wget -nc http://10.241.11.28/iso/photon/ph4-rt-refresh.iso
 docker rm -f /photon_iso_builder
 docker build -t photon_iso_builder:v1 .
