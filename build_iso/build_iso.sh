@@ -1,10 +1,6 @@
-apt-get install unzip
-apt install genisoimage jq -y
-sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
-apt install golang-go
-sudo apt-get update && sudo apt-get install terraform
+#!/bin/bash
 
-wget -nc http://10.241.11.28/iso/photon/ph4-rt-refresh.iso
+workspace_dir=$(pwd)
 
 umount /tmp/photon-iso
 rm -rf /tmp/photon-iso
@@ -16,7 +12,6 @@ mount ph4-rt-refresh.iso /tmp/photon-iso
 mkdir /tmp/photon-ks-iso
 cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
 pushd /tmp/photon-ks-iso/
-
 cp isolinux/sample_ks.cfg isolinux/ks.cfg
 
 cat >> isolinux/menu.cfg << EOF
@@ -46,8 +41,7 @@ EOF
 mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -no-emul-boot -boot-load-size 4 -boot-info-table \
                 -eltorito-alt-boot --eltorito-boot boot/grub2/efiboot.img -no-emul-boot \
-                -V "PHOTON_$(date +%Y%m%d)" . > /home/vmware/build_iso/ph4-rt-refresh_adj.iso
-
-
+                -V "PHOTON_$(date +%Y%m%d)" . > $workspace_dir/ph4-rt-refresh_adj.iso
 popd
+
 
