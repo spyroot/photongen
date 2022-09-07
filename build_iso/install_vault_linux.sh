@@ -27,3 +27,6 @@ fi
 vault server -dev > vault.log &
 TOKEN=$(cat vault.log | grep Root | awk '{print $3}')
 echo $TOKEN > token.txt
+
+vault secrets enable -path=vcenter kv
+vault kv put vcenter/vcenterpass password="DEFAULT
