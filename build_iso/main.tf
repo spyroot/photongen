@@ -51,31 +51,29 @@ resource "vsphere_content_library_item" "photon_iso" {
 # Upload iso file to content lib
 # Note it will take time..
 data "vsphere_content_library_item" "library_item_photon" {
-  name       = "ph4-rt-refresh"
-  type       = "iso"
-  library_id = data.vsphere_content_library.iso_library.id
-}
-
-# data "vsphere_content_library_item" "library_item_photon" {
-#   name       = "ph4-rt-refresh_adj.iso"
-#   type       = "iso"
-#   library_id = data.vsphere_content_library.iso_library.id
-# }
+   name       = "ph4-rt-refresh_adj"
+   type       = "iso"
+   library_id = data.vsphere_content_library.iso_library.id
+ }
 
 # Upload iso file to datacenter
 # Note normally we would like to use content lib
 # I open a bug to fix issue so we can boot VM with CDROM that uses iso from content library.
 # For now we just use vsan datastore.
-# resource "vsphere_file" "photon_iso_upload" {
-#   datacenter         = var.vsphere_datacenter
-#   datastore          = var.vsphere_datastore
-#   source_file        = "ph4-rt-refresh_adj.iso"
-#   destination_file   = "/ISO/ph4-rt-refresh_adj.iso"
-#   create_directories = true
-# }
+ resource "vsphere_file" "photon_iso_upload" {
+   datacenter         = var.vsphere_datacenter
+   datastore          = var.vsphere_datastore
+   source_file        = "ph4-rt-refresh_adj.iso"
+   destination_file   = "/ISO/ph4-rt-refresh_adj.iso"
+   create_directories = true
+ }
+
+resource "random_id" "server" {
+  byte_length = 8
+}
 
 resource "vsphere_virtual_machine" "vm" {
-  name             = "foo01"
+  name             = "foo01 ${random_id.server.hex}"
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
   num_cpus         = 4
