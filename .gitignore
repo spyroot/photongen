@@ -2,6 +2,7 @@
 *.hcl
 *.info
 *.tfvars
+*.terraform
 /asocs/cisco.yaml
 /.idea/.gitignore
 /.idea/misc.xml
