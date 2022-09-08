@@ -73,6 +73,7 @@ resource "vsphere_virtual_machine" "vm" {
   memory           = var.default_vm_mem_size
   guest_id         = "other3xLinux64Guest"
   latency_sensitivity = var.default_vm_latency_sensitivity
+  tools_upgrade_policy    = "upgradeAtPowerCycle"
   
   cdrom {
     datastore_id = data.vsphere_datastore.datastore.id
