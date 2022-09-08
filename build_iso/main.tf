@@ -74,6 +74,12 @@ resource "vsphere_virtual_machine" "vm" {
   guest_id         = "other3xLinux64Guest"
   latency_sensitivity = var.default_vm_latency_sensitivity
   tools_upgrade_policy    = "upgradeAtPowerCycle"
+  # we set true so later we can adjsut if needed
+  memory_hot_add_enabled = true
+  cpu_hot_add_enabled = true
+  cpu_hot_remove_enabled = true
+  # set zero , later will put to tfvars
+  cpu_reservation = 0
   
   cdrom {
     datastore_id = data.vsphere_datastore.datastore.id
