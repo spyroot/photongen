@@ -62,3 +62,5 @@ mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -eltorito-alt-boot --eltorito-boot boot/grub2/efiboot.img -no-emul-boot \
                 -V "PHOTON_$(date +%Y%m%d)" . > $workspace_dir/ph4-rt-refresh_adj.iso
 popd
+
+umount /tmp/photon-iso
