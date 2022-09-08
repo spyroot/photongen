@@ -133,7 +133,22 @@ resource "null_resource" "vm" {
       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
       "kubectl get deploy tigera-operator -n tigera-operator",
       "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/tigera-operator.yaml",
-      "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/custom-resources.yaml"
+      "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/custom-resources.yaml",
+      "cd /root; mkdir -p build",
+      "cd /root/build; git clone https://github.com/intel/intel-ipsec-mb.git",
+      "cd intel-ipsec-mb; make",
+      "make install; ldconfig",
+      "yum -y install python3-libcap-ng python3-devel rdma-core-devel util-linux-devel zip zlib zlib-devel libxml2-devel libudev-devel",
+      "pip3 install pyelftools sphinx",
+      "cd /root/build; wget https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz",
+      "mkdir libnl",
+      "tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1",
+      "cd /root/build/libnl; /configure --prefix=/usr",
+      "make && make install",
+      "cd /root/build; git clone https://github.com/intel/isa-l",
+      "/root/build/isa-l; chmod 700 autogen.sh && ./autogen.sh",
+      "./configure",
+      "make && make install"
     ]
   }
 }
