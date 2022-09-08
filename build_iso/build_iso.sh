@@ -35,9 +35,12 @@ cat >> boot/grub2/grub.cfg << EOF
 GRUB_TIMEOUT=0
 set default=0
 set timeout=0
+set totaltimeout=1
+
 loadfont ascii
 set gfxmode="1024x768"
 gfxpayload=keep
+
 set theme=/boot/grub2/themes/photon/theme.txt
 terminal_output gfxterm
 probe -s photondisk -u ($root)
