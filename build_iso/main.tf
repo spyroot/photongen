@@ -127,6 +127,7 @@ resource "null_resource" "tinytkg" {
   provisioner "remote-exec" {
     inline = [
       "export PATH=$PATH:/usr/local/bin",
+      "yum install -y ebtables ethtool socat conntrack apparmor-profiles rpm-build",
       "tinykube start --skip-phases=default-cni",
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
@@ -178,7 +179,7 @@ resource "null_resource" "dpdk" {
       "cd /root/build/dpdk-21.11",
       "meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/$(uname -r) -Dibverbs_link=shared -Dwerror=true build",
       "ninja -C build -j 8",
-      "cd /root/build/dpdk-21.11/build; ninja install"
+      "cd /root/build/dpdk-21.11/build; ninja install; ldconfig"
     ]
   }
 }
