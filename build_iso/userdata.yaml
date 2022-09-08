@@ -1,3 +1,45 @@
+repo_update: true
+repo_upgrade: all
+
+packages:
+  - gcc
+  - meson
+  - git
+  - wget
+  - numactl
+  - make
+  - curl
+  - jq
+  - libbpf-devel
+  - libbpf
+  - nmap-ncat
+  - tcpdump
+  - kexec-tools
+  - libnuma-devel
+  - libnuma
+  - nasm
+  - elfutils-libelf-devel
+  - elfutils-libelf-devel
+  - vim
+  - pciutils
+  - iproute
+  - findutils
+  - vim-extra
+  - elfutils-devel
+  - cmake
+  - cython3
+  - python3-docutils
+  - dtc
+  - dtc-devel
+  - pciutils-devel
+  - openssl-devel
+  - btrfs-progs
+  - sed
+  - wget
+  - git
+  - unzip
+  - lvm2
+
 users:
   - default
   - name: vmware
