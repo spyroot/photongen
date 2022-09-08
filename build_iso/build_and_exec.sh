@@ -9,12 +9,12 @@
 
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]]; then
-    brew_info_out=$(brew info wget | grep bottled)
-    if [[ $brew_info_out == *"vault: stable"* ]]; then
-	    echo "wget already installed."
-    else
-	    brew install wget
-    fi
+	brew_info_out=$(brew info wget | grep bottled)
+	if [[ $brew_info_out == *"vault: stable"* ]]; then
+		echo "wget already installed."
+	else
+		brew install wget
+	fi
 fi
 
 if [[ $current_os == *"linux"* ]]; then
@@ -22,17 +22,20 @@ if [[ $current_os == *"linux"* ]]; then
 	apt-get install ca-certificates curl gnupg lsb-release
 	DOCKER_PGP_FILE=/etc/apt/keyrings/docker.gpg
 	if [ -f "$DOCKER_PGP_FILE" ]; then
-    	echo "$DOCKER_PGP_FILE exists."
+		echo "$DOCKER_PGP_FILE exists."
 	else
 		mkdir -p /etc/apt/keyrings
 		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 		echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  		$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
-    fi
+			$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+	fi
 	apt-get update
 	apt-get install aufs-tools cgroupfs-mount docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 fi
 
+export ssh_key=$(cat $HOME/.ssh/id_rsa.pub)
+jq --arg key "$ssh_key" '.public_key = $key' ks.ref.cfg > ks.cfg 
+jsonlint ks.cfg 
 
 wget -nc http://10.241.11.28/iso/photon/ph4-rt-refresh.iso
 docker rm -f /photon_iso_builder
