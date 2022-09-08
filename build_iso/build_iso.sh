@@ -24,7 +24,6 @@ pushd /tmp/photon-ks-iso/
 cp $workspace_dir/ks.cfg isolinux/ks.cfg
 
 cat >> isolinux/menu.cfg << EOF
-default my_unattended
 label my_unattended
 	menu label ^Unattended Install
     menu default
@@ -52,6 +51,8 @@ menuentry "Install" {
     initrd /isolinux/initrd.img
 }
 EOF
+
+sed -i 's/default install/default my_unattended/g' /tmp/photon-ks-iso/isolinux/menu.cfg
 
 mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -no-emul-boot -boot-load-size 4 -boot-info-table \
