@@ -24,7 +24,7 @@ variable "vm_efi_secure_boot_enabled" {}
 
 variable "photon_iso_image_name" {}
 
-variable "photon_iso_catalgo_name" {}
+variable "photon_iso_catalog_name" {}
 
 variable "default_vm_disk_size" {}
 

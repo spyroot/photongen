@@ -45,19 +45,12 @@ resource "random_id" "server" {
 
 # Upload iso file to content lib, note it will take time..
 resource "vsphere_content_library_item" "photon_iso" {
-  name        = "${var.photon_iso_catalgo_name}-${random_id.server.hex}"
-  description = "${var.photon_iso_catalgo_name}-${random_id.server.hex}"
-  file_url    = "${var.photon_iso_catalgo_name}.iso"
+  name        = "${var.photon_iso_catalog_name}-${random_id.server.hex}"
+  description = "${var.photon_iso_catalog_name}-${random_id.server.hex}"
+  file_url    = "${var.photon_iso_catalog_name}.iso"
   library_id  = data.vsphere_content_library.iso_library.id
   type        = "iso"
 }
-
-# Upload iso file to content lib, note it will take time..
-data "vsphere_content_library_item" "library_item_photon" {
-   name       = "${var.photon_iso_catalgo_name}-${random_id.server.hex}"
-   type       = "iso"
-   library_id = data.vsphere_content_library.iso_library.id
- }
 
 # Upload iso file to datacenter
 # Note normally we would like to use content lib
