@@ -76,9 +76,11 @@ resource "vsphere_virtual_machine" "vm" {
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
   num_cpus         = var.default_vm_cpu_size
+  num_cores_per_socket = var.default_vm_num_cores_per_socket
   memory           = var.default_vm_mem_size
   guest_id         = "other3xLinux64Guest"
-
+  latency_sensitivity= var.default_vm_latency_sensitivity
+  
   cdrom {
     datastore_id = data.vsphere_datastore.datastore.id
     path         = "/ISO/${var.photon_iso_image_name}" 
