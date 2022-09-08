@@ -79,7 +79,7 @@ resource "vsphere_virtual_machine" "vm" {
   num_cores_per_socket = var.default_vm_num_cores_per_socket
   memory           = var.default_vm_mem_size
   guest_id         = "other3xLinux64Guest"
-  latency_sensitivity= var.default_vm_latency_sensitivity
+  latency_sensitivity = var.default_vm_latency_sensitivity
   
   cdrom {
     datastore_id = data.vsphere_datastore.datastore.id
