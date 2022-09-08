@@ -27,6 +27,7 @@ cat >> isolinux/menu.cfg << EOF
 default my_unattended
 label my_unattended
 	menu label ^Unattended Install
+    menu default
 	kernel vmlinuz
 	append initrd=initrd.img root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=cdrom
 EOF
@@ -36,6 +37,7 @@ GRUB_TIMEOUT=0
 set default=0
 set timeout=0
 set totaltimeout=1
+set prompt=0
 
 loadfont ascii
 set gfxmode="1024x768"
