@@ -9,10 +9,10 @@ data "vault_generic_secret" "vcenterpass" {
   path = "vcenter/vcenterpass"
 }
 
- provider "vsphere" {
-  user           = var.vsphere_user
-  password       = data.vault_generic_secret.vcenterpass.data["password"]
-  vsphere_server = var.vsphere_server
+provider "vsphere" {
+  user                 = var.vsphere_user
+  password             = data.vault_generic_secret.vcenterpass.data["password"]
+  vsphere_server       = var.vsphere_server
   allow_unverified_ssl = true
 }
 
@@ -57,41 +57,41 @@ resource "vsphere_content_library_item" "photon_iso" {
 # I open a bug to fix issue so we can boot VM with CDROM that uses iso from content library.
 # For now we just use vsan datastore.
 resource "vsphere_file" "photon_iso_upload" {
-   datacenter         = var.vsphere_datacenter
-   datastore          = var.vsphere_datastore
-   source_file        = var.photon_iso_image_name
-   destination_file   = "/ISO/${var.photon_iso_image_name}"
-   create_directories = true
- }
+  datacenter         = var.vsphere_datacenter
+  datastore          = var.vsphere_datastore
+  source_file        = var.photon_iso_image_name
+  destination_file   = "/ISO/${var.photon_iso_image_name}"
+  create_directories = true
+}
 
 resource "vsphere_virtual_machine" "vm" {
-  name             = "foo01-${random_id.server.hex}"
-  resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
-  datastore_id     = data.vsphere_datastore.datastore.id
-  num_cpus         = var.default_vm_cpu_size
+  name                 = "foo01-${random_id.server.hex}"
+  resource_pool_id     = data.vsphere_compute_cluster.cluster.resource_pool_id
+  datastore_id         = data.vsphere_datastore.datastore.id
+  num_cpus             = var.default_vm_cpu_size
   num_cores_per_socket = var.default_vm_num_cores_per_socket
-  memory           = var.default_vm_mem_size
-  guest_id         = "other3xLinux64Guest"
-  latency_sensitivity = var.default_vm_latency_sensitivity
-  tools_upgrade_policy    = "upgradeAtPowerCycle"
+  memory               = var.default_vm_mem_size
+  guest_id             = "other3xLinux64Guest"
+  latency_sensitivity  = var.default_vm_latency_sensitivity
+  tools_upgrade_policy = "upgradeAtPowerCycle"
   # we set true so later we can adjsut if needed
   memory_hot_add_enabled = true
-  cpu_hot_add_enabled = true
+  cpu_hot_add_enabled    = true
   cpu_hot_remove_enabled = true
   # set zero , later will put to tfvars
   cpu_reservation = 0
-  
+
   cdrom {
     datastore_id = data.vsphere_datastore.datastore.id
-    path         = "/ISO/${var.photon_iso_image_name}" 
+    path         = "/ISO/${var.photon_iso_image_name}"
   }
 
   network_interface {
     network_id = data.vsphere_network.network.id
   }
   disk {
-    label = "disk0"
-    size  = var.default_vm_disk_size
+    label            = "disk0"
+    size             = var.default_vm_disk_size
     thin_provisioned = var.default_vm_disk_thin
   }
   depends_on = [vsphere_file.photon_iso_upload]
@@ -102,14 +102,23 @@ resource "vsphere_virtual_machine" "vm" {
     "guestinfo.userdata"          = base64encode(file("${path.cwd}/userdata.yaml"))
     "guestinfo.userdata.encoding" = "base64"
   }
+}
+
+resource "null_resource" "vm" {
+  triggers {
+    public_ip = vsphere_virtual_machine.vm.default_ip_address
+  }
+  
+  connection {
+    type = "ssh"
+    host = vsphere_virtual_machine.vm.default_ip_address
+    user = "root"
+    # password = "${var.password}"
+    port  = "22"
+    agent = false
+  }
 
   provisioner "remote-exec" {
-    connection {
-      type        = "ssh"
-      user        = "root"
-      host = "self.public_ip"
-    }
-
     inline = [
       "export PATH=$PATH:/usr/local/bin",
       "tinykube start --skip-phases=default-cni",
@@ -120,12 +129,7 @@ resource "vsphere_virtual_machine" "vm" {
   }
 }
 
-
-# resource "photon_instance" "vm_instance" {
-#   connection {
-#     type     = "ssh"
-#     user     = "root"
-#     password = var.root_password
-#     host     = self.public_ip
-#   }
-# }
+# Outputting the IP address of the new VM
+output "my_ip_address" {
+  value = vsphere_virtual_machine.vm.default_ip_address
+}
