@@ -24,6 +24,7 @@ pushd /tmp/photon-ks-iso/
 cp $workspace_dir/ks.cfg isolinux/ks.cfg
 
 cat >> isolinux/menu.cfg << EOF
+default my_unattended
 label my_unattended
 	menu label ^Unattended Install
 	kernel vmlinuz
