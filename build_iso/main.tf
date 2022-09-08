@@ -178,7 +178,7 @@ resource "null_resource" "dpdk" {
       "cd /root/build/dpdk-21.11",
       "meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/$(uname -r) -Dibverbs_link=shared -Dwerror=true build",
       "ninja -C build -j 8",
-      "cd /root/build/dpdk-$21.11/build; ninja install"
+      "cd /root/build/dpdk-21.11/build; ninja install"
     ]
   }
 }
