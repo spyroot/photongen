@@ -32,6 +32,7 @@ label my_unattended
 EOF
 
 cat >> boot/grub2/grub.cfg << EOF
+GRUB_TIMEOUT=0
 set default=0
 set timeout=0
 loadfont ascii
