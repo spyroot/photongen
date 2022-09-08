@@ -123,18 +123,22 @@ resource "null_resource" "vm" {
     agent = false
   }
 
+  # provisioner will start tinykube,  rpm pushed directly to ISO.
   provisioner "remote-exec" {
     inline = [
       "export PATH=$PATH:/usr/local/bin",
       "tinykube start --skip-phases=default-cni",
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
-      "sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+      "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
+      "kubectl get deploy tigera-operator -n tigera-operator",
+      "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/tigera-operator.yaml",
+      "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/custom-resources.yaml"
     ]
   }
 }
 
 # Outputting the IP address of the new VM
-output "my_ip_address" {
+output "photon_os_ip_address" {
   value = vsphere_virtual_machine.vm.default_ip_address
 }
