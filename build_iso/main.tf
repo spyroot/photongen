@@ -112,7 +112,7 @@ resource "vsphere_virtual_machine" "vm" {
 
 # Note make sure your DHCP env is stable. 
 # We assume that network will allocate IP address.
-resource "null_resource" "vm" {
+resource "null_resource" "tinytkg" {
   depends_on = [vsphere_virtual_machine.vm]
   connection {
     type = "ssh"
@@ -146,14 +146,66 @@ resource "null_resource" "vm" {
       "cd /root/build/libnl; /configure --prefix=/usr",
       "make && make install",
       "cd /root/build; git clone https://github.com/intel/isa-l",
-      "/root/build/isa-l; chmod 700 autogen.sh && ./autogen.sh",
+      "cd /root/build/isa-l; chmod 700 autogen.sh && ./autogen.sh",
       "./configure",
       "make && make install",
       "pip3 install pyelftools",
-      "yum -y install stalld dkms linux-devel linux-rt-devel"
+      "yum -y install stalld dkms linux-devel linux-rt-devel",
+      "ln -s /usr/src/linux-headers-$(uname -r)/ /usr/src/linux",
+      "/root/build; wget http://fast.dpdk.org/rel/dpdk-21.11.tar.xz",
+      "tar xf dpdk*",
+      "cd /root/build/dpdk-21.11",
+      "meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/$(uname -r) -Dibverbs_link=shared -Dwerror=true build",
+      "ninja -C build",
+      "cd /root/build/dpdk-$21.11/build; ninja install"
     ]
   }
 }
+
+# # Note make sure your DHCP env is stable. 
+# # We assume that network will allocate IP address.
+# resource "null_resource" "dpkd" {
+#   depends_on = [vsphere_virtual_machine.vm]
+#   connection {
+#     type = "ssh"
+#     host = vsphere_virtual_machine.vm.default_ip_address
+#     user = "root"
+#     private_key = "${file(pathexpand("~/.ssh/id_rsa"))}"
+#     port  = "22"
+#     agent = false
+#   }
+
+#   # provisioner will start tinykube,  rpm pushed directly to ISO.
+#   provisioner "remote-exec" {
+#     inline = [
+#       "export PATH=$PATH:/usr/local/bin",
+#       "tinykube start --skip-phases=default-cni",
+#       "mkdir -p $HOME/.kube",
+#       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
+#       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
+#       "kubectl get deploy tigera-operator -n tigera-operator",
+#       "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/tigera-operator.yaml",
+#       "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.24.1/manifests/custom-resources.yaml",
+#       "cd /root; mkdir -p build",
+#       "cd /root/build; git clone https://github.com/intel/intel-ipsec-mb.git",
+#       "cd intel-ipsec-mb; make",
+#       "make install; ldconfig",
+#       "yum -y install python3-libcap-ng python3-devel rdma-core-devel util-linux-devel zip zlib zlib-devel libxml2-devel libudev-devel",
+#       "pip3 install pyelftools sphinx",
+#       "cd /root/build; wget https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz",
+#       "mkdir libnl",
+#       "tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1",
+#       "cd /root/build/libnl; /configure --prefix=/usr",
+#       "make && make install",
+#       "cd /root/build; git clone https://github.com/intel/isa-l",
+#       "/root/build/isa-l; chmod 700 autogen.sh && ./autogen.sh",
+#       "./configure",
+#       "make && make install",
+#       "pip3 install pyelftools",
+#       "yum -y install stalld dkms linux-devel linux-rt-devel"
+#     ]
+#   }
+# }
 
 # Outputting the IP address of the new VM
 output "photon_os_ip_address" {
