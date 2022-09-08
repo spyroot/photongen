@@ -7,6 +7,9 @@
 # current dir added to resource.    Docker -> Preference -> Resource and add dir.
 # Author Mustafa Bayramov 
 
+# lint in case it has error.
+jsonlint ks.ref.cfg
+
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]]; then
 	brew_info_out=$(brew info wget | grep bottled)
