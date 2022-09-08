@@ -19,7 +19,7 @@ fi
 
 if [[ $current_os == *"linux"* ]]; then
 	apt-get update
-	apt-get install ca-certificates curl gnupg lsb-release
+	apt-get install ca-certificates curl gnupg lsb-release python3-demjson
 	DOCKER_PGP_FILE=/etc/apt/keyrings/docker.gpg
 	if [ -f "$DOCKER_PGP_FILE" ]; then
 		echo "$DOCKER_PGP_FILE exists."
