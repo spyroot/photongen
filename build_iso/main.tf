@@ -102,6 +102,22 @@ resource "vsphere_virtual_machine" "vm" {
     "guestinfo.userdata"          = base64encode(file("${path.cwd}/userdata.yaml"))
     "guestinfo.userdata.encoding" = "base64"
   }
+
+  provisioner "remote-exec" {
+    connection {
+      type        = "ssh"
+      user        = "root"
+      host = "self.public_ip"
+    }
+
+    inline = [
+      "export PATH=$PATH:/usr/local/bin",
+      "tinykube start --skip-phases=default-cni",
+      "mkdir -p $HOME/.kube",
+      "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
+      "sudo chown $(id -u):$(id -g) $HOME/.kube/config"
+    ]
+  }
 }
 
 
