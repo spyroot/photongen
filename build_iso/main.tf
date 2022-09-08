@@ -90,9 +90,9 @@ resource "vsphere_virtual_machine" "vm" {
   depends_on = [vsphere_file.photon_iso_upload]
 
   extra_config = {
-    # "guestinfo.metadata"          = base64encode(file("${path.cwd}/metadata.yml"))
+    # "guestinfo.metadata"          = base64encode(file("${path.cwd}/metadata.yaml"))
     # "guestinfo.metadata.encoding" = "base64"
-    "guestinfo.userdata"          = base64encode(file("${path.cwd}/userdata.yml"))
+    "guestinfo.userdata"          = base64encode(file("${path.cwd}/userdata.yaml"))
     "guestinfo.userdata.encoding" = "base64"
   }
 }
