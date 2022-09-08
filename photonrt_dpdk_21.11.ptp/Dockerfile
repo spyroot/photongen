@@ -42,7 +42,7 @@ RUN mkdir build
 RUN cd build
 RUN git clone https://github.com/intel/intel-ipsec-mb.git
 WORKDIR intel-ipsec-mb
-RUN make
+RUN make -j 8
 RUN make install
 RUN ldconfig
 
