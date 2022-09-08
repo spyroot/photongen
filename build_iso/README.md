@@ -5,14 +5,25 @@ local directory contains ph4-rt-refresh.iso.  **build_and_exec.sh** first builds
 a workspace container and land to a bash. So first step build, it builds a new ISO used 
 to kick start the unattended install.
 
-```
+## Requirements.
+
+Requirements.
+
+- Make sure you have a network segment in VC that provide DHCP services.
+- Make sure the same segment has an internet connection.
+- Make sure that DHCP allocates the DNS server.
+- The port-group name must match whatever you see in VC.
+
+## Step One: Bulding ISO.
+
+```bash
 ./install_vault_linux.sh
 ./build_and_exec.sh
 ```
 
-Example
+## Example
 
-```
+```bash
 ./build_and_exec.sh
 Step 1/10 : FROM ubuntu:22.04
  ---> 2dc39ba059dc
@@ -61,17 +72,17 @@ Digest: sha256:8dd4c28314574e68c0ad3ca0dbd0aa8badf8d4381f1a2615cab76cbb0b7b5c35
 Status: Image is up to date for spyroot/photon_iso_builder:1.0
 ```
 
-## Generate ISO.
+## Step two: enerate ISO
 
 Now we can generate iso.  Run inside a container.
 
-'''
+'''bash
 ./build_iso.sh
 '''
 
 ### Example
 
-```
+```bash
 root@08c5d91599b9:/home/vmware/photon_gen/photongen/build_iso# ./build_iso.sh
 umount: /tmp/photon-iso: no mount point specified.
 mount: /tmp/photon-iso: WARNING: source write-protected, mounted read-only.
@@ -95,9 +106,9 @@ Max brk space used 58000
 /home/vmware/photon_gen/photongen/build_iso
 ```
 
-Notice script used ks.ref.cfg to generate new ks.cfg, and it pushed to ISO.cfg The script, by default, uses $HOME/.ssh/ssh-rsa and injects it to the target iso.
+Notice script used ks.ref.cfg to generate new ks.cfg, and it pushed to ISO.cfg The script, by default, uses **$HOME/.ssh/ssh-rsa** and injects it to the target iso.
 
-```
+```json
 {
   "hostname": "photon-machine",
   "password": {
@@ -178,28 +189,25 @@ A container creates volume that map to a workspace.  i.e., the same execution wh
 A build system uses terraform to create a VM and boot VM from unattended generated ISO image.
 Note that main.tf reference a vault hence you need create respected kv value.
 
-```
+```bash
 ./install_vault_linux.sh
 ```
 
-Will instal vault.  token.txt contains a root token.
+script will instal vault. Note a defaut token in **token.txt** file. Also notice that default password set to DEFAULT,  
+if you need adjust adjust respected kv
 
-Notice that default password set to DEFAULT,  if you need adjust adjust respected kv
-
-```
+```bash
 vault secrets enable -path=vcenter kv
 vault kv put vcenter/vcenterpass password="DEFAULT"
 
 ```
 
-## Terrafor build Instruction
+## Step 3: Terrafor build instruction.
 
 First create tfvars file. 
 
-```
-
 Make sure you have tfvars
-```
+```terraform
 vsphere_server = "vc00.x.io"
 vsphere_user = "administrator@vsphere.local"
 vsphere_datacenter = "Datacenter"
@@ -223,22 +231,73 @@ default_vm_disk_thin = true
 
 # guest vm param
 root_pass = "vmware"
-
-```
 ```
 
-run
+- Note by default VM set to thin
+- Also note by default main.tf contains following.
+
+```terraform
+  num_cpus             = var.default_vm_cpu_size
+  num_cores_per_socket = var.default_vm_num_cores_per_socket
+  memory               = var.default_vm_mem_size
+  guest_id             = "other3xLinux64Guest"
+  latency_sensitivity  = var.default_vm_latency_sensitivity
+  tools_upgrade_policy = "upgradeAtPowerCycle"
+  # we set true so later we can adjsut if needed
+  memory_hot_add_enabled = true
+  cpu_hot_add_enabled    = true
+  cpu_hot_remove_enabled = true
+  # set zero , later will put to tfvars
+  cpu_reservation = 0
+
 ```
+
+The motivation here is that we can post-install at run time and adjust CPU or memory if needed.
+
+Initilize terraform and pull all plugins. 
+
+```bash
 terraform init -upgrade
 ```
 
-Make sure you have latest version and all plugin updated.
+Ensure you have updated the latest terraform tool and all plugins.
+
+```bash
+terraform apply
+```
+
+Notice build system upload the iso file to a content library and default datastore vsan.
+if you need overwrite default datastore adjust
+
+```
+vsphere_datastore = "vsanDatastore"
+```
+
+By default, script will create dir inside a datastore ISO and put generated iso 
+file in that datastore.
+
+If everthing is right, we can deploy.  
 
 ```
 terraform apply
 ```
 
-Notive build system upload iso file to a content library and default datastore vsan.
+Monitor progress in VC; notice that VMware tool will be installed by default, and VM will 
+be rebooted automatically. The first boot script will adjust kernel and many other parts
+and prepare VM to move to a next stage.
+
+
+## Step 4:  TinyTKG
+
+As part of the build process, when VM is created build system will wait for VM to obtain an IP address. Note that the network segment that indicates must have valid DHCP.
+
+In the first phase, terraform will create a VM and boot from CDROM. Then, you can inspect VSAN Datastore and expand the ISO folder. During terraform, apply build system will upload iso in that spot.
+
+
+Run 
+```bash
+terraform apply
+```
 
 
 ## DPKD libs
@@ -254,7 +313,7 @@ Notive build system upload iso file to a content library and default datastore v
 
 build_and_exec.sh build container locally and land to local bash session.
 
-```
+```bash
 sudo docker build -t photon_dpdk20.11:v1 .
 sudo docker run --privileged --name photon_bash --rm -i -t photon_dpdk20.11:v1 bash
 ```
