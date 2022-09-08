@@ -31,3 +31,5 @@ variable "default_vm_disk_size" {}
 variable "default_vm_mem_size" {}
 
 variable "default_vm_cpu_size" {}
+
+variable "default_vm_disk_thin" {}

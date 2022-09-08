@@ -90,7 +90,7 @@ resource "vsphere_virtual_machine" "vm" {
   disk {
     label = "disk0"
     size  = var.default_vm_disk_size
-    thin_provisioned = data.vsphere_virtual_machine.template.disks.0.thin_provisioned
+    thin_provisioned = var.default_vm_disk_thin
   }
   depends_on = [vsphere_file.photon_iso_upload]
 
