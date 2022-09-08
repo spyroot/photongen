@@ -105,11 +105,11 @@ resource "vsphere_virtual_machine" "vm" {
 }
 
 
-resource "photon_instance" "vm_instance" {
-  connection {
-    type     = "ssh"
-    user     = "root"
-    password = var.root_password
-    host     = self.public_ip
-  }
-}
+# resource "photon_instance" "vm_instance" {
+#   connection {
+#     type     = "ssh"
+#     user     = "root"
+#     password = var.root_password
+#     host     = self.public_ip
+#   }
+# }
