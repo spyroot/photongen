@@ -26,7 +26,6 @@ cp $workspace_dir/ks.cfg isolinux/ks.cfg
 cat >> isolinux/menu.cfg << EOF
 label my_unattended
 	menu label ^Unattended Install
-	default my_unattended
 	kernel vmlinuz
 	append initrd=initrd.img root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=cdrom
 EOF
