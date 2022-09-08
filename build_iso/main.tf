@@ -104,11 +104,13 @@ resource "vsphere_virtual_machine" "vm" {
   }
 }
 
+
+#   triggers {
+#     public_ip = vsphere_virtual_machine.vm.default_ip_address
+#   }
+# }
+
 resource "null_resource" "vm" {
-  triggers {
-    public_ip = vsphere_virtual_machine.vm.default_ip_address
-  }
-  
   connection {
     type = "ssh"
     host = vsphere_virtual_machine.vm.default_ip_address
