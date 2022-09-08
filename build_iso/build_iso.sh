@@ -23,10 +23,14 @@ cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
 pushd /tmp/photon-ks-iso/
 cp $workspace_dir/ks.cfg isolinux/ks.cfg
 
-cat >> isolinux/menu.cfg << EOF
+cat > isolinux/isolinux.cfg << EOF
+include menu.cfg
+default vesamenu.c32
 prompt 1
 timeout 1
+EOF
 
+cat >> isolinux/menu.cfg << EOF
 label my_unattended
 	menu label ^Unattended Install
     menu default
@@ -34,7 +38,9 @@ label my_unattended
 	append initrd=initrd.img root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=cdrom
 EOF
 
-cat >> boot/grub2/grub.cfg << EOF
+cat > boot/grub2/grub.cfg << EOF
+set default=1
+set timeout=1
 loadfont ascii
 set gfxmode="1024x768"
 gfxpayload=keep
