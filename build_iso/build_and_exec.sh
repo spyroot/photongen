@@ -34,7 +34,7 @@ if [[ $current_os == *"linux"* ]]; then
 fi
 
 PUB_KEY=$HOME/.ssh/id_rsa.pub
-if test -f "$FIPUB_KEYLE"; then
+if test -f "$PUB_KEY"; then
 	export ssh_key=$(cat $HOME/.ssh/id_rsa.pub)
 	jq --arg key "$ssh_key" '.public_key = $key' ks.ref.cfg > ks.cfg 
 	jsonlint ks.cfg 
