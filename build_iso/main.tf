@@ -110,12 +110,15 @@ resource "vsphere_virtual_machine" "vm" {
 #   }
 # }
 
+# Note make sure your DHCP env is stable. 
+# We assume that network will allocate IP address.
 resource "null_resource" "vm" {
+  depends_on = [vsphere_virtual_machine.vm]
   connection {
     type = "ssh"
     host = vsphere_virtual_machine.vm.default_ip_address
     user = "root"
-    # password = "${var.password}"
+    private_key = "${file("/root/id_rsa")}"
     port  = "22"
     agent = false
   }
