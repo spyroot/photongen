@@ -39,10 +39,14 @@ data "vsphere_content_library" "iso_library" {
   name = var.iso_library
 }
 
+resource "random_id" "server" {
+  byte_length = 8
+}
+
 # Upload iso file to content lib, note it will take time..
 resource "vsphere_content_library_item" "photon_iso" {
-  name        = var.photon_iso_catalgo_name
-  description = var.photon_iso_catalgo_name
+  name        = "${var.photon_iso_catalgo_name}-${random_id.server.hex}"
+  description = "${var.photon_iso_catalgo_name}-${random_id.server.hex}"
   file_url    = "${var.photon_iso_catalgo_name}.iso"
   library_id  = data.vsphere_content_library.iso_library.id
   type        = "iso"
@@ -50,7 +54,7 @@ resource "vsphere_content_library_item" "photon_iso" {
 
 # Upload iso file to content lib, note it will take time..
 data "vsphere_content_library_item" "library_item_photon" {
-   name       = var.photon_iso_catalgo_name
+   name       = "${var.photon_iso_catalgo_name}-${random_id.server.hex}"
    type       = "iso"
    library_id = data.vsphere_content_library.iso_library.id
  }
@@ -66,10 +70,6 @@ resource "vsphere_file" "photon_iso_upload" {
    destination_file   = "/ISO/${var.photon_iso_image_name}"
    create_directories = true
  }
-
-resource "random_id" "server" {
-  byte_length = 8
-}
 
 resource "vsphere_virtual_machine" "vm" {
   name             = "foo01-${random_id.server.hex}"
