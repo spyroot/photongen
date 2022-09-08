@@ -33,9 +33,12 @@ if [[ $current_os == *"linux"* ]]; then
 	apt-get install aufs-tools cgroupfs-mount docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 fi
 
-export ssh_key=$(cat $HOME/.ssh/id_rsa.pub)
-jq --arg key "$ssh_key" '.public_key = $key' ks.ref.cfg > ks.cfg 
-jsonlint ks.cfg 
+PUB_KEY=$HOME/.ssh/id_rsa.pub
+if test -f "$FIPUB_KEYLE"; then
+	export ssh_key=$(cat $HOME/.ssh/id_rsa.pub)
+	jq --arg key "$ssh_key" '.public_key = $key' ks.ref.cfg > ks.cfg 
+	jsonlint ks.cfg 
+fi
 
 wget -nc http://10.241.11.28/iso/photon/ph4-rt-refresh.iso
 docker rm -f /photon_iso_builder
