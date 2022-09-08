@@ -35,12 +35,6 @@ label my_unattended
 EOF
 
 cat >> boot/grub2/grub.cfg << EOF
-GRUB_TIMEOUT=1
-set default=1
-set timeout=1
-set totaltimeout=1
-set prompt=1
-
 loadfont ascii
 set gfxmode="1024x768"
 gfxpayload=keep
