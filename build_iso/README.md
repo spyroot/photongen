@@ -1,17 +1,17 @@
 # This is VMware tinytkg photon os DPDK build system for realtime kernel.
 
 The automated build system, first build a reference iso file.  For example
-local dir contains ph4-rt-refresh.iso
+local directory contains ph4-rt-refresh.iso.  **build_and_exec.sh** first builds 
+a workspace container and land to a bash. So first step build, it builds a new ISO used 
+to kick start the unattended install.
 
-build_and_exec.sh first builds a container and land to a bash.
-
-So first step build new ISO used for kick start unattended install.
 ```
 ./install_vault_linux.sh
 ./build_and_exec.sh
 ```
 
 Example
+
 ```
 ./build_and_exec.sh
 Step 1/10 : FROM ubuntu:22.04
@@ -61,14 +61,15 @@ Digest: sha256:8dd4c28314574e68c0ad3ca0dbd0aa8badf8d4381f1a2615cab76cbb0b7b5c35
 Status: Image is up to date for spyroot/photon_iso_builder:1.0
 ```
 
-Now we can generate iso.
+## Generate ISO.
 
-run inside a container run
+Now we can generate iso.  Run inside a container.
+
 '''
 ./build_iso.sh
 '''
 
-Example
+### Example
 
 ```
 root@08c5d91599b9:/home/vmware/photon_gen/photongen/build_iso# ./build_iso.sh
@@ -76,7 +77,6 @@ umount: /tmp/photon-iso: no mount point specified.
 mount: /tmp/photon-iso: WARNING: source write-protected, mounted read-only.
 /tmp/photon-ks-iso /home/vmware/photon_gen/photongen/build_iso
 Warning: creating filesystem that does not conform to ISO-9660.
-I: -input-charset not specified, using utf-8 (detected in locale settings)
 Size of boot image is 4 sectors -> No emulation
 Size of boot image is 6144 sectors -> No emulation
   1.00% done, estimate finish Thu Sep  8 09:03:02 2022
@@ -95,8 +95,7 @@ Max brk space used 58000
 /home/vmware/photon_gen/photongen/build_iso
 ```
 
-Notice script used ks.ref.cfg to generate new ks.cfg and it pushed to ISO.cfg
-The script by default uses $HOME/.ssh/ssh-rsa and inject to target iso.
+Notice script used ks.ref.cfg to generate new ks.cfg, and it pushed to ISO.cfg The script, by default, uses $HOME/.ssh/ssh-rsa and injects it to the target iso.
 
 ```
 {
