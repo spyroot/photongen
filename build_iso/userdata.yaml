@@ -1,0 +1,8 @@
+users:
+  - default
+  - name: vmware
+    primary_group: vmware
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo, wheel
+    ssh_import_id: None
+    lock_passwd: false
