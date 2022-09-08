@@ -75,8 +75,8 @@ resource "vsphere_virtual_machine" "vm" {
   name             = "foo01-${random_id.server.hex}"
   resource_pool_id = data.vsphere_compute_cluster.cluster.resource_pool_id
   datastore_id     = data.vsphere_datastore.datastore.id
-  num_cpus         = 4
-  memory           = 8192
+  num_cpus         = var.default_vm_cpu_size
+  memory           = var.default_vm_mem_size
   guest_id         = "other3xLinux64Guest"
 
   cdrom {
@@ -89,7 +89,8 @@ resource "vsphere_virtual_machine" "vm" {
   }
   disk {
     label = "disk0"
-    size  = 40
+    size  = var.default_vm_disk_size
+    thin_provisioned = data.vsphere_virtual_machine.template.disks.0.thin_provisioned
   }
   depends_on = [vsphere_file.photon_iso_upload]
 
