@@ -9,6 +9,7 @@ fi
 
 
 workspace_dir=$(pwd)
+rm ph4-rt-refresh_adj.iso
 
 umount /tmp/photon-iso
 rm -rf /tmp/photon-iso
@@ -20,7 +21,7 @@ mount ph4-rt-refresh.iso /tmp/photon-iso
 mkdir /tmp/photon-ks-iso
 cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
 pushd /tmp/photon-ks-iso/
-cp isolinux/sample_ks.cfg isolinux/ks.cfg
+cp $workspace_dir/ks.cfg isolinux/ks.cfg
 
 cat >> isolinux/menu.cfg << EOF
 label my_unattended

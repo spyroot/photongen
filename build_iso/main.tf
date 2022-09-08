@@ -59,7 +59,7 @@ data "vsphere_content_library_item" "library_item_photon" {
 # Note normally we would like to use content lib
 # I open a bug to fix issue so we can boot VM with CDROM that uses iso from content library.
 # For now we just use vsan datastore.
- resource "vsphere_file" "photon_iso_upload" {
+resource "vsphere_file" "photon_iso_upload" {
    datacenter         = var.vsphere_datacenter
    datastore          = var.vsphere_datastore
    source_file        = var.photon_iso_image_name
@@ -81,7 +81,7 @@ resource "vsphere_virtual_machine" "vm" {
 
   cdrom {
     datastore_id = data.vsphere_datastore.datastore.id
-    path         = "/ISO/${var.photon_iso_image_name}"
+    path         = "/ISO/${var.photon_iso_image_name}" 
   }
 
   network_interface {
@@ -91,6 +91,8 @@ resource "vsphere_virtual_machine" "vm" {
     label = "disk0"
     size  = 40
   }
+  depends_on = [vsphere_file.photon_iso_upload]
+
 #   extra_config = {
 #     "guestinfo.metadata"          = base64encode(file("${path.module}/metadata.yml"))
 #     "guestinfo.metadata.encoding" = "base64"
