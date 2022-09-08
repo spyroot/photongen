@@ -24,6 +24,9 @@ pushd /tmp/photon-ks-iso/
 cp $workspace_dir/ks.cfg isolinux/ks.cfg
 
 cat >> isolinux/menu.cfg << EOF
+prompt 1
+timeout 1
+
 label my_unattended
 	menu label ^Unattended Install
     menu default
@@ -32,11 +35,11 @@ label my_unattended
 EOF
 
 cat >> boot/grub2/grub.cfg << EOF
-GRUB_TIMEOUT=0
-set default=0
-set timeout=0
+GRUB_TIMEOUT=1
+set default=1
+set timeout=1
 set totaltimeout=1
-set prompt=0
+set prompt=1
 
 loadfont ascii
 set gfxmode="1024x768"
