@@ -148,7 +148,9 @@ resource "null_resource" "vm" {
       "cd /root/build; git clone https://github.com/intel/isa-l",
       "/root/build/isa-l; chmod 700 autogen.sh && ./autogen.sh",
       "./configure",
-      "make && make install"
+      "make && make install",
+      "pip3 install pyelftools",
+      "yum -y install stalld dkms linux-devel linux-rt-devel"
     ]
   }
 }
