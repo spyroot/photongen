@@ -15,5 +15,3 @@ RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* 
 RUN pip install jello
 ENV LANG en_US.utf8
 
-# RUN wget -nc http://10.241.11.28/iso/photon/ph4-rt-refresh.iso
-

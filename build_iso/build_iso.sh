@@ -1,5 +1,5 @@
 #!/bin/bash
-# unpack iso , put kickstart , docker image and repack.
+# unpack iso , re-adjust kickstart , repack back iso.
 # Author Mustafa Bayramov
 
 current_os=$(uname -a)
@@ -8,7 +8,6 @@ then
   echo "You must run the script inside docker runtime."
 exit 2
 fi
-
 
 workspace_dir=$(pwd)
 rm ph4-rt-refresh_adj.iso
@@ -22,6 +21,8 @@ mount ph4-rt-refresh.iso /tmp/photon-iso
 
 mkdir /tmp/photon-ks-iso
 cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
+cp docker_images/*.tar /tmp/photon-ks-iso/
+
 pushd /tmp/photon-ks-iso/
 cp $workspace_dir/ks.cfg isolinux/ks.cfg
 
