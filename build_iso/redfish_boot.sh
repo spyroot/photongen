@@ -5,7 +5,7 @@ python idrac_ctl.py eject_vm --device_id 1
 python idrac_ctl.py get_vm
 
 # insert virtual media
-python idrac_ctl.py insert_vm --uri_path http://$MY_IP/ubuntu-22.04.1-desktop-amd64.iso --device_id 1
+python idrac_ctl.py insert_vm --uri_path http://$MY_IP/ph4-rt-refresh_adj.iso --device_id 1
 # check
 python idrac_ctl.py get_vm
 
