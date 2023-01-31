@@ -1,0 +1,4 @@
+[
+    "docker load --input /docker_image.1.tar",
+    "docker load --input /docker_image.1.tar"
+]

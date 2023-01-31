@@ -1,0 +1,10 @@
+{
+  "additional_files": [
+    {
+      "docker_image.1.img": "/docker_image.1.tar"
+    },
+    {
+      "docker_image.2.img": "/docker_image.2.tar"
+    }
+  ]
+}

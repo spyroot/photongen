@@ -1,9 +1,11 @@
 #!/bin/bash
+# unpack iso , put kickstart , docker image and repack.
+# Author Mustafa Bayramov
 
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]]; 
 then
-echo "You must run the script inside docker runtime."
+  echo "You must run the script inside docker runtime."
 exit 2
 fi
 
@@ -23,6 +25,7 @@ cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
 pushd /tmp/photon-ks-iso/
 cp $workspace_dir/ks.cfg isolinux/ks.cfg
 
+# generate isolinux
 cat > isolinux/isolinux.cfg << EOF
 include menu.cfg
 default vesamenu.c32
@@ -30,6 +33,7 @@ prompt 1
 timeout 1
 EOF
 
+# generate menu
 cat >> isolinux/menu.cfg << EOF
 label my_unattended
 	menu label ^Unattended Install
@@ -38,6 +42,7 @@ label my_unattended
 	append initrd=initrd.img root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=cdrom
 EOF
 
+# generate grub
 cat > boot/grub2/grub.cfg << EOF
 set default=1
 set timeout=1
@@ -60,7 +65,7 @@ sed -i 's/default install/default my_unattended/g' /tmp/photon-ks-iso/isolinux/m
 mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -no-emul-boot -boot-load-size 4 -boot-info-table \
                 -eltorito-alt-boot --eltorito-boot boot/grub2/efiboot.img -no-emul-boot \
-                -V "PHOTON_$(date +%Y%m%d)" . > $workspace_dir/ph4-rt-refresh_adj.iso
+                -V "PHOTON_$(date +%Y%m%d)" . > "$workspace_dir"/ph4-rt-refresh_adj.iso
 popd
 
 umount /tmp/photon-iso
