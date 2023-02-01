@@ -12,6 +12,7 @@ fi
 DEFAULT_SRC_IMAGE_NAME="ph4-rt-refresh.iso"
 DEFAULT_DST_IMAGE_NAME="ph4-rt-refresh_adj.iso"
 DEFAULT_SRC_ISO_DIR="/tmp/photon-iso"
+DEFAULT_DST_ISO_DIR="/tmp/photon-ks-iso"
 
 workspace_dir=$(pwd)
 rm $DEFAULT_DST_IMAGE_NAME 2>/dev/null
@@ -25,6 +26,8 @@ echo "Mount $DEFAULT_SRC_IMAGE_NAME to $DEFAULT_SRC_ISO_DIR"
 mount $DEFAULT_SRC_IMAGE_NAME $DEFAULT_SRC_ISO_DIR 2>/dev/null
 
 mkdir -p /tmp/photon-ks-iso
+echo "Copy data from $DEFAULT_SRC_ISO_DIR/* to $DEFAULT_DST_ISO_DIR/"
+
 cp -r $DEFAULT_SRC_ISO_DIR/* /tmp/photon-ks-iso/
 cp docker_images/*.tar.gz /tmp/photon-ks-iso/
 
@@ -58,10 +61,10 @@ gfxpayload=keep
 
 set theme=/boot/grub2/themes/photon/theme.txt
 terminal_output gfxterm
-probe -s photondisk -u ($root)
+probe -s photondisk -u (\$root)
 
 menuentry "Install" {
-    linux /isolinux/vmlinuz root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=UUID=photondisk
+    linux /isolinux/vmlinuz root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=UUID=\$photondisk
     initrd /isolinux/initrd.img
 }
 EOF
