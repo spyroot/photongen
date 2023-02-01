@@ -28,7 +28,7 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 DEFAULT_ISO_LOCATION="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
-DEFAULT_IMAGE_NAME="ph4-rt-refresh_adj.iso"
+DEFAULT_IMAGE_NAME="ph4-rt-refresh.iso"
 
 DEFAULT_HOSTNAME="photon-machine"
 DEFAULT_BOOT_SIZE="8192"
