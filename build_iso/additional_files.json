@@ -1,7 +1,7 @@
 {
   "additional_files": [
     {
-      "vcu1.tar.gz": "/vcu1.tar.gz"
+      "/mnt/media/vcu1.tar.gz": "/vcu1.tar.gz"
     }
   ]
 }
