@@ -1,17 +1,19 @@
 #!/bin/bash
-# Pull reference iso.
-# Creates container and pull all requested packages.
-# Container will run build_iso script and generate new iso file.
+# Pull reference iso. This scrip main role.
+# Creates container and pull all packages required to build ISO.
+# It takes all json files.
+#   - additional_direct_rpms.json rpms that we put to want to put to iso or over a network.
+#   - additional_files.json docker images / drivers that we serialize to final ISO.
+#   - ks.ref.cfg  is reference kickstart file.  don't delete or change it.
+#   - by default key from $HOME/.ssh/id_rsa.pub injected to kickstart.
+#
+# The container itself client need  build_iso.sh script and it will generate
+# new iso file.
 # The new iso file generate to be a reference kick-start unattended installer.
 # Note: that docker run use current dir as volume make sure if you run on macos you
 # current dir added to resource.    Docker -> Preference -> Resource and add dir.
 #
 #
-# in additional_direct_rpms.json, rpms we need to install postinstall.
-# ["wget -nc http://MY_IP/my.rpm -P /tmp/  >> /etc/postinstall",
-#"tdnf install -y /tmp/my.rpm  >> /etc/postinstall"]
-#
-# in additional_load_docker.json image that we want to load post install
 #
 # Author Mustafa Bayramov
 
@@ -27,19 +29,24 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
+# a location form where to pull reference ISO
 DEFAULT_ISO_LOCATION="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
+# a default name reference ISO will be renamed.
 DEFAULT_IMAGE_NAME="ph4-rt-refresh.iso"
 
+# default hostname
 DEFAULT_HOSTNAME="photon-machine"
+# default size for /boot
 DEFAULT_BOOT_SIZE="8192"
+# default size for /root
 DEFAULT_ROOT_SIZE="8192"
+# will remove docker image
 #DEFAULT_ALWAYS_CLEAN="yes"
 
 # usage log "msg"
 log() {
   printf "%b %s. %b\n" "${GREEN}" "$@" "${NC}"
 }
-
 
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]]; then
