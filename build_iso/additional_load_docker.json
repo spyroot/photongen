@@ -1,5 +1,5 @@
 [
     "systemctl enable docker >> /etc/postinstall",
     "systemctl start docker  >> /etc/postinstall",
-    "gzip -dkc /vcu1.tar.gz > /vcu1.tar; docker load --input /vcu1.tar >> /etc/postinstall"
+    "docker load < /vcu1.tar.gz >> /etc/postinstall"
 ]
