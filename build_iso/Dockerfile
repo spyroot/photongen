@@ -12,7 +12,8 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
 	&& localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-RUN pip3 install jello
+RUN pip install jello
+RUN pip install idrac_ctl
 
 RUN wget --quiet -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /etc/apt/trusted.gpg.d/hashicorp-archive-keyring.gpg
 RUN gpg --ignore-time-conflict --no-default-keyring --keyring /etc/apt/trusted.gpg.d/hashicorp-archive-keyring.gpg --fingerprint
