@@ -2,9 +2,6 @@
   "additional_files": [
     {
       "docker_image.1.img": "/vcu1.tar.gz"
-    },
-    {
-      "docker_image.2.img": "/vcu2.tar.gz"
     }
   ]
 }
