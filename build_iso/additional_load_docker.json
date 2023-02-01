@@ -1,4 +1,4 @@
 [
-    "docker load --input /docker_image.1.tar >> /etc/postinstall",
-    "docker load --input /docker_image.1.tar >> /etc/postinstall"
+    "gzip -dkc vcu1.tar.gz > /vcu1.tar; docker load --input /vcu1.tar >> /etc/postinstall",
+    "gzip -dkc vcu2.tar.gz > /vcu2.tar; docker load --input /vcu2.tar >> /etc/postinstall"
 ]

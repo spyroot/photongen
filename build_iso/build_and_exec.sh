@@ -130,4 +130,12 @@ rm ks.phase[0-9].cfg
 wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_ISO_LOCATION"
 docker rm -f /photon_iso_builder
 docker build -t spyroot/photon_iso_builder:1.0 .
-docker run --pull always -v `pwd`:`pwd` -w `pwd` --privileged --name photon_iso_builder --rm -i -t spyroot/photon_iso_builder:1.0 bash
+
+#docker run --pull always -v `pwd`:`pwd` -w `pwd` \
+#		--privileged --name photon_iso_builder \
+#		--rm -i -t spyroot/photon_iso_builder:1.0 bash
+
+docker run --pull always -v `pwd`:`pwd` -w `pwd` \
+         --privileged --name photon_iso_builder \
+         -i -t spyroot/photon_iso_builder:1.0 bash
+
