@@ -11,19 +11,20 @@ fi
 
 DEFAULT_SRC_IMAGE_NAME="ph4-rt-refresh.iso"
 DEFAULT_DST_IMAGE_NAME="ph4-rt-refresh_adj.iso"
+DEFAULT_SRC_ISO_DIR="/tmp/photon-iso"
 
 workspace_dir=$(pwd)
-rm ph4-rt-refresh_adj.iso
+rm $DEFAULT_DST_IMAGE_NAME
 
 umount -q /tmp/photon-iso
-rm -rf /tmp/photon-iso
+rm -rf $DEFAULT_SRC_ISO_DIR
 rm -rf /tmp/photon-ks-iso
 
-mkdir -p /tmp/photon-iso
-mount -q $DEFAULT_SRC_IMAGE_NAME /tmp/photon-iso
+mkdir -p $DEFAULT_SRC_ISO_DIR
+mount $DEFAULT_SRC_IMAGE_NAME $DEFAULT_SRC_ISO_DIR
 
 mkdir -p /tmp/photon-ks-iso
-cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
+cp -r $DEFAULT_SRC_ISO_DIR/* /tmp/photon-ks-iso/
 cp docker_images/*.tar.gz /tmp/photon-ks-iso/
 
 pushd /tmp/photon-ks-iso/ || exit
