@@ -19,10 +19,10 @@ umount -q /tmp/photon-iso
 rm -rf /tmp/photon-iso
 rm -rf /tmp/photon-ks-iso
 
-mkdir /tmp/photon-iso
+mkdir -p /tmp/photon-iso
 mount -q $DEFAULT_SRC_IMAGE_NAME /tmp/photon-iso
 
-mkdir /tmp/photon-ks-iso
+mkdir -p /tmp/photon-ks-iso
 cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
 cp docker_images/*.tar.gz /tmp/photon-ks-iso/
 
