@@ -24,6 +24,7 @@ jsonlint additional_packages.json
 jsonlint additional_rpms.json
 
 RED='\033[0;31m'
+GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 DEFAULT_ISO_LOCATION="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
@@ -33,6 +34,12 @@ DEFAULT_HOSTNAME="photon-machine"
 DEFAULT_BOOT_SIZE="8192"
 DEFAULT_ROOT_SIZE="8192"
 DEFAULT_ALWAYS_CLEAN="yes"
+
+# usage log "msg"
+log() {
+  printf "%b %s. %b\n" "${GREEN}" "$@" "${NC}"
+}
+
 
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]]; then
@@ -135,29 +142,31 @@ wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_ISO_LOCATION"
 
 # by a default we always do clean build
 if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
-    printf "${RED}Reusing same image.${NC}\n"
+    log "Detecting an existing image."
     existing_img=$(docker inspect photon_iso_builder | jq '.[0].Id')
     if [[ -z "$existing_img" ]]; then
-        printf "${RED}Image not found, building new image.${NC}\n"
+        log "Image not found, building new image."
         docker build -t spyroot/photon_iso_builder:1.0 .
     fi
 elif [[ -z "$DEFAULT_ALWAYS_CLEAN" ]]; then
     echo "DEFAULT_ALWAYS_CLEAN is set to the empty string"
 else
-  printf "${RED}Alwas clean set to true, rebuilding image.${NC}\n"
+  log "Always clean build set to true, rebuilding image."
   docker rm -f /photon_iso_builder
   docker build -t spyroot/photon_iso_builder:1.0 .
 fi
 
+container_id=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
+
 # we need container running set NO_REMOVE_POST
 if [[ ! -v NO_REMOVE_POST ]]; then
-    printf "${RED}Starting without autoremove.${NC}\n"
+    log "Starting without container auto-remove."
     docker run --pull always -v `pwd`:`pwd` -w `pwd` \
-         --privileged --name photon_iso_builder \
+         --privileged --name photon_iso_builder_"$container_id" \
          -i -t spyroot/photon_iso_builder:1.0 bash
 else
-  printf "${RED}Starting with autoremove.${NC}\n"
+  log "Starting container with auto-remove."
   docker run --pull always -v `pwd`:`pwd` -w `pwd` \
-		--privileged --name photon_iso_builder \
+		--privileged --name photon_iso_builder_"$container_id" \
 		--rm -i -t spyroot/photon_iso_builder:1.0 bash
 fi
