@@ -1,4 +1,6 @@
 FROM ubuntu:22.04
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=America/New_York
 
 RUN apt-get update
 RUN apt-get install gnupg software-properties-common -y
@@ -12,6 +14,7 @@ RUN apt-get update && apt-get install terraform
 
 RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
 	&& localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 RUN apt-get install python3-pip -y
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 RUN pip3 install jello
