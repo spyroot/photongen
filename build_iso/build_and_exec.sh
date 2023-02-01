@@ -154,14 +154,14 @@ if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
     existing_img=$(docker inspect photon_iso_builder | jq '.[0].Id')
     if [[ -z "$existing_img" ]]; then
         log "Image not found, building new image."
-        docker build -t spyroot/photon_iso_builder:1.0 .
+        docker build -t spyroot/photon_iso_builder:latest . --platform linux/amd64
     fi
 elif [[ -z "$DEFAULT_ALWAYS_CLEAN" ]]; then
     echo "DEFAULT_ALWAYS_CLEAN is set to the empty string"
 else
   log "Always clean build set to true, rebuilding image."
-  docker rm -f /photon_iso_builder
-  docker build -t spyroot/photon_iso_builder:1.0 .
+  docker rm -f /photon_iso_builder --platform linux/amd64
+  docker build -t spyroot/photon_iso_builder:latest .
 fi
 
 container_id=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
@@ -171,10 +171,10 @@ if [[ ! -v NO_REMOVE_POST ]]; then
     log "Starting without container auto-remove."
     docker run --pull always -v `pwd`:`pwd` -w `pwd` \
          --privileged --name photon_iso_builder_"$container_id" \
-         -i -t spyroot/photon_iso_builder:1.0 bash
+         -i -t spyroot/photon_iso_builder:latest bash
 else
   log "Starting container with auto-remove."
   docker run --pull always -v `pwd`:`pwd` -w `pwd` \
 		--privileged --name photon_iso_builder_"$container_id" \
-		--rm -i -t spyroot/photon_iso_builder:1.0 bash
+		--rm -i -t spyroot/photon_iso_builder:latest bash
 fi
