@@ -67,6 +67,7 @@ if [[ $current_os == *"linux"* ]]; then
   apt-get install aufs-tools cgroupfs-mount docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
 fi
 
+# add ssh key
 PUB_KEY=$HOME/.ssh/id_rsa.pub
 current_ks_phase="ks.ref.cfg"
 if test -f "$PUB_KEY"; then
