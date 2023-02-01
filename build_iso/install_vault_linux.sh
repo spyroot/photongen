@@ -21,12 +21,12 @@ vault_pid=$(pgrep "vault")
 if [ -n "$vault_pid" ] && [ "$vault_pid" -eq "$vault_pid" ] 2>/dev/null; 
 then
 	echo "Killing vault pid $vault_pid"
-	kill $vault_pid
+	kill "$vault_pid"
 fi
 
 vault server -dev > vault.log &
 TOKEN=$(cat vault.log | grep Root | awk '{print $3}')
-echo $TOKEN > token.txt
+echo "$TOKEN" > token.txt
 
 export VAULT_ADDR='http://127.0.0.1:8200'"
 export VAULT_TOKEN=$TOKEN"

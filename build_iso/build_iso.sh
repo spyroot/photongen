@@ -24,7 +24,7 @@ cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
 cp docker_images/*.tar /tmp/photon-ks-iso/
 
 pushd /tmp/photon-ks-iso/
-cp $workspace_dir/ks.cfg isolinux/ks.cfg
+cp "$workspace_dir"/ks.cfg isolinux/ks.cfg
 
 # generate isolinux
 cat > isolinux/isolinux.cfg << EOF

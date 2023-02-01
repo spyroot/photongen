@@ -7,7 +7,7 @@
 # current dir added to resource.    Docker -> Preference -> Resource and add dir.
 #
 #
-# in additional_direct_rpms.json, rpms we want install postinstall.
+# in additional_direct_rpms.json, rpms we need to install postinstall.
 # ["wget -nc http://MY_IP/my.rpm -P /tmp/  >> /etc/postinstall",
 #"tdnf install -y /tmp/my.rpm  >> /etc/postinstall"]
 #
@@ -29,6 +29,7 @@ DEFAULT_IMAGE_NAME="ph4-rt-refresh_adj.iso"
 DEFAULT_HOSTNAME="photon-machine"
 DEFAULT_BOOT_SIZE="8192"
 DEFAULT_ROOT_SIZE="8192"
+DEFAULT_ALWAYS_CLEAN="yes"
 
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]]; then
@@ -128,14 +129,28 @@ jsonlint $current_ks_phase
 
 rm ks.phase[0-9].cfg
 wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_ISO_LOCATION"
-docker rm -f /photon_iso_builder
-docker build -t spyroot/photon_iso_builder:1.0 .
 
-#docker run --pull always -v `pwd`:`pwd` -w `pwd` \
-#		--privileged --name photon_iso_builder \
-#		--rm -i -t spyroot/photon_iso_builder:1.0 bash
+# by a default we always do clean build
+if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
+    echo "Reusing same image"
+    existing_img=$(docker inspect photon_iso_builder | jq '.[0].Id')
+    if [[ -z "$existing_img" ]]; then
+        docker build -t spyroot/photon_iso_builder:1.0 .
+    fi
+elif [[ -z "$DEFAULT_ALWAYS_CLEAN" ]]; then
+    echo "DEFAULT_ALWAYS_CLEAN is set to the empty string"
+else
+  docker rm -f /photon_iso_builder
+  docker build -t spyroot/photon_iso_builder:1.0 .
+fi
 
-docker run --pull always -v `pwd`:`pwd` -w `pwd` \
+# we need container running set NO_REMOVE_POST
+if [[ ! -v NO_REMOVE_POST ]]; then
+    docker run --pull always -v `pwd`:`pwd` -w `pwd` \
          --privileged --name photon_iso_builder \
          -i -t spyroot/photon_iso_builder:1.0 bash
-
+else
+  docker run --pull always -v `pwd`:`pwd` -w `pwd` \
+		--privileged --name photon_iso_builder \
+		--rm -i -t spyroot/photon_iso_builder:1.0 bash
+fi
