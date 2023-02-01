@@ -33,7 +33,7 @@ DEFAULT_IMAGE_NAME="ph4-rt-refresh_adj.iso"
 DEFAULT_HOSTNAME="photon-machine"
 DEFAULT_BOOT_SIZE="8192"
 DEFAULT_ROOT_SIZE="8192"
-DEFAULT_ALWAYS_CLEAN="yes"
+#DEFAULT_ALWAYS_CLEAN="yes"
 
 # usage log "msg"
 log() {
@@ -70,7 +70,8 @@ fi
 PUB_KEY=$HOME/.ssh/id_rsa.pub
 current_ks_phase="ks.ref.cfg"
 if test -f "$PUB_KEY"; then
-  export ssh_key=$(cat "$HOME"/.ssh/id_rsa.pub)
+  ssh_key=$(cat "$HOME"/.ssh/id_rsa.pub)
+  export ssh_key
   jq --arg key "$ssh_key" '.public_key = $key' ks.ref.cfg >ks.phase1.cfg
   current_ks_phase="ks.phase1.cfg"
   jsonlint ks.phase1.cfg

@@ -9,6 +9,8 @@ then
 exit 2
 fi
 
+DEFAULT_IMAGE_NAME="ph4-rt-refresh_adj.iso"
+
 workspace_dir=$(pwd)
 rm ph4-rt-refresh_adj.iso
 
@@ -17,13 +19,13 @@ rm -rf /tmp/photon-iso
 rm -rf /tmp/photon-ks-iso
 
 mkdir /tmp/photon-iso
-mount ph4-rt-refresh.iso /tmp/photon-iso
+mount $DEFAULT_IMAGE_NAME /tmp/photon-iso
 
 mkdir /tmp/photon-ks-iso
 cp -r /tmp/photon-iso/* /tmp/photon-ks-iso/
-cp docker_images/*.tar /tmp/photon-ks-iso/
+cp docker_images/*.tar.gz /tmp/photon-ks-iso/
 
-pushd /tmp/photon-ks-iso/
+pushd /tmp/photon-ks-iso/ || exit
 cp "$workspace_dir"/ks.cfg isolinux/ks.cfg
 
 # generate isolinux
@@ -67,6 +69,5 @@ mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -no-emul-boot -boot-load-size 4 -boot-info-table \
                 -eltorito-alt-boot --eltorito-boot boot/grub2/efiboot.img -no-emul-boot \
                 -V "PHOTON_$(date +%Y%m%d)" . > "$workspace_dir"/ph4-rt-refresh_adj.iso
-popd
-
+popd || exit
 umount /tmp/photon-iso

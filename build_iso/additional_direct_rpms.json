@@ -1,2 +1,4 @@
-["wget -nc http://10.241.11.28/iso/photon/ztp/tinykube-0.0.1-1.x86_64.rpm -P /tmp/  >> /etc/postinstall",
-"tdnf install -y /tmp/tinykube-0.0.1-1.x86_64.rpm  >> /etc/postinstall"]
+[
+  "wget -nc http://10.241.11.28/iso/photon/ztp/tinykube-0.0.1-1.x86_64.rpm -P /tmp/  >> /etc/postinstall",
+  "tdnf install -y /tmp/tinykube-0.0.1-1.x86_64.rpm  >> /etc/postinstall"
+]
