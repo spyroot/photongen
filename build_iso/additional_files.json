@@ -1,7 +1,7 @@
 {
   "additional_files": [
     {
-      "docker_image.1.img": "/vcu1.tar.gz"
+      "vcu1.tar.gz": "/vcu1.tar.gz"
     }
   ]
 }
