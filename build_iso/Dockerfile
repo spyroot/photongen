@@ -1,9 +1,10 @@
 FROM ubuntu:22.04
+MAINTAINER spyroot@gmail.com
+
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=America/New_York
 
-RUN apt-get update
-RUN apt-get install gnupg software-properties-common -y
+RUN apt-get update && apt-get install gnupg software-properties-common -y
 RUN apt-get install tzdata vim curl wget unzip genisoimage jq golang-go git -y
 
 RUN wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor | tee /usr/share/keyrings/hashicorp-archive-keyring.gpg
