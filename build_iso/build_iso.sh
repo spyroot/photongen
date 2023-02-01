@@ -15,11 +15,13 @@ DEFAULT_SRC_ISO_DIR="/tmp/photon-iso"
 
 workspace_dir=$(pwd)
 rm $DEFAULT_DST_IMAGE_NAME 2>/dev/null
-umount -q /tmp/photon-iso  2>/dev/null
+umount -q $DEFAULT_SRC_ISO_DIR  2>/dev/null
 rm -rf $DEFAULT_SRC_ISO_DIR  2>/dev/null
 rm -rf /tmp/photon-ks-iso  2>/dev/null
 
 mkdir -p $DEFAULT_SRC_ISO_DIR
+
+echo "Mount $DEFAULT_SRC_IMAGE_NAME to $DEFAULT_SRC_ISO_DIR"
 mount $DEFAULT_SRC_IMAGE_NAME $DEFAULT_SRC_ISO_DIR 2>/dev/null
 
 mkdir -p /tmp/photon-ks-iso
@@ -71,4 +73,4 @@ mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -eltorito-alt-boot --eltorito-boot boot/grub2/efiboot.img -no-emul-boot \
                 -V "PHOTON_$(date +%Y%m%d)" . > "$workspace_dir"/$DEFAULT_DST_IMAGE_NAME
 popd || exit
-umount /tmp/photon-iso
+umount $DEFAULT_SRC_ISO_DIR
