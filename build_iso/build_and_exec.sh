@@ -139,7 +139,14 @@ current_ks_phase="ks.cfg"
 jsonlint $current_ks_phase
 
 rm ks.phase[0-9].cfg
+
+# extra check if ISO not bootable
 wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_ISO_LOCATION"
+ISO_IS_BOOTABLE=$(file $DEFAULT_IMAGE_NAME | grep bootable)
+if [ -z "$ISO_IS_BOOTABLE" ]; then
+  log "Invalid iso image."
+  exit 99
+fi
 
 # by a default we always do clean build
 if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
