@@ -40,6 +40,13 @@
     "make",
     "curl"
   ],
+  "postinstallscripts": [
+    "post.sh"
+  ],
+  "search_path": [
+    "/mnt/media",
+    "/tmp"
+  ],
   "postinstall": [
     "#!/bin/sh",
     "sed -i 's/PermitRootLogin.*/PermitRootLogin yes/g' /etc/ssh/sshd_config",
