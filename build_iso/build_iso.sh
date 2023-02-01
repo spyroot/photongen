@@ -59,7 +59,7 @@ terminal_output gfxterm
 probe -s photondisk -u ($root)
 
 menuentry "Install" {
-    linux /isolinux/vmlinuz root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=UUID=$photondisk
+    linux /isolinux/vmlinuz root=/dev/ram0 ks=cdrom:/isolinux/ks.cfg loglevel=3 photon.media=UUID=photondisk
     initrd /isolinux/initrd.img
 }
 EOF
