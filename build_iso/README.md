@@ -14,11 +14,17 @@ Requirements.
 - Make sure that DHCP allocates the DNS server.
 - The port-group name must match whatever you see in VC.
 
-## Step One: Bulding ISO.
+## Step One: Build ISO.
 
 ```bash
+# intall vault and store credentials.
 ./install_vault_linux.sh
+
+# builds container or pull container from dockerhub and land to bash
 ./build_and_exec.sh
+
+# builds iso 
+./build_iso.sh
 ```
 
 ## Example
@@ -72,7 +78,7 @@ Digest: sha256:8dd4c28314574e68c0ad3ca0dbd0aa8badf8d4381f1a2615cab76cbb0b7b5c35
 Status: Image is up to date for spyroot/photon_iso_builder:1.0
 ```
 
-## Step two: enerate ISO
+## Step two: Generate ISO
 
 Now we can generate iso.  Run inside a container.
 
