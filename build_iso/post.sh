@@ -3,16 +3,29 @@
 AVX_VERSION=4.5.3
 MLNX_VER=5.4-1.0.3.0
 
-#cd /tmp || exit
-#mkdir -p /tmp/mlnx_ofed_src
-#wget http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$MLNX"/MLNX_OFED_SRC-debian-"$MLNX".tgz \
-#--directory-prefix=/tmp/mlnx_ofed_src -O MLNX_OFED_SRC-debian-"$MLNX".tgz
-#tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1
+docker load < /vcu1.tar.gz
+MLX_DIR=/tmp/mlnx_ofed_src
+INTEL_DIR=/tmp/iavf
+
+mkdir -p $MLX_DIR
+mkdir -p $INTEL_DIR
+
+export PATH=$PATH:/usr/local/bin
+yum -y install python3-libcap-ng python3-devel rdma-core-devel util-linux-devel zip zlib zlib-devel libxml2-devel libudev-devel
+cd /root || exit; mkdir -p build; git clone https://github.com/intel/intel-ipsec-mb.git
+cd intel-ipsec-mb || exit; make -j 8
+make install; ldconfig
+
+MLX_IMG=http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$MLNX_VER"/MLNX_OFED_SRC-debian-"$MLNX_VER".tgz
+MLX_FILE_NAME=MLNX_OFED_SRC-debian-"$MLNX_VER".tgz
+INTEL_IMG=https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.tar.gz
+
 #
-#mkdir -p /tmp/iavf
-#wget https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.tar.gz \
-#--directory-prefix=/tmp/iavf -O iavf-$AVX_VERSION.tar.gz
-#cd /tmp/iavf || exit
-#tar -zxvf iavf-* -C iavf --strip-components=1
-#cd /tmp/iavf/src || exit
-#make && make install
+cd /tmp || exit; wget $MLX_IMG --directory-prefix=$MLX_DIR -O $MLX_FILE_NAME
+tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1
+
+#
+cd /tmp || exit; wget $INTEL_IMG --directory-prefix=$INTEL_DIR -O iavf-$AVX_VERSION.tar.gz
+tar -zxvf iavf-* -C iavf --strip-components=1
+cd $INTEL_DIR/src || exit
+make && make install
