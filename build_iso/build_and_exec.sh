@@ -28,6 +28,7 @@ jsonlint additional_rpms.json
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
+# by default it RT 4.0
 DEFAULT_RELEASE="4.0"
 
 # a location form where to pull reference ISO
@@ -38,6 +39,7 @@ DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
 DEFAULT_DOCKER_IMAGE="spyroot/photon_iso_builder:latest"
 # comma seperated
 DEFAULT_DOCKER_ARC="linux/amd64"
+DEFAULT_FLAVOR="linux-rt"
 
 # usage log "msg"
 log() {
@@ -123,10 +125,15 @@ jq --arg p "$DEFAULT_HOSTNAME" '.hostname=$p' $current_ks_phase >ks.phase3.cfg
 current_ks_phase="ks.phase3.cfg"
 jsonlint $current_ks_phase
 
-# adjust release
-jq --arg r "$DEFAULT_RELEASE" '.photon_release_version=$r' $current_ks_phase >ks.phase4.cfg
-current_ks_phase="ks.phase4.cfg"
-jsonlint $current_ks_phase
+if [[ "$DEFAULT_RELEASE" == "4.0" ]]; then
+    # adjust release
+    echo "Strings are equal."
+    jq --arg r "$DEFAULT_RELEASE" '.photon_release_version=$r' $current_ks_phase >ks.phase4.cfg
+    current_ks_phase="ks.phase4.cfg"
+    jsonlint $current_ks_phase
+else
+    log "removing photon_release_version."
+fi
 
 
 # adjust /root partition if needed
@@ -198,7 +205,9 @@ else
   docker build -t "$DEFAULT_DOCKER_IMAGE" .
 fi
 
+#is_darwin=$(uname -a|grep Darwin)
 container_id=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
+/usr/bin/uuidgen
 
 # we need container running set NO_REMOVE_POST
 if [[ ! -v NO_REMOVE_POST ]]; then

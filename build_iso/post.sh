@@ -29,3 +29,5 @@ cd /tmp || exit; wget $INTEL_IMG --directory-prefix=$INTEL_DIR -O iavf-$AVX_VERS
 tar -zxvf iavf-* -C iavf --strip-components=1
 cd $INTEL_DIR/src || exit
 make && make install
+
+reboot
