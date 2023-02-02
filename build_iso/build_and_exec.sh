@@ -28,6 +28,7 @@ jsonlint additional_rpms.json
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
+DEFAULT_RELEASE="4.0"
 
 # a location form where to pull reference ISO
 DEFAULT_ISO_LOCATION_4_X86="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
@@ -57,7 +58,6 @@ DEFAULT_IMAGE_NAME="ph4-rt-refresh.iso"
 
 # default hostname
 DEFAULT_HOSTNAME="photon-machine"
-DEFAULT_RELEASE="4.0"
 # default size for /boot
 DEFAULT_BOOT_SIZE="8192"
 # default size for /root
@@ -121,7 +121,7 @@ current_ks_phase="ks.phase3.cfg"
 jsonlint $current_ks_phase
 
 # adjust release
-jq --arg p "$DEFAULT_RELEASE" '.photon_release_version=$p' $current_ks_phase >ks.phase4.cfg
+jq --arg r "$DEFAULT_RELEASE" '.photon_release_version=$r' $current_ks_phase >ks.phase4.cfg
 current_ks_phase="ks.phase4.cfg"
 jsonlint $current_ks_phase
 
@@ -169,7 +169,7 @@ jq --argjson f "$additional_files" '. += $f' $current_ks_phase >ks.cfg
 current_ks_phase="ks.cfg"
 jsonlint $current_ks_phase
 
-rm ks.phase[0-9].cfg
+#rm ks.phase[0-9].cfg
 
 # extra check if ISO os not bootable
 wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_IMAGE_LOCATION"
