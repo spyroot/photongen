@@ -35,7 +35,7 @@ DEFAULT_ISO_LOCATION_4_X86="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjX
 DEFAULT_ISO_PHOTON_5_X86="https://packages.vmware.com/photon/5.0/Beta/iso/photon-rt-5.0-9e778f409.iso"
 DEFAULT_ISO_PHOTON_5_ARM="https://packages.vmware.com/photon/5.0/Beta/iso/photon-5.0-9e778f409-aarch64.iso"
 DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
-DEFAULT_DOCKER_IMAGE="docker inspect spyroot/photon_iso_builder:latest"
+DEFAULT_DOCKER_IMAGE="spyroot/photon_iso_builder:latest"
 # comma seperated
 DEFAULT_DOCKER_ARC="linux/amd64"
 
