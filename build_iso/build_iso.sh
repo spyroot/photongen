@@ -30,7 +30,7 @@ echo "Copy data from $DEFAULT_SRC_ISO_DIR/* to $DEFAULT_DST_ISO_DIR/"
 
 cp -r $DEFAULT_SRC_ISO_DIR/* $DEFAULT_DST_ISO_DIR/
 cp docker_images/*.tar.gz $DEFAULT_DST_ISO_DIR/
-cp post.sh cp post.sh $DEFAULT_DST_ISO_DIR/
+cp post.sh $DEFAULT_DST_ISO_DIR/
 
 pushd $DEFAULT_DST_ISO_DIR/ || exit
 cp "$workspace_dir"/ks.cfg isolinux/ks.cfg
