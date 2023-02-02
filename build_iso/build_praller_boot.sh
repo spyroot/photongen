@@ -21,7 +21,7 @@ IDRAC_IP_ADDR=""
 # all envs
 if [ ! -f cluster.env ]
 then
-    echo "Please create cluster.env file"
+    echo "Please create cluster\.env file"
     exit 99
 else
   source cluster.env

@@ -7,7 +7,7 @@
 #   - ks.ref.cfg  is reference kickstart file.  don't delete or change it.
 #   - by default key from $HOME/.ssh/id_rsa.pub injected to kickstart.
 #
-# The container itself client need  build_iso.sh script and it will generate
+# The container itself client need  build_iso.sh script, and it will generate
 # new iso file.
 # The new iso file generate to be a reference kick-start unattended installer.
 # Note: that docker run use current dir as volume make sure if you run on macos you
@@ -30,7 +30,26 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 # a location form where to pull reference ISO
-DEFAULT_ISO_LOCATION="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
+DEFAULT_ISO_LOCATION_4_X86="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
+DEFAULT_ISO_PHOTON_5_X86="https://packages.vmware.com/photon/5.0/Beta/iso/photon-rt-5.0-9e778f409.iso"
+DEFAULT_ISO_PHOTON_5_ARM="https://packages.vmware.com/photon/5.0/Beta/iso/photon-5.0-9e778f409-aarch64.iso"
+DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
+
+# usage log "msg"
+log() {
+  printf "%b %s. %b\n" "${GREEN}" "$@" "${NC}"
+}
+
+if [[ -n "$PHOTON_5_ARM" ]]; then
+  log "Building photon 5 arm iso."
+  DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_PHOTON_5_ARM
+fi
+
+if [[ -n "$PHOTON_5_X86" ]]; then
+  log "Building photon 5 x86 RT iso."
+  DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_PHOTON_5_X86
+fi
+
 # a default name reference ISO will be renamed.
 DEFAULT_IMAGE_NAME="ph4-rt-refresh.iso"
 
@@ -42,11 +61,6 @@ DEFAULT_BOOT_SIZE="8192"
 DEFAULT_ROOT_SIZE="8192"
 # will remove docker image
 #DEFAULT_ALWAYS_CLEAN="yes"
-
-# usage log "msg"
-log() {
-  printf "%b %s. %b\n" "${GREEN}" "$@" "${NC}"
-}
 
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]]; then
@@ -135,7 +149,7 @@ jq --argjson i "$docker_imgs" '.postinstall += $i' $current_ks_phase >ks.phase7.
 current_ks_phase="ks.phase7.cfg"
 jsonlint $current_ks_phase
 
-# additional files that we copy from cdorom
+# additional files that we copy from a cdrom
 ADDITIONAL_FILES=additional_files.json
 [ ! -f $ADDITIONAL_FILES ] && {
   echo "$ADDITIONAL_FILES file not found"
@@ -148,11 +162,11 @@ jsonlint $current_ks_phase
 
 rm ks.phase[0-9].cfg
 
-# extra check if ISO not bootable
-wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_ISO_LOCATION"
+# extra check if ISO os not bootable
+wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_IMAGE_LOCATION"
 ISO_IS_BOOTABLE=$(file $DEFAULT_IMAGE_NAME | grep bootable)
 if [ -z "$ISO_IS_BOOTABLE" ]; then
-  log "Invalid iso image."
+  log "Invalid iso image, failed boot flag check."
   exit 99
 fi
 
