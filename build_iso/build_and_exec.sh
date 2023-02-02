@@ -154,8 +154,8 @@ DOCKER_LOAD_POST_INSTALL=additional_load_docker.json
   exit 99
 }
 docker_imgs=$(cat $DOCKER_LOAD_POST_INSTALL)
-jq --argjson i "$docker_imgs" '.postinstall += $i' $current_ks_phase >ks.phase7.cfg
-current_ks_phase="ks.phase7.cfg"
+jq --argjson i "$docker_imgs" '.postinstall += $i' $current_ks_phase >ks.phase8.cfg
+current_ks_phase="ks.phase8.cfg"
 jsonlint $current_ks_phase
 
 # additional files that we copy from a cdrom
