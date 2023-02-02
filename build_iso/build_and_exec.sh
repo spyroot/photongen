@@ -43,11 +43,13 @@ log() {
 if [[ -n "$PHOTON_5_ARM" ]]; then
   log "Building photon 5 arm iso."
   DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_PHOTON_5_ARM
+  DEFAULT_RELEASE="5.0"
 fi
 
 if [[ -n "$PHOTON_5_X86" ]]; then
   log "Building photon 5 x86 RT iso."
   DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_PHOTON_5_X86
+  DEFAULT_RELEASE="5.0"
 fi
 
 # a default name reference ISO will be renamed.
@@ -55,6 +57,7 @@ DEFAULT_IMAGE_NAME="ph4-rt-refresh.iso"
 
 # default hostname
 DEFAULT_HOSTNAME="photon-machine"
+DEFAULT_RELEASE="4.0"
 # default size for /boot
 DEFAULT_BOOT_SIZE="8192"
 # default size for /root
@@ -117,14 +120,20 @@ jq --arg p "$DEFAULT_HOSTNAME" '.hostname=$p' $current_ks_phase >ks.phase3.cfg
 current_ks_phase="ks.phase3.cfg"
 jsonlint $current_ks_phase
 
-# adjust /root partition if needed
-jq --arg s "$DEFAULT_ROOT_SIZE" '.partitions[1].size=$s' $current_ks_phase >ks.phase4.cfg
+# adjust release
+jq --arg p "$DEFAULT_RELEASE" '.photon_release_version=$p' $current_ks_phase >ks.phase3.cfg
 current_ks_phase="ks.phase4.cfg"
 jsonlint $current_ks_phase
 
-# adjust /boot partition if needed
-jq --arg s "$DEFAULT_BOOT_SIZE" '.partitions[2].size=$s' $current_ks_phase >ks.phase5.cfg
+
+# adjust /root partition if needed
+jq --arg s "$DEFAULT_ROOT_SIZE" '.partitions[1].size=$s' $current_ks_phase >ks.phase5.cfg
 current_ks_phase="ks.phase5.cfg"
+jsonlint $current_ks_phase
+
+# adjust /boot partition if needed
+jq --arg s "$DEFAULT_BOOT_SIZE" '.partitions[2].size=$s' $current_ks_phase >ks.phase6.cfg
+current_ks_phase="ks.phase6.cfg"
 jsonlint $current_ks_phase
 
 # adjust installation and add additional if needed.
@@ -134,8 +143,8 @@ ADDITIONAL_RPMS=additional_direct_rpms.json
   exit 99
 }
 rpms=$(cat $ADDITIONAL_RPMS)
-jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase6.cfg
-current_ks_phase="ks.phase6.cfg"
+jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase7.cfg
+current_ks_phase="ks.phase7.cfg"
 jsonlint $current_ks_phase
 
 # additional docker load.
