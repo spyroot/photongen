@@ -1,9 +1,29 @@
-# This is VMware tinytkg photon os DPDK build system for realtime kernel.
+# This is VMware BMI, TinyTkg Photon OS DPDK build system for realtime kernel.
 
-The automated build system, first build a reference iso file.  For example
-local directory contains ph4-rt-refresh.iso.  **build_and_exec.sh** first builds 
-a workspace container and land to a bash. So first step build, it builds a new ISO used 
-to kick start the unattended install.
+The automated system is designed to work with a bare-metal host. (Dell) or with 
+VMware VC environment.
+In both cases, the automated build system, first build a reference iso file.  For example
+local directory contains ph4-rt-refresh.iso. or system fetch the reference ISO from the web. 
+
+There are three main build scripts that exposed.
+* **build_and_exec.sh**  Build a kick start and all customization and docker container.
+* **build_iso.sh** Build the final ISO file.
+* **build_praller_boot.sh** (Optional bare-metal only) leverages idract_ctl and boots N hosts from final customized ISO via remote HTTP media and installs the real-time OS.
+
+**build_and_exec.sh** first builds a workspace container and lands to a bash session insider a container.  That removes any requirement for a tools chains pre-install and you can run it on Mac/Linux/Win.. So the first step it builds, or pull from dockerhub the image,  generate kick start files, and builds a new ISO used for the unattended install.
+
+Note **build_and_exec.sh** uses following json files to produce final kickstart.
+* additional_direct_rpms.json  any rpms that we want to pull to the image. 
+* additional_files.json a files that we need inject into the ISO.
+* additional_load_docker.json a files that we injected can be loaded on first boot.
+* additional_packages.json  additional packages we need istall.
+
+All mentioned files contain a JSON list.
+
+In the case of the VMware VC environment, **main.tf** is the main terraform file that uses generated ISO to install VM or VMs. Note in the case of terraform, there are a number of post-installation pipelines that customize a VM.
+
+In both cases, customization for post-install, the first boot includes polling the latest Intel drivers, fixing kernel boot parameters, and optimizing VM/Host for the real-time workload.
+
 
 ## Requirements.
 
