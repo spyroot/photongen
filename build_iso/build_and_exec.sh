@@ -121,7 +121,7 @@ current_ks_phase="ks.phase3.cfg"
 jsonlint $current_ks_phase
 
 # adjust release
-jq --arg p "$DEFAULT_RELEASE" '.photon_release_version=$p' $current_ks_phase >ks.phase3.cfg
+jq --arg p "$DEFAULT_RELEASE" '.photon_release_version=$p' $current_ks_phase >ks.phase4.cfg
 current_ks_phase="ks.phase4.cfg"
 jsonlint $current_ks_phase
 
