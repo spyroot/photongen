@@ -28,11 +28,11 @@ mount $DEFAULT_SRC_IMAGE_NAME $DEFAULT_SRC_ISO_DIR 2>/dev/null
 mkdir -p /tmp/photon-ks-iso
 echo "Copy data from $DEFAULT_SRC_ISO_DIR/* to $DEFAULT_DST_ISO_DIR/"
 
-cp -r $DEFAULT_SRC_ISO_DIR/* /tmp/photon-ks-iso/
-cp docker_images/*.tar.gz /tmp/photon-ks-iso/
+cp -r $DEFAULT_SRC_ISO_DIR/* $DEFAULT_DST_ISO_DIR/
+cp docker_images/*.tar.gz $DEFAULT_DST_ISO_DIR/
 cp post.sh cp post.sh $DEFAULT_DST_ISO_DIR/
 
-pushd /tmp/photon-ks-iso/ || exit
+pushd $DEFAULT_DST_ISO_DIR/ || exit
 cp "$workspace_dir"/ks.cfg isolinux/ks.cfg
 
 # generate isolinux

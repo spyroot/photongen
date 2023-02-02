@@ -2,6 +2,9 @@
   "additional_files": [
     {
       "/mnt/media/vcu1.tar.gz": "/vcu1.tar.gz"
+    },
+    {
+      "/mnt/media/post.sh": "/post.sh"
     }
   ]
 }
