@@ -35,6 +35,9 @@ DEFAULT_ISO_LOCATION_4_X86="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjX
 DEFAULT_ISO_PHOTON_5_X86="https://packages.vmware.com/photon/5.0/Beta/iso/photon-rt-5.0-9e778f409.iso"
 DEFAULT_ISO_PHOTON_5_ARM="https://packages.vmware.com/photon/5.0/Beta/iso/photon-5.0-9e778f409-aarch64.iso"
 DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
+DEFAULT_DOCKER_IMAGE="docker inspect spyroot/photon_iso_builder:latest"
+# comma seperated
+DEFAULT_DOCKER_ARC="linux/amd64"
 
 # usage log "msg"
 log() {
@@ -169,7 +172,7 @@ jq --argjson f "$additional_files" '. += $f' $current_ks_phase >ks.cfg
 current_ks_phase="ks.cfg"
 jsonlint $current_ks_phase
 
-#rm ks.phase[0-9].cfg
+rm ks.phase[0-9].cfg
 
 # extra check if ISO os not bootable
 wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_IMAGE_LOCATION"
@@ -182,17 +185,17 @@ fi
 # by a default we always do clean build
 if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
     log "Detecting an existing image."
-    existing_img=$(docker inspect photon_iso_builder | jq '.[0].Id')
+    existing_img=$(docker inspect "$DEFAULT_DOCKER_IMAGE" | jq '.[0].Id')
     if [[ -z "$existing_img" ]]; then
-        log "Image not found, building new image."
-        docker build -t spyroot/photon_iso_builder:latest . --platform linux/amd64
+        log "Image not found, building a new image."
+        docker build -t "$DEFAULT_DOCKER_IMAGE" . --platform $DEFAULT_DOCKER_ARC
     fi
 elif [[ -z "$DEFAULT_ALWAYS_CLEAN" ]]; then
     echo "DEFAULT_ALWAYS_CLEAN is set to the empty string"
 else
   log "Always clean build set to true, rebuilding image."
-  docker rm -f /photon_iso_builder --platform linux/amd64
-  docker build -t spyroot/photon_iso_builder:latest .
+  docker rm -f /photon_iso_builder --platform $DEFAULT_DOCKER_ARC
+  docker build -t "$DEFAULT_DOCKER_IMAGE" .
 fi
 
 container_id=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
@@ -202,10 +205,10 @@ if [[ ! -v NO_REMOVE_POST ]]; then
     log "Starting without container auto-remove."
     docker run --pull always -v `pwd`:`pwd` -w `pwd` \
          --privileged --name photon_iso_builder_"$container_id" \
-         -i -t spyroot/photon_iso_builder:latest bash
+         -i -t "$DEFAULT_DOCKER_IMAGE" bash
 else
   log "Starting container with auto-remove."
   docker run --pull always -v `pwd`:`pwd` -w `pwd` \
 		--privileged --name photon_iso_builder_"$container_id" \
-		--rm -i -t spyroot/photon_iso_builder:latest bash
+		--rm -i -t "$DEFAULT_DOCKER_IMAGE" bash
 fi
