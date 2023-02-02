@@ -8,13 +8,17 @@
 #export IDRAC_USERNAME"root"
 #export IDRAC_REMOTE_HTTP
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
 # default image name build_iso.sh produced
 DEFAULT_IMAGE_NAME="ph4-rt-refresh_adj.iso"
-# a location where to copy.
-# We assume same host run HTTP.
+# a location where to copy iso, assume same host runs http.
 DEFAULT_LOCATION_MOVE="/var/www/html/"
 IDRAC_IP_ADDR=""
 
+# all envs
 if [ ! -f cluster.env ]
 then
     echo "Please create cluster.env file"
@@ -23,16 +27,13 @@ else
   source cluster.env
 fi
 
+#trim white spaces
 trim() {
     local var="$*"
     var="${var#"${var%%[![:space:]]*}"}"
     var="${var%"${var##*[![:space:]]}"}"
     echo "$var"
 }
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
 
 # usage log "msg"
 log() {
@@ -45,26 +46,25 @@ then
     exit 99
 fi
 
-if [ ! -f $IDRAC_REMOTE_HTTP ]
-then
-    echo "Please set address of HTTP server $IDRAC_REMOTE_HTTP."
-    exit 99
+if [[ -z "$IDRAC_IPS" ]]; then
+  echo "Please set address of http server in IDRAC_REMOTE_HTTP environment variable."
+  exit 99
 fi
 
 if ! command -v pip &> /dev/null
 then
-    echo "pip could not be found"
+    echo "please install pip3"
     exit 99
 fi
 
 pip --quiet install idrac_ctl -U
 
-## for example build-iso generated ph4-rt-refresh_adj.iso
+## build-iso.sh generates ph4-rt-refresh_adj.iso
 cp $DEFAULT_IMAGE_NAME $DEFAULT_LOCATION_MOVE
 
 # by a default we always do clean build
 if [[ -z "$IDRAC_IPS" ]]; then
-  log "IDRAC_IPS variable is empty, it must store an IP address or list comma seperated."
+  log "IDRAC_IPS variable is empty, it must store either IP address or list comma seperated."
 	exit 99
 else
   log "Using $IDRAC_IPS."
