@@ -38,7 +38,7 @@ BUILD_HUGEPAGES=yes
 BUILD_PTP=yes
 
 # SRIOV NIC make sure it up.
-SRIOV_NIC="eth6"
+SRIOV_NIC_LIST="eth6,eth8"
 SRIOV_PCI="pci@0000:8a:00.0"
 # number of VFS we need.
 NUM_VFS=8
@@ -267,34 +267,53 @@ EOF
 fi
 
 
+#trim white spaces
+trim() {
+    local var="$*"
+    var="${var#"${var%%[![:space:]]*}"}"
+    var="${var%"${var##*[![:space:]]}"}"
+    echo "$var"
+}
+
 ####### SRIOV and Hugepages
 yum install libhugetlbfs libhugetlbfs-devel > /dev/null 2>&1
-
 if [ -z "$BUILD_SRIOV" ]
 then
-    echo "Skipping SRIOV phase."
+	echo "Skipping SRIOV phase."
 else
-  # First enable num VF on interface
-  # Check that we have correct number adjust if needed
-  # then for each VF set to trusted mode and enable disable spoof check
-  interface_status=$(ip link show $SRIOV_NIC | grep UP)
-  [[ -z "$interface_status" ]] && { echo "Error: Interface $SRIOV_NIC either down or invalid."; exit 1; }
-
-  SYS_DEV_PATH=/sys/class/net/$SRIOV_NIC/device/sriov_numvfs
-  if [[ ! -e $SYS_DEV_PATH ]]; then
-    touch $SYS_DEV_PATH
-  fi
-
-  num_cur_vfs=$(cat $SYS_DEV_PATH)
-  if [ "$NUM_VFS" -ne "$num_cur_vfs" ]; then
-    echo "Error: Expected number of sriov vfs for adapter $SRIOV_NIC vfs=$NUM_VFS, found $num_cur_vfs";
-    echo $NUM_VFS >  /sys/class/net/ens8f0/device/sriov_numvfs;
-  fi
-  #  set to trusted mode and enable disable spoof check
-  for (( i=1; i<=NUM_VFS; i++ ))
+	# First enable num VF on interface
+	# Check that we have correct number adjust if needed
+	# then for each VF set to trusted mode and enable disable spoof check
+	SRIOV_NICS=$(trim $SRIOV_NIC_LIST)
+  IFS=',' read -ra SRIOV_NIC_ARRAY <<< "$SRIOV_NICS"
+  for SRIOV_NIC in "${SRIOV_NIC_ARRAY[@]}"
   do
-     ip link set $SRIOV_NIC vf "$i" trust on 2>/dev/null;
-     ip link set $SRIOV_NIC vf "$i" spoof off 2>/dev/null;
+    SYS_DEV_PATH="/sys/class/net/$SRIOV_NIC/device/sriov_numvfs"
+    if [ -r "$SYS_DEV_PATH" ];
+    then
+      echo "Reading from $SYS_DEV_PATH"
+      interface_status=$(ip link show "$SRIOV_NIC" | grep UP)
+      [ -z "$interface_status" ] && { echo "Error: Interface $SRIOV_NIC either down or invalid."; break; }
+      if [ ! -e "$SYS_DEV_PATH" ]; then
+        touch "$SYS_DEV_PATH"
+      fi
+      num_cur_vfs=$(cat "$SYS_DEV_PATH")
+      if [ "$NUM_VFS" -ne "$num_cur_vfs" ]; then
+        echo "Error: Expected number of sriov vfs for adapter $SRIOV_NIC vfs=$NUM_VFS, found $num_cur_vfs";
+        # note if adapter bouded we will not be able to do that.
+        echo $NUM_VFS > "$SYS_DEV_PATH" 2>/dev/null
+      fi
+      #  set to trusted mode and enable disable spoof check
+      for (( i=1; i<=NUM_VFS; i++ ))
+      do
+        echo "Enabling trust on $SRIOV_NIC vf $i"
+        ip link set "$SRIOV_NIC" vf "$i" trust on 2>/dev/null;
+        ip link set "$SRIOV_NIC" vf "$i" spoof off 2>/dev/null;
+      done
+    else
+      echo "Failed to read $SYS_DEV_PATH"
+      echo $NUM_VFS > "$SYS_DEV_PATH" 2>/dev/null
+    fi
   done
 fi
 
