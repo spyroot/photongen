@@ -49,6 +49,9 @@ NUM_VFS=8
 PAGES="2048"
 PAGES_1GB="8"
 
+# PTP adapter. i.e 810 or PCI_PT
+PTP_ADAPTER="eth7"
+
 # all links and dirs
 DPDK_URL_LOCATION="http://fast.dpdk.org/rel/dpdk-21.11.tar.xz"
 IPSEC_LIB_LOCATION="https://github.com/intel/intel-ipsec-mb.git"
@@ -305,15 +308,18 @@ else
 fi
 
 
+#### enable ptp4l
 if [ -z "$BUILD_PTP" ]
 then
-    echo "Skipping ptp allocation."
+    echo "Skipping ptp configuration."
 else
 
-# enable PTP and create config
+# enable ptp4l start and create config, restart.
 systemctl enable ptp4l
+systemctl enable phc2sys
 systemctl daemon-reload
 systemctl start ptp4l
+systemctl start phc2sys
 
 cat > /etc/ptp4l.conf  << 'EOF'
 [global]
@@ -411,5 +417,18 @@ userDescription		;
 timeSource		0xA0
 EOF
 fi
+
+
+rm /etc/sysconfig/ptp4l
+touch /etc/sysconfig/ptp4l
+cat > /etc/sysconfig/ptp4l << EOF
+OPTIONS="-f /etc/ptp4l.conf -i $PTP_ADAPTER"
+EOF
+
+systemctl daemon-reload
+systemctl restart ptp4l
+
+systemctl restart ptp4l
+systemctl restart phc2sys
 
 #reboot
