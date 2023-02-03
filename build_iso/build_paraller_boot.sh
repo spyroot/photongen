@@ -13,11 +13,17 @@ source shared.bash
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
-source shared.env.bash# default image name build_iso.sh produced
+
+if [[ -z "$DEFAULT_DST_IMAGE_NAME" ]]; then
+  echo "Please make sure you have in shared.bash DEFAULT_DST_IMAGE_NAME var"
+  exit 99
+fi
+
 DEFAULT_IMAGE_NAME=$DEFAULT_DST_IMAGE_NAME
 # a location where to copy iso, assume same host runs http.
 DEFAULT_LOCATION_MOVE="/var/www/html/"
 IDRAC_IP_ADDR=""
+
 
 # all envs
 if [ ! -f cluster.env ]
@@ -61,6 +67,7 @@ fi
 pip --quiet install idrac_ctl -U
 
 ## build-iso.sh generates ph4-rt-refresh_adj.iso
+log "Coping $DEFAULT_IMAGE_NAME to $DEFAULT_LOCATION_MOVE"
 cp $DEFAULT_IMAGE_NAME $DEFAULT_LOCATION_MOVE
 
 # by a default we always do clean build
