@@ -131,7 +131,7 @@ then
 else
   rm -rf $LIB_NL_TARGET_DIR_BUILD; cd /root/build || exit; wget --quiet $NL_LIB_LOCATION
   mkdir libnl || exit; tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1
-  cd $LIB_NL_TARGET_DIR_BUILD || exit; ./configure --prefix=/usr; make -j 8 && make install > /build_install_nl.log
+  cd $LIB_NL_TARGET_DIR_BUILD || exit; ./configure --prefix=/usr; make -j 8 > /build_nl.log && make install > /install_nl.log
   ldconfig; ldconfig /usr/local/lib
 fi
 
@@ -154,13 +154,14 @@ if [ -z "$DPDK_BUILD" ]
 then
     echo "Skipping DPDK build."
 else
+  TARGET_SYSTEM=$(uname -r)
   pip3 install pyelftools sphinx > /pip_install.log
-  ln -s /usr/src/linux-headers-$(uname -r)/ /usr/src/linux 2>/dev/null
+  ln -s /usr/src/linux-headers-"$TARGET_SYSTEM"/ /usr/src/linux 2>/dev/null
   rm $DPDK_TARGET_DIR_BUILD 2>/dev/null
   cd /root || exit; wget --quiet -nc -O dpdk.tar.gz $DPDK_URL_LOCATION; tar xf dpdk.tar.gz > /dpkd_pull.log
   ldconfig
   cd $DPDK_TARGET_DIR_BUILD || exit; meson -Dplatform=native -Dexamples=all -Denable_kmods=true \
-  -Dkernel_dir=/lib/modules/$(uname -r) -Dibverbs_link=shared -Dwerror=true build; ninja -C build -j 8 > /dpkd_build.log
+  -Dkernel_dir=/lib/modules/"$TARGET_SYSTEM" -Dibverbs_link=shared -Dwerror=true build; ninja -C build -j 8 > /dpkd_build.log
   cd $DPDK_TARGET_DIR_BUILD/build || exit; ninja install > /dpkd_install.log; ldconfig;   ldconfig /usr/local/lib
 fi
 
@@ -194,7 +195,7 @@ else
   mkdir -p /usr/lib/tuned/mus_rt 2>/dev/null
 
   # create vars
-  rm /etc/tuned/realtime-variables.conf 2>/dev/null; tohch /etc/tuned/realtime-variables.conf
+  rm /etc/tuned/realtime-variables.conf 2>/dev/null; touch /etc/tuned/realtime-variables.conf
   cat > /etc/tuned/realtime-variables.conf << 'EOF'
   isolated_cores=${f:calc_isolated_cores:2}
   isolate_managed_irq=Y
@@ -267,7 +268,7 @@ fi
 
 
 ####### SRIOV and Hugepages
-yum instlal libhugetlbfs libhugetlbfs-devel
+yum install libhugetlbfs libhugetlbfs-devel > /dev/null 2>&1
 
 if [ -z "$BUILD_SRIOV" ]
 then
@@ -279,7 +280,7 @@ else
   interface_status=$(ip link show $SRIOV_NIC | grep UP)
   [[ -z "$interface_status" ]] && { echo "Error: Interface $SRIOV_NIC either down or invalid."; exit 1; }
 
-  SYS_DEV_PATH=sys/class/net/$SRIOV_NIC/device/sriov_numvfs
+  SYS_DEV_PATH=/sys/class/net/$SRIOV_NIC/device/sriov_numvfs
   if [[ ! -e $SYS_DEV_PATH ]]; then
     touch $SYS_DEV_PATH
   fi
