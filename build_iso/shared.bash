@@ -1,4 +1,7 @@
 #!/bin/bash
+# This mandatory shared vars.  Please don't change.
+# spyroot@gmail.com
+# Author Mustafa Bayramov
 
 if [ -z "$PHOTON_5_X86" ]
 then

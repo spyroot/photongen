@@ -1,5 +1,9 @@
 #!/bin/bash
+# This script will build custom ISO image.
+# and name it to DEFAULT_DST_IMAGE_NAME, this value shared in shared.bash.
 # unpack iso , re-adjust kickstart , repack back iso.
+#
+# spyroot@gmail.com
 # Author Mustafa Bayramov
 
 source shared.bash

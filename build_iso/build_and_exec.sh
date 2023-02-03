@@ -14,7 +14,7 @@
 # current dir added to resource.    Docker -> Preference -> Resource and add dir.
 #
 #
-#
+# spyroot@gmail.com
 # Author Mustafa Bayramov
 
 # lint in case it has error.
@@ -26,6 +26,16 @@ jsonlint additional_packages.json
 jsonlint additional_rpms.json
 
 source shared.bash
+
+if [[ -z "$DEFAULT_DST_IMAGE_NAME" ]]; then
+  echo "Please make sure you have in shared\.bash DEFAULT_DST_IMAGE_NAME var"
+  exit 99
+fi
+
+if [[ -z "$DEFAULT_SRC_IMAGE_NAME" ]]; then
+  echo "Please make sure you have in shared\.bash DEFAULT_SRC_IMAGE_NAME var"
+  exit 99
+fi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
