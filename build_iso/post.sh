@@ -322,6 +322,7 @@ else
   systemctl start phc2sys
 
   # generate config.
+  rm /etc/ptp4l.conf 2>/dev/null; touch /etc/ptp4l.conf
   cat > /etc/ptp4l.conf  << 'EOF'
 [global]
 twoStepFlag		1
