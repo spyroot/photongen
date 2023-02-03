@@ -171,13 +171,12 @@ if [[ ! -e $VFIO_KMOD_FILE ]]; then
     touch VFIO_KMOD_FILE
 fi
 
-export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-MODULES_VFIO_PCI_LINE='/etc/modules-load.d/vfio-pci.conf'
-MODULES_VFIO_PCI_FILE='vfio-pci'
+MODULES_VFIO_PCI_LINE='vfio-pci'
+MODULES_VFIO_PCI_FILE='/etc/modules-load.d/vfio-pci.conf'
 grep -qF -- "$MODULES_VFIO_PCI_LINE" "$MODULES_VFIO_PCI_FILE" || echo "$MODULES_VFIO_PCI_LINE" >> "$MODULES_VFIO_PCI_FILE"
 
-MODULES_VFIO_LINE='/etc/modules-load.d/vfio.conf'
-MODULES_VFIO_FILE='vfio'
+MODULES_VFIO_LINE='vfio'
+MODULES_VFIO_FILE='/etc/modules-load.d/vfio.conf'
 grep -qF -- "$MODULES_VFIO_LINE" "$MODULES_VFIO_FILE" || echo "$MODULES_VFIO_LINE" >> "$MODULES_VFIO_FILE"
 
 #### create tuned profile.
