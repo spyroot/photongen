@@ -12,7 +12,6 @@
 # - make sure vfio latest.
 # - enable vfio and vfio-pci.
 # - enable SRIOV on target network adapter.(must be UP)
-#    - For now it just one. TODO do a loop and do it for list
 # - enable huge pages for single socket or dual socket.
 # - enable PTP
 # - set VF to trusted mode and disable spoof check.
@@ -38,7 +37,7 @@ BUILD_HUGEPAGES=yes
 BUILD_PTP=yes
 
 # SRIOV NIC make sure it up.
-SRIOV_NIC_LIST="eth6,eth8"
+SRIOV_NIC_LIST="eth4,eth5"
 SRIOV_PCI="pci@0000:8a:00.0"
 # number of VFS we need.
 NUM_VFS=8
