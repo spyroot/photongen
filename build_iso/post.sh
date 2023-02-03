@@ -35,6 +35,7 @@ TUNED_BUILD=yes
 BUILD_SRIOV=yes
 BUILD_HUGEPAGES=yes
 BUILD_PTP=yes
+WITH_QAT=yes
 
 # SRIOV NIC make sure it up.
 SRIOV_NIC_LIST="eth4,eth5"
@@ -276,12 +277,21 @@ trim() {
     echo "$var"
 }
 
+if [ -z "$WITH_QAT" ]
+then
+	echo "Skipping QAT phase."
+else
+    modprobe intel_qat
+fi
+
 ####### SRIOV and Hugepages
 yum install libhugetlbfs libhugetlbfs-devel > /dev/null 2>&1
 if [ -z "$BUILD_SRIOV" ]
 then
 	echo "Skipping SRIOV phase."
 else
+  modprob vfio
+  modprobe vfio-pci enable_sriov=1
 	# First enable num VF on interface
 	# Check that we have correct number adjust if needed
 	# then for each VF set to trusted mode and enable disable spoof check
@@ -340,6 +350,8 @@ else
   fi
   FSTAB_FILE='/etc/fstab'
   HUGEPAGES_MOUNT_LINE='nodev /mnt/huge hugetlbfs pagesize=1GB 0 0'
+  mkdir /mnt/huge
+  mount -t hugetlbfs nodev /mnt/huge
   grep -qF -- "$HUGEPAGES_MOUNT_LINE" "$FSTAB_FILE" || echo "$HUGEPAGES_MOUNT_LINE" >> "$FSTAB_FILE"
 fi
 
