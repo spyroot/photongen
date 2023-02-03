@@ -4,7 +4,7 @@
 # The goal here
 # - build mellanox driver and Intel driver.
 # - link to current kernel src.
-# - build all DPKD kmod and install. (including UIO)
+# - build all DPDK kmod and install. (including UIO)
 # - build all libs required for DPDK Crypto.
 # - build IPSec libs required for vdev DPDK.
 # - build CUDA (optional)
@@ -45,7 +45,7 @@ NUM_VFS=8
 
 # num huge pages for 2k and 1Gbe
 # make sure this number is same or less than what I do for mus_rt profile.
-# i.e cross-check /proc/cmdline if you need more adjust config at the bottom.
+# i.e. cross-check /proc/cmdline if you need more adjust config at the bottom.
 PAGES="2048"
 PAGES_1GB="8"
 
