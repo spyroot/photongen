@@ -15,7 +15,7 @@ GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
 if [[ -z "$DEFAULT_DST_IMAGE_NAME" ]]; then
-  echo "Please make sure you have in shared.bash DEFAULT_DST_IMAGE_NAME var"
+  echo "Please make sure you have in shared\.bash DEFAULT_DST_IMAGE_NAME var"
   exit 99
 fi
 
