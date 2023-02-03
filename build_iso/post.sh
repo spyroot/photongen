@@ -42,6 +42,8 @@ SRIOV_PCI="pci@0000:8a:00.0"
 # number of VFS we need.
 NUM_VFS=8
 
+# lshw -class network -businfo -notime | grep pci@0000:8a:00.1 | awk '{print $2}'
+
 # num huge pages for 2k and 1Gbe
 # make sure this number is same or less than what I do for mus_rt profile.
 # i.e. cross-check /proc/cmdline if you need more adjust config at the bottom.
@@ -321,6 +323,7 @@ then
     echo "Skipping hugepages allocation."
 else
   # Huge pages for each NUMA NODE
+  echo "Adjusting numa pages."
   IS_SINGLE_NUMA=$(numactl --hardware | grep available | grep 0-1)
   if [ -z "$IS_SINGLE_NUMA" ]
   then
@@ -355,6 +358,7 @@ else
 
   # generate config.
   rm /etc/ptp4l.conf 2>/dev/null; touch /etc/ptp4l.conf
+  echo "Adjusting  /etc/ptp4l.conf"
   cat > /etc/ptp4l.conf  << 'EOF'
 [global]
 twoStepFlag		1
@@ -453,6 +457,7 @@ EOF
 
   # adjust /etc/sysconfig/ptp4l
   rm /etc/sysconfig/ptp4l 2>/dev/null; touch /etc/sysconfig/ptp4l
+  echo "Adjusting  /etc/ptp4l.conf and setting ptp for adapter $PTP_ADAPTER"
   cat > /etc/sysconfig/ptp4l << EOF
 OPTIONS="-f /etc/ptp4l.conf -i $PTP_ADAPTER"
 EOF
