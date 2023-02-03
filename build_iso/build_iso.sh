@@ -3,8 +3,12 @@
 # Author Mustafa Bayramov
 
 source shared.bash
+
 echo "$DEFAULT_SRC_IMAGE_NAME"
 echo "$DEFAULT_DST_IMAGE_NAME"
+
+DEFAULT_SRC_ISO_DIR="/tmp/photon-iso"
+DEFAULT_DST_ISO_DIR="/tmp/photon-ks-iso"
 
 current_os=$(uname -a)
 if [[ $current_os == *"xnu"* ]];
