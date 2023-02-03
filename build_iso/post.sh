@@ -183,17 +183,18 @@ grep -qF -- "$MODULES_VFIO_LINE" "$MODULES_VFIO_FILE" || echo "$MODULES_VFIO_LIN
 if [ -z "$TUNED_BUILD" ]; then
     echo "Skipping tuned optimization."
 else
-mkdir -p /usr/lib/tuned/mus_rt 2>/dev/null
 
-# create vars
-cat > /etc/tuned/realtime-variables.conf << 'EOF'
-isolated_cores=${f:calc_isolated_cores:2}
-isolate_managed_irq=Y
+  mkdir -p /usr/lib/tuned/mus_rt 2>/dev/null
+
+  # create vars
+  rm /etc/tuned/realtime-variables.conf 2>/dev/null; tohch /etc/tuned/realtime-variables.conf
+  cat > /etc/tuned/realtime-variables.conf << 'EOF'
+  isolated_cores=${f:calc_isolated_cores:2}
+  isolate_managed_irq=Y
 EOF
-
-# create profile
-touch /usr/lib/tuned/mus_rt/tuned.conf
-cat > /usr/lib/tuned/mus_rt/tuned.conf << 'EOF'
+  # create profile
+  rm  /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null; touch /usr/lib/tuned/mus_rt/tuned.conf
+  cat > /usr/lib/tuned/mus_rt/tuned.conf << 'EOF'
 [main]
 summary=Optimize for realtime workloads
 include = network-latency
@@ -231,9 +232,10 @@ script = ${i:PROFILE_DIR}/script.sh
 isolated_cores=${isolated_cores}
 [rtentsk]
 EOF
-# create script used in tuned.
-touch /usr/lib/tuned/mus_rt/script.sh
-cat > /usr/lib/tuned/mus_rt/script.sh << 'EOF'
+
+  # create script used in tuned.
+  rm /usr/lib/tuned/mus_rt/script.sh 2>/dev/null; touch /usr/lib/tuned/mus_rt/script.sh
+  cat > /usr/lib/tuned/mus_rt/script.sh << 'EOF'
 #!/usr/bin/sh
 . /usr/lib/tuned/functions
 start() { return 0 }
@@ -248,11 +250,12 @@ verify() {
 }
 process $@
 EOF
-# enabled tuned and load profile we created.
-systemctl enable tuned
-systemctl daemon-reload
-systemctl start tuned
-tuned-adm profile mus_rt
+
+  # enabled tuned and load profile we created.
+  systemctl enable tuned
+  systemctl daemon-reload
+  systemctl start tuned
+  tuned-adm profile mus_rt
 fi
 
 
@@ -264,7 +267,7 @@ then
     echo "Skipping SRIOV phase."
 else
   # First enable num VF on interface
-  # check that we have correct number adjust if needed
+  # Check that we have correct number adjust if needed
   # then for each VF set to trusted mode and enable disable spoof check
   num_cur_vfs=$(cat /sys/class/net/$SRIOV_NIC/device/sriov_numvfs)
   interface_status=$(ip link show $SRIOV_NIC | grep UP)
@@ -277,9 +280,8 @@ else
   for (( i=1; i<=NUM_VFS; i++ ))
   do
      ip link set $SRIOV_NIC vf "$i" trust on
-    ip link set $SRIOV_NIC vf "$i" spoof off
+     ip link set $SRIOV_NIC vf "$i" spoof off
   done
-
 fi
 
 if [ -z "$BUILD_HUGEPAGES" ]
@@ -312,15 +314,15 @@ if [ -z "$BUILD_PTP" ]
 then
     echo "Skipping ptp configuration."
 else
+  # enable ptp4l start and create config, restart.
+  systemctl enable ptp4l
+  systemctl enable phc2sys
+  systemctl daemon-reload
+  systemctl start ptp4l
+  systemctl start phc2sys
 
-# enable ptp4l start and create config, restart.
-systemctl enable ptp4l
-systemctl enable phc2sys
-systemctl daemon-reload
-systemctl start ptp4l
-systemctl start phc2sys
-
-cat > /etc/ptp4l.conf  << 'EOF'
+  # generate config.
+  cat > /etc/ptp4l.conf  << 'EOF'
 [global]
 twoStepFlag		1
 socket_priority		0
@@ -415,19 +417,19 @@ manufacturerIdentity	00:00:00
 userDescription		;
 timeSource		0xA0
 EOF
-fi
 
-
-rm /etc/sysconfig/ptp4l
-touch /etc/sysconfig/ptp4l
-cat > /etc/sysconfig/ptp4l << EOF
+  # adjust /etc/sysconfig/ptp4l
+  rm /etc/sysconfig/ptp4l 2>/dev/null; touch /etc/sysconfig/ptp4l
+  cat > /etc/sysconfig/ptp4l << EOF
 OPTIONS="-f /etc/ptp4l.conf -i $PTP_ADAPTER"
 EOF
 
-systemctl daemon-reload
-systemctl restart ptp4l
+  # restart everything.
+  systemctl daemon-reload
+  systemctl restart ptp4l
 
-systemctl restart ptp4l
-systemctl restart phc2sys
+  systemctl restart ptp4l
+  systemctl restart phc2sys
+fi
 
 #reboot
