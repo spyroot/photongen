@@ -2,13 +2,21 @@
 # This is post install script.  This must happened
 # after first post install.
 # The goal here
-# - build Mellanox driver and Intel driver.
-# - build all libs required for DPDK.
+# - build mellanox driver and Intel driver.
+# - link to current kernel src.
+# - build all DPKD kmod and install. (including UIO)
+# - build all libs required for DPDK Crypto.
 # - build IPSec libs required for vdev DPDK.
-# - build CUDA(optional)
-# - install as shared libs.
+# - build CUDA (optional)
+# - install all as shared libs.
 # - make sure vfio latest.
-#
+# - enable vfio and vfio-pci.
+# - enable SRIOV on target network adapter.(must be UP)
+#    - For now it just one. TODO do a loop and do it for list
+# - enable huge pages for single socket or dual socket.
+# - enable PTP
+# - set VF to trusted mode and disable spoof check.
+# - automatically generate tuned profile , load.
 # spyroot@gmail.com
 # Author Mustafa Bayramov
 
@@ -29,12 +37,15 @@ BUILD_SRIOV=yes
 BUILD_HUGEPAGES=yes
 BUILD_PTP=yes
 
-# SRIOV NIC
+# SRIOV NIC make sure it up.
 SRIOV_NIC="eth6"
 SRIOV_PCI="pci@0000:8a:00.0"
+# number of VFS we need.
 NUM_VFS=8
 
-# HUGE PAGES
+# num huge pages for 2k and 1Gbe
+# make sure this number is same or less than what I do for mus_rt profile.
+# i.e cross-check /proc/cmdline if you need more adjust config at the bottom.
 PAGES="2048"
 PAGES_1GB="8"
 
@@ -46,10 +57,9 @@ DPDK_TARGET_DIR_BUILD="/root/dpdk-21.11"
 LIB_NL_TARGET_DIR_BUILD="/root/build/libnl"
 LIB_ISAL_TARGET_DIR_BUILD="/root/build/isa-l"
 
-# DRIVER TMP DIR
+# DRIVER TMP DIR where we are building.
 MLX_DIR=/tmp/mlnx_ofed_src
 INTEL_DIR=/tmp/iavf
-
 
 export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 
@@ -103,16 +113,15 @@ else
   cd $INTEL_DIR/src || exit; make && make install  > /intel_driver_install.log
 fi
 
-
-# add shared lib
+# we add shared lib to ld.so.conf
 SHARED_LIB_LINE='/usr/local/lib'
 SHARED_LD_FILE='/etc/ld.so.conf'
 grep -qF -- "$SHARED_LIB_LINE" "$SHARED_LD_FILE" || echo "$SHARED_LIB_LINE" >> "$SHARED_LD_FILE"
-
+ldconfig
 
 pip3 install -U pyelftools sphinx
 
-# libnl
+# build and install libnl
 if [ -z "$LIBNL_BUILD" ]
 then
     echo "Skipping libnl driver build"
@@ -120,9 +129,10 @@ else
   rm -rf $LIB_NL_TARGET_DIR_BUILD; cd /root/build || exit; wget --quiet $NL_LIB_LOCATION
   mkdir libnl || exit; tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1
   cd $LIB_NL_TARGET_DIR_BUILD || exit; ./configure --prefix=/usr; make -j 8 && make install > /build_install_nl.log
+  ldconfig; ldconfig /usr/local/lib
 fi
 
-#isa
+# build and install isa
 if [ -z "$LIBNL_ISA" ]
 then
     echo "Skipping isa-l driver build"
@@ -130,6 +140,8 @@ else
   rm -rf $LIB_ISAL_TARGET_DIR_BUILD > /build_isa.log
   cd /root/build || exit; git clone https://github.com/intel/isa-l
   cd $LIB_ISAL_TARGET_DIR_BUILD || exit; chmod 700 autogen.sh && ./autogen.sh; ./configure; make -j 8 > /build_isa.log && make install > /build_install_isa.log
+  ldconfig; ldconfig /usr/local/lib
+
 fi
 
 # kernel source and DPDK, we're building with Intel and Mellanox driver.
@@ -146,9 +158,10 @@ else
   ldconfig
   cd $DPDK_TARGET_DIR_BUILD || exit; meson -Dplatform=native -Dexamples=all -Denable_kmods=true \
   -Dkernel_dir=/lib/modules/$(uname -r) -Dibverbs_link=shared -Dwerror=true build; ninja -C build -j 8 > /dpkd_build.log
-  cd $DPDK_TARGET_DIR_BUILD/build || exit; ninja install > /dpkd_install.log; ldconfig
+  cd $DPDK_TARGET_DIR_BUILD/build || exit; ninja install > /dpkd_install.log; ldconfig;   ldconfig /usr/local/lib
 fi
 
+# adjust config and load VFIO
 VFIO_KMOD_FILE="/etc/modules-load.d/vfio-pci.conf"
 mkdir -p /etc/modules-load.d 2>/dev/null
 if [[ ! -e $VFIO_KMOD_FILE ]]; then
@@ -164,8 +177,7 @@ MODULES_VFIO_LINE='/etc/modules-load.d/vfio.conf'
 MODULES_VFIO_FILE='vfio'
 grep -qF -- "$MODULES_VFIO_LINE" "$MODULES_VFIO_FILE" || echo "$MODULES_VFIO_LINE" >> "$MODULES_VFIO_FILE"
 
-
-
+#### create tuned profile.
 if [ -z "$TUNED_BUILD" ]; then
     echo "Skipping tuned optimization."
 else
