@@ -8,12 +8,13 @@
 #export IDRAC_USERNAME"root"
 #export IDRAC_REMOTE_HTTP
 
+source shared.bash
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
-
-# default image name build_iso.sh produced
-DEFAULT_IMAGE_NAME="ph4-rt-refresh_adj.iso"
+source shared.env.bash# default image name build_iso.sh produced
+DEFAULT_IMAGE_NAME=$DEFAULT_DST_IMAGE_NAME
 # a location where to copy iso, assume same host runs http.
 DEFAULT_LOCATION_MOVE="/var/www/html/"
 IDRAC_IP_ADDR=""

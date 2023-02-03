@@ -2,37 +2,36 @@
 # unpack iso , re-adjust kickstart , repack back iso.
 # Author Mustafa Bayramov
 
+source shared.bash
+echo "$DEFAULT_SRC_IMAGE_NAME"
+echo "$DEFAULT_DST_IMAGE_NAME"
+
 current_os=$(uname -a)
-if [[ $current_os == *"xnu"* ]]; 
+if [[ $current_os == *"xnu"* ]];
 then
   echo "You must run the script inside docker runtime."
 exit 2
 fi
 
-DEFAULT_SRC_IMAGE_NAME="ph4-rt-refresh.iso"
-DEFAULT_DST_IMAGE_NAME="ph4-rt-refresh_adj.iso"
-DEFAULT_SRC_ISO_DIR="/tmp/photon-iso"
-DEFAULT_DST_ISO_DIR="/tmp/photon-ks-iso"
-
 workspace_dir=$(pwd)
-rm $DEFAULT_DST_IMAGE_NAME 2>/dev/null
-umount -q $DEFAULT_SRC_ISO_DIR  2>/dev/null
-rm -rf $DEFAULT_SRC_ISO_DIR  2>/dev/null
+rm "$DEFAULT_DST_IMAGE_NAME" 2>/dev/null
+umount -q "$DEFAULT_SRC_ISO_DIR"  2>/dev/null
+rm -rf "$DEFAULT_SRC_ISO_DIR"  2>/dev/null
 rm -rf /tmp/photon-ks-iso  2>/dev/null
 
-mkdir -p $DEFAULT_SRC_ISO_DIR
+mkdir -p "$DEFAULT_SRC_ISO_DIR"
 
 echo "Mount $DEFAULT_SRC_IMAGE_NAME to $DEFAULT_SRC_ISO_DIR"
-mount $DEFAULT_SRC_IMAGE_NAME $DEFAULT_SRC_ISO_DIR 2>/dev/null
+mount "$DEFAULT_SRC_IMAGE_NAME" "$DEFAULT_SRC_ISO_DIR" 2>/dev/null
 
 mkdir -p /tmp/photon-ks-iso
 echo "Copy data from $DEFAULT_SRC_ISO_DIR/* to $DEFAULT_DST_ISO_DIR/"
 
-cp -r $DEFAULT_SRC_ISO_DIR/* $DEFAULT_DST_ISO_DIR/
-cp docker_images/*.tar.gz $DEFAULT_DST_ISO_DIR/
-cp post.sh $DEFAULT_DST_ISO_DIR/
+cp -r "$DEFAULT_SRC_ISO_DIR"/* "$DEFAULT_DST_ISO_DIR"/
+cp docker_images/*.tar.gz "$DEFAULT_DST_ISO_DIR"/
+cp post.sh "$DEFAULT_DST_ISO_DIR"/
 
-pushd $DEFAULT_DST_ISO_DIR/ || exit
+pushd "$DEFAULT_DST_ISO_DIR"/ || exit
 cp "$workspace_dir"/ks.cfg isolinux/ks.cfg
 
 # generate isolinux
@@ -77,4 +76,4 @@ mkisofs -R -l -L -D -b isolinux/isolinux.bin -c isolinux/boot.cat \
                 -eltorito-alt-boot --eltorito-boot boot/grub2/efiboot.img -no-emul-boot \
                 -V "PHOTON_$(date +%Y%m%d)" . > "$workspace_dir"/$DEFAULT_DST_IMAGE_NAME
 popd || exit
-umount $DEFAULT_SRC_ISO_DIR
+umount "$DEFAULT_SRC_ISO_DIR"

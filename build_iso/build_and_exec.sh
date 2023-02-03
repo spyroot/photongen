@@ -25,6 +25,8 @@ jsonlint additional_load_docker.json
 jsonlint additional_packages.json
 jsonlint additional_rpms.json
 
+source source shared.bash
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
@@ -57,9 +59,6 @@ if [[ -n "$PHOTON_5_X86" ]]; then
   DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_PHOTON_5_X86
   DEFAULT_RELEASE="5.0"
 fi
-
-# a default name reference ISO will be renamed.
-DEFAULT_IMAGE_NAME="ph4-rt-refresh.iso"
 
 # default hostname
 DEFAULT_HOSTNAME="photon-machine"
@@ -182,8 +181,8 @@ jsonlint $current_ks_phase
 rm ks.phase[0-9].cfg
 
 # extra check if ISO os not bootable
-wget -nc -O $DEFAULT_IMAGE_NAME "$DEFAULT_IMAGE_LOCATION"
-ISO_IS_BOOTABLE=$(file $DEFAULT_IMAGE_NAME | grep bootable)
+wget -nc -O $DEFAULT_SRC_IMAGE_NAME "$DEFAULT_IMAGE_LOCATION"
+ISO_IS_BOOTABLE=$(file $DEFAULT_SRC_IMAGE_NAME | grep bootable)
 if [ -z "$ISO_IS_BOOTABLE" ]; then
   log "Invalid iso image, failed boot flag check."
   exit 99
