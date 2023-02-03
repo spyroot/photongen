@@ -165,10 +165,17 @@ else
 fi
 
 # adjust config and load VFIO
-VFIO_KMOD_FILE="/etc/modules-load.d/vfio-pci.conf"
+
+MODULES_VFIO_PCI_FILE='/etc/modules-load.d/vfio-pci.conf'
+MODULES_VFIO_FILE='/etc/modules-load.d/vfio.conf'
+
 mkdir -p /etc/modules-load.d 2>/dev/null
-if [[ ! -e $VFIO_KMOD_FILE ]]; then
-    touch VFIO_KMOD_FILE
+if [[ ! -e $MODULES_VFIO_PCI_FILE ]]; then
+    touch $MODULES_VFIO_PCI_FILE
+fi
+
+if [[ ! -e $MODULES_VFIO_FILE ]]; then
+    touch $MODULES_VFIO_FILE
 fi
 
 MODULES_VFIO_PCI_LINE='vfio-pci'
@@ -269,9 +276,15 @@ else
   # First enable num VF on interface
   # Check that we have correct number adjust if needed
   # then for each VF set to trusted mode and enable disable spoof check
-  num_cur_vfs=$(cat /sys/class/net/$SRIOV_NIC/device/sriov_numvfs)
   interface_status=$(ip link show $SRIOV_NIC | grep UP)
   [[ -z "$interface_status" ]] && { echo "Error: Interface $SRIOV_NIC either down or invalid."; exit 1; }
+
+  SYS_DEV_PATH=sys/class/net/$SRIOV_NIC/device/sriov_numvfs
+  if [[ ! -e $SYS_DEV_PATH ]]; then
+    touch $SYS_DEV_PATH
+  fi
+
+  num_cur_vfs=$(cat $SYS_DEV_PATH)
   if [ "$NUM_VFS" -ne "$num_cur_vfs" ]; then
     echo "Error: Expected number of sriov vfs for adapter $SRIOV_NIC vfs=$NUM_VFS, found $num_cur_vfs";
     echo $NUM_VFS >  /sys/class/net/ens8f0/device/sriov_numvfs;
@@ -279,8 +292,8 @@ else
   #  set to trusted mode and enable disable spoof check
   for (( i=1; i<=NUM_VFS; i++ ))
   do
-     ip link set $SRIOV_NIC vf "$i" trust on
-     ip link set $SRIOV_NIC vf "$i" spoof off
+     ip link set $SRIOV_NIC vf "$i" trust on 2>/dev/null;
+     ip link set $SRIOV_NIC vf "$i" spoof off 2>/dev/null;
   done
 fi
 
@@ -292,12 +305,12 @@ else
   IS_SINGLE_NUMA=$(numactl --hardware | grep available | grep 0-1)
   if [ -z "$IS_SINGLE_NUMA" ]
   then
-          echo "Target system with single socket."
+          echo "Target system with single socket num 2k $PAGES num 1GB $PAGES_1GB."
           echo $PAGES > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
           echo $PAGES_1GB > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 
   else
-          echo "Target system with dual socket."
+          echo "Target system with dual socket num 2k $PAGES num 1GB $PAGES_1GB."
           echo $PAGES > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
           echo $PAGES > /sys/devices/system/node/node1/hugepages/hugepages-2048kB/nr_hugepages
           echo $PAGES_1GB  > /sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages
