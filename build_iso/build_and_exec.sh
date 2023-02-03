@@ -25,7 +25,7 @@ jsonlint additional_load_docker.json
 jsonlint additional_packages.json
 jsonlint additional_rpms.json
 
-source source shared.bash
+source shared.bash
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
