@@ -255,10 +255,26 @@ function adapters_from_pci_list() {
   done
 }
 
-# log msg to console and log
+# Function create create log dir.
+function create_log_dir() {
+  local log_dir
+  local default_log=$1
+  log_dir=$(dirname "$default_log")
+  if ! mkdir "$log_dir"; then
+    echo "The $log_dir target directory probably is read-only."
+  fi
+}
+
+# log message to console and file.
 function log_console_and_file() {
+  local default_log=$DEFAULT_BUILDER_LOG
   printf "%b %s. %b\n" "${GREEN}" "$@" "${NC}"
-  echo "$@" >> /builder/build_main.log
+
+  if file_exists $default_log; then
+    echo "$@" >>$default_log
+  else
+    echo "$@" >$default_log
+  fi
 }
 
 # Function take list of PCI devices, and number of target VFs,
@@ -365,14 +381,14 @@ function build_ipsec_lib() {
 # args log file, file_name, mlx_ver
 function build_mellanox_driver() {
   local log_file=$1
-  local mlx_file_name=$2
-  local mlx_ver=$3
+  local mlx_ver=$2
   touch "$log_file" 2>/dev/null
   if [ -z "$MLX_BUILD" ]
   then
       log_console_and_file "Skipping Mellanox driver build."
   else
     local mlx_url
+    local mlx_file_name
     mlx_url=http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$mlx_ver"/MLNX_OFED_SRC-debian-"$mlx_ver".tgz
     mlx_file_name=MLNX_OFED_SRC-debian-"$mlx_ver".tgz
     log_console_and_file "Pulling Mellanox ofed from $mlx_url to $mlx_file_name"
@@ -381,7 +397,7 @@ function build_mellanox_driver() {
   fi
 }
 
-# build intel iavf
+# Function builds intel iavf
 # args log_file , download dir, download ver
 function build_intel_iavf() {
   local log_file=$1
@@ -428,6 +444,7 @@ function build_install_pips_deb() {
 function build_lib_nl() {
   local log_file=$1
   touch "$log_file" 2>/dev/null
+
   # build and install libnl
   if [ -z "$LIBNL_BUILD" ]; then
     log_console_and_file "Skipping libnl driver build"
@@ -450,6 +467,7 @@ function build_lib_nl() {
 function build_lib_isa() {
   local log_file=$1
   touch "$log_file" 2>/dev/null
+
   # build and install isa
   if [ -z "$LIBNL_ISA" ]; then
     log_console_and_file "Skipping isa-l driver build"
@@ -510,6 +528,7 @@ function build_dpdk() {
     fi
 }
 
+# Functions load vfio and vfio_pci
 function load_vfio_pci() {
   
   log_console_and_file "Loading vfio and vfio_pci."
@@ -536,7 +555,8 @@ function load_vfio_pci() {
   grep -qF -- "$MODULES_VFIO_LINE" "$MODULES_VFIO_FILE" || echo "$MODULES_VFIO_LINE" >>"$MODULES_VFIO_FILE"
 }
 
-#
+# Function generate a new tuned profile
+# and make it active.
 function build_tuned() {
   local log_file=$1
   touch "$log_file" 2>/dev/null
@@ -557,7 +577,7 @@ EOF
   # create profile
   rm /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
   touch /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
-  log_console_and_file "generating tuned."
+  log_console_and_file "generating tuned config."
   cat >/usr/lib/tuned/mus_rt/tuned.conf <<'EOF'
 [main]
 summary=Optimize for realtime workloads
@@ -597,7 +617,7 @@ isolated_cores=${isolated_cores}
 [rtentsk]
 EOF
 
-    # create script used in tuned.
+    # create script used for a tuned.
     rm /usr/lib/tuned/mus_rt/script.sh 2>/dev/null
     touch /usr/lib/tuned/mus_rt/script.sh 2>/dev/null
     log_console_and_file "generating script.sh."
@@ -617,7 +637,7 @@ verify() {
 process $@
 EOF
 
-    log_console_and_file "restarting tuned" >>/builder/build_tuned.log
+    log_console_and_file "enabling and restarting tuned"
     # enabled tuned and load profile we created.
     systemctl enable tuned
     systemctl daemon-reload
@@ -626,7 +646,7 @@ EOF
   fi
 }
 
-#trim white spaces
+# Function trims white spaces
 trim() {
     local var="$*"
     var="${var#"${var%%[![:space:]]*}"}"
@@ -634,17 +654,17 @@ trim() {
     echo "$var"
 }
 
-# function enables qat
+# Function enables Intel QAT.
 function build_qat() {
   if [ -z "$WITH_QAT" ]; then
     log_console_and_file "Skipping QAT phase."
   else
-    modprobe intel_qat &>/builder/qat_loder.log
+    modprobe intel_qat
   fi
 }
 
-# functions builds tuned profile
-# load tuned profile
+# Function builds huge pages
+#
 function build_hugepages() {
   local log_file=$1
   local pages=$2
@@ -872,8 +892,8 @@ function main() {
   libudev-devel &> /builder/build_rpms_pull.log
 
   build_dirs
-  build_mellanox_driver "$BUILD_MELLANOX_LOG"
-  build_intel_iavf "$BUILD_INTEL_LOG"
+  build_mellanox_driver "$BUILD_MELLANOX_LOG" "$MLNX_VER"
+  build_intel_iavf "$BUILD_INTEL_LOG" "$INTEL_DIR" "$AVX_VERSION"
   build_docker_images $BUILD_DOCKER_LOG "$DOCKER_IMAGE_PATH" "$DOCKER_IMAGE_NAME"
   build_ipsec_lib "$BUILD_IPSEC_LOG"
   adjust_shared_libs
@@ -885,7 +905,7 @@ function main() {
   build_tuned "$BUILD_TUNED_LOG"
   build_qat
   enable_sriov "$SRIOV_PCI_LIST" "$NUM_VFS"
-  build_hugepages "$BUILD_HUGEPAGES_LOG"
+  build_hugepages "$BUILD_HUGEPAGES_LOG" "$PAGES" "$PAGES_1GB"
   build_ptp "$BUILD_PTP_IPSEC_BUILD_LOG"
 }
 
