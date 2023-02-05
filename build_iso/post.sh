@@ -36,17 +36,17 @@ DPDK_BUILD="yes"
 IPSEC_BUILD="yes"
 LIBNL_BUILD="yes"
 LIBNL_ISA="yes"
-TUNED_BUILD="yes"
+BUILD_TUNED="yes"
 BUILD_SRIOV="yes"
 BUILD_HUGEPAGES="yes"
 BUILD_SRIOV="yes"
 BUILD_PTP="yes"
-LOAD_DOCKER_IMAGE="yes"
+BUILD_LOAD_DOCKER_IMAGE="yes"
 WITH_QAT=yes
 
 # SRIOV NIC make sure it up.
 # SRIOV_NIC_LIST="eth4,eth5"
-SRIOV_PCI_LIST="pci@0000:8a:00.0, pci@0000:8a:00.1"
+SRIOV_PCI_LIST="pci@0000:51:00.0,pci@0000:51:00.1"
 # number of VFS we need.
 NUM_VFS=8
 
@@ -139,6 +139,7 @@ function pci_to_adapter() {
   var="${var#"${var%%[![:space:]]*}"}"
   var="${var%"${var##*[![:space:]]}"}"
   adapter=$(lshw -class network -businfo -notime | grep "$var" | awk '{print $2}')
+  log_console_and_file "resolved to adapter $adapter"
   echo "$adapter"
 }
 
@@ -357,20 +358,24 @@ function build_docker_images() {
     echo "File $file_exists not found."
   fi
 
-  if [ -z "$docker_image_name" ]; then
+  if [ -z "$BUILD_LOAD_DOCKER_IMAGE" ]; then
     log_console_and_file "Skipping docker load phase."
   else
-    log_console_and_file "Enabling docker services."
-    systemctl enable docker
-    systemctl start docker
-    local is_docker_running
-    is_docker_running=$(systemctl status docker | grep running)
-    if [ -z "$is_docker_running" ]; then
-      log_console_and_file "Skipping docker load, failed to start docker."
+    if [ -z "$docker_image_name" ]; then
+      log_console_and_file "Skipping docker load phase."
     else
-      log_console_and_file "Loading docker image from $docker_image_path"
-      docker load <"$docker_image_path"
-      docker image ls > "$log_file" 2>&1
+      log_console_and_file "Enabling docker services."
+      systemctl enable docker
+      systemctl start docker
+      local is_docker_running
+      is_docker_running=$(systemctl status docker | grep running)
+      if [ -z "$is_docker_running" ]; then
+        log_console_and_file "Skipping docker load, failed to start docker."
+      else
+        log_console_and_file "Loading docker image from $docker_image_path"
+        docker load <"$docker_image_path"
+        docker image ls > "$log_file" 2>&1
+      fi
     fi
   fi
 }
@@ -485,7 +490,7 @@ function build_lib_isa() {
   if [ -z "$LIBNL_ISA" ]; then
     log_console_and_file "Skipping isa-l driver build"
   else
-    rm -rf $LIB_ISAL_TARGET_DIR_BUILD >/build_isa.log
+    rm -rf $LIB_ISAL_TARGET_DIR_BUILD
     cd $ROOT_BUILD || exit
     git clone https://github.com/intel/isa-l
     cd $LIB_ISAL_TARGET_DIR_BUILD || exit
@@ -573,27 +578,29 @@ function load_vfio_pci() {
 function build_tuned() {
   local log_file=$1
   touch "$log_file" 2>/dev/null
-  mkdir -p $ROOT_BUILD/tuned 2>/dev/null
-  git clone https://github.com/spyroot/tuned.git; cd tuned || exit;
-  cp -R tuned /usr/lib/python3.10/site-packages
   #### create tuned profile.
-  if [ -z "$TUNED_BUILD" ]; then
+  if [ -z "$BUILD_TUNED" ]; then
     log_console_and_file "Skipping tuned optimization."
   else
+    rm -rf $ROOT_BUILD/tuned 2>/dev/null
+    mkdir -p $ROOT_BUILD/tuned 2>/dev/null
+    git clone https://github.com/spyroot/tuned.git; cd tuned || exit;
+    cp -R tuned /usr/lib/python3.10/site-packages
 
-  mkdir -p /usr/lib/tuned/mus_rt 2>/dev/null
-  # create vars
-  rm /etc/tuned/realtime-variables.conf 2>/dev/null
-  touch /etc/tuned/realtime-variables.conf 2>/dev/null
-  cat >/etc/tuned/realtime-variables.conf <<'EOF'
+    # profile
+    mkdir -p /usr/lib/tuned/mus_rt 2>/dev/null
+    # create vars
+    rm /etc/tuned/realtime-variables.conf 2>/dev/null
+    touch /etc/tuned/realtime-variables.conf 2>/dev/null
+    cat >/etc/tuned/realtime-variables.conf <<'EOF'
   isolated_cores=${f:calc_isolated_cores:2}
   isolate_managed_irq=Y
 EOF
   # create profile
-  rm /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
-  touch /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
-  log_console_and_file "generating tuned config."
-  cat >/usr/lib/tuned/mus_rt/tuned.conf <<'EOF'
+    rm /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
+    touch /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
+    log_console_and_file "generating tuned config."
+    cat >/usr/lib/tuned/mus_rt/tuned.conf <<'EOF'
 [main]
 summary=Optimize for realtime workloads
 include = network-latency
@@ -939,6 +946,7 @@ function main() {
   build_dpdk "$BUILD_DPDK_LOG"
   load_vfio_pci
   build_tuned "$BUILD_TUNED_LOG"
+
   build_qat
   enable_sriov "$SRIOV_PCI_LIST" "$NUM_VFS"
   build_hugepages "$BUILD_HUGEPAGES_LOG" "$PAGES" "$PAGES_1GB"
