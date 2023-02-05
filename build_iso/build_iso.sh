@@ -1,7 +1,17 @@
 #!/bin/bash
 # This script will build custom ISO image.
 # and name it to DEFAULT_DST_IMAGE_NAME, this value shared in shared.bash.
-# unpack iso , re-adjust kickstart , repack back iso.
+# unpack iso, re-adjust kickstart , repack back iso.
+#
+# Before you boot.  Note if DRAC has pending changes that requires reboot.
+# you need reboot host first or clear all pending changes.
+#
+# The post script will re-adjust all SRIOV based on spec.
+# By default, Sriov disabled on Dell servers.
+#
+# Secondly we want to minimum optimization for
+# a server for real-time.
+#
 #
 # spyroot@gmail.com
 # Author Mustafa Bayramov
