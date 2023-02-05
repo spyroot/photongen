@@ -70,32 +70,34 @@ export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 
 mkdir -p $MLX_DIR
 mkdir -p $INTEL_DIR
+mkdir -p /builder/
 
 if [ -z "$LOAD_DOCKER_IMAGE" ]
 then
-    echo "Skipping docker load phase."
+    echo "Skipping docker load phase." &> /builder/build_docker_load.log
 else
+  echo "Enabling docker services." &> /builder/build_docker_load.log
   systemctl enable docker; systemctl start docker
   is_docker_running=$(systemctl status docker | grep running)
   if [ -z "$is_docker_running" ]
   then
     echo "Skipping docker load since it down."
   else
-    docker load < $DOCKER_IMAGE_PATH > /docker_load.log
+    docker load < $DOCKER_IMAGE_PATH &>> /builder/build_docker_load.log
+    docker image ls &>> /builder/build_docker_load.log
   fi
 fi
 
-export PATH=$PATH:/usr/local/bin
 yum --quiet -y install python3-libcap-ng python3-devel rdma-core-devel util-linux-devel \
-zip zlib zlib-devel libxml2-devel libudev-devel > /rpms_pull_build.log
+zip zlib zlib-devel libxml2-devel libudev-devel &> /builder/build_rpms_pull.log
 
 if [ -z "$IPSEC_BUILD" ]
 then
-    echo "Skipping ipsec lib build."
+    echo "Skipping ipsec lib build." > /build_ipsec.log
 else
-  cd /root || exit; mkdir -p build; git clone $IPSEC_LIB_LOCATION > /ipsec_clone.log
-  cd intel-ipsec-mb || exit; make -j 8 > /ipsec_build.log
-  make install > ipsec_install.log; ldconfig
+  cd /root || exit; mkdir -p build; git clone $IPSEC_LIB_LOCATION > /build_ipseclib_clone.log
+  cd intel-ipsec-mb || exit; make -j 8 &> /builder/build_ipseclib.log
+  make install &> /builder/build_ipseclib_install.log; ldconfig
 fi
 
 if [ -z "$MLX_BUILD" ]
@@ -104,18 +106,19 @@ then
 else
   MLX_IMG=http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$MLNX_VER"/MLNX_OFED_SRC-debian-"$MLNX_VER".tgz
   MLX_FILE_NAME=MLNX_OFED_SRC-debian-"$MLNX_VER".tgz
-  cd /tmp || exit; wget --quiet $MLX_IMG --directory-prefix=$MLX_DIR -O $MLX_FILE_NAME
-  tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1 > /mlx_driver_install.log
+  echo "Pulling Mellanox ofed from $MLX_IMG to $MLX_FILE_NAME" > /builder/build_mlx_driver.log
+  cd /tmp || exit; wget --quiet $MLX_IMG --directory-prefix=$MLX_DIR -O $MLX_FILE_NAME &>> /builder/build_mlx_driver.log
+  tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1 &>> /builder/build_mlx_driver.log
 fi
 
 if [ -z "$INTEL_BUILD" ]
 then
-    echo "Skipping intel driver build"
+    echo "Skipping intel driver build" > /builder/build_intel_driver_install.log
 else
   INTEL_IMG=https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.tar.gz
-  cd /tmp || exit; wget --quiet $INTEL_IMG --directory-prefix=$INTEL_DIR -O iavf-$AVX_VERSION.tar.gz
-  tar -zxvf iavf-* -C iavf --strip-components=1
-  cd $INTEL_DIR/src || exit; make && make install  > /intel_driver_install.log
+  cd /tmp || exit; wget --quiet $INTEL_IMG --directory-prefix=$INTEL_DIR -O iavf-$AVX_VERSION.tar.gz &> /builder/build_intel_driver.log
+  tar -zxvf iavf-* -C iavf --strip-components=1 >> /builder/build_intel_driver.log
+  cd $INTEL_DIR/src || exit; make &>> /builder/build_intel_driver.log && make install &> /builder/build_intel_driver_install.log
 fi
 
 # we add shared lib to ld.so.conf
@@ -124,51 +127,53 @@ SHARED_LD_FILE='/etc/ld.so.conf'
 grep -qF -- "$SHARED_LIB_LINE" "$SHARED_LD_FILE" || echo "$SHARED_LIB_LINE" >> "$SHARED_LD_FILE"
 ldconfig
 
-pip3 install -U pyelftools sphinx
+pip3 install pyelftools &> /builder/build_pip_pull.log
+pip3 install sphinx &>> /builder/build_pip_pull.log
+pip3 install -U pyelftools &>> /builder/build_pip_pull.log
 
 # build and install libnl
 if [ -z "$LIBNL_BUILD" ]
 then
-    echo "Skipping libnl driver build"
+    echo "Skipping libnl driver build" > /builder/build_nl.log
 else
+  echo "Pulling libnl from build $NL_LIB_LOCATION" > /builder/build_nl.log
   rm -rf $LIB_NL_TARGET_DIR_BUILD; cd /root/build || exit; wget --quiet $NL_LIB_LOCATION
   mkdir libnl || exit; tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1
-  cd $LIB_NL_TARGET_DIR_BUILD || exit; ./configure --prefix=/usr; make -j 8 > /build_nl.log && make install > /install_nl.log
+  cd $LIB_NL_TARGET_DIR_BUILD || exit; ./configure --prefix=/usr &> /builder/configure_nl.log; make -j 8 &> /builder/build_nl.log && make install &> /builder/install_nl.log
   ldconfig; ldconfig /usr/local/lib
 fi
 
 # build and install isa
 if [ -z "$LIBNL_ISA" ]
 then
-    echo "Skipping isa-l driver build"
+    echo "Skipping isa-l driver build" > /builder/build_isa.log
 else
   rm -rf $LIB_ISAL_TARGET_DIR_BUILD > /build_isa.log
   cd /root/build || exit; git clone https://github.com/intel/isa-l
-  cd $LIB_ISAL_TARGET_DIR_BUILD || exit; chmod 700 autogen.sh && ./autogen.sh; ./configure; make -j 8 > /build_isa.log && make install > /build_install_isa.log
+  cd $LIB_ISAL_TARGET_DIR_BUILD || exit; chmod 700 autogen.sh && ./autogen.sh &> /builder/autogen_isa.log; ./configure &> /builder/configure_isa.log; make -j 8 &> /builder/build_isa.log && make install &> /builder/install_isa.log
   ldconfig; ldconfig /usr/local/lib
-
 fi
 
 # kernel source and DPDK, we're building with Intel and Mellanox driver.
-yum --quiet -y install stalld dkms linux-devel linux-rt-devel openssl-devel libmlx5 > /yum_kernel_build.log
+yum --quiet -y install stalld dkms linux-devel linux-rt-devel openssl-devel libmlx5 &> /builder/build_yum_kernel.log
 
 if [ -z "$DPDK_BUILD" ]
 then
-    echo "Skipping DPDK build."
+    echo "Skipping DPDK build." /builder/build_dpdk_install.log
 else
+  export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
   TARGET_SYSTEM=$(uname -r)
-  pip3 install pyelftools sphinx > /pip_install.log
+  pip3 install pyelftools sphinx &> /builder/dpdk_pip.log
+  /usr/bin/python3 -c "import importlib.util; import sys; from elftools.elf.elffile import ELFFile" &>> /builder/dpdk_pip.log
   ln -s /usr/src/linux-headers-"$TARGET_SYSTEM"/ /usr/src/linux 2>/dev/null
   rm $DPDK_TARGET_DIR_BUILD 2>/dev/null
-  cd /root || exit; wget --quiet -nc -O dpdk.tar.gz $DPDK_URL_LOCATION; tar xf dpdk.tar.gz > /dpkd_pull.log
+  cd /root || exit; wget --quiet -nc -O dpdk.tar.gz $DPDK_URL_LOCATION; tar xf dpdk.tar.gz &> /builder/dpkd_pull.log
   ldconfig
-  cd $DPDK_TARGET_DIR_BUILD || exit; meson -Dplatform=native -Dexamples=all -Denable_kmods=true \
-  -Dkernel_dir=/lib/modules/"$TARGET_SYSTEM" -Dibverbs_link=shared -Dwerror=true build; ninja -C build -j 8 > /dpkd_build.log
-  cd $DPDK_TARGET_DIR_BUILD/build || exit; ninja install > /dpkd_install.log; ldconfig;   ldconfig /usr/local/lib
+  cd $DPDK_TARGET_DIR_BUILD || exit; meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/"$TARGET_SYSTEM" -Dibverbs_link=shared -Dwerror=true build &> /builder/dpdk_meson.log; ninja -C build -j 8 &> /builder/dpkd_build.log
+  cd $DPDK_TARGET_DIR_BUILD/build || exit; ninja install &> /builder/dpdk_install.log && ldconfig;  ldconfig /usr/local/lib
 fi
 
 # adjust config and load VFIO
-
 MODULES_VFIO_PCI_FILE='/etc/modules-load.d/vfio-pci.conf'
 MODULES_VFIO_FILE='/etc/modules-load.d/vfio.conf'
 
@@ -191,11 +196,10 @@ grep -qF -- "$MODULES_VFIO_LINE" "$MODULES_VFIO_FILE" || echo "$MODULES_VFIO_LIN
 
 #### create tuned profile.
 if [ -z "$TUNED_BUILD" ]; then
-    echo "Skipping tuned optimization."
+    echo "Skipping tuned optimization." > /builder/build_tuned.log
 else
 
   mkdir -p /usr/lib/tuned/mus_rt 2>/dev/null
-
   # create vars
   rm /etc/tuned/realtime-variables.conf 2>/dev/null; touch /etc/tuned/realtime-variables.conf
   cat > /etc/tuned/realtime-variables.conf << 'EOF'
@@ -204,6 +208,7 @@ else
 EOF
   # create profile
   rm  /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null; touch /usr/lib/tuned/mus_rt/tuned.conf
+  echo "generating tuned." > /builder/build_tuned.log
   cat > /usr/lib/tuned/mus_rt/tuned.conf << 'EOF'
 [main]
 summary=Optimize for realtime workloads
@@ -245,6 +250,7 @@ EOF
 
   # create script used in tuned.
   rm /usr/lib/tuned/mus_rt/script.sh 2>/dev/null; touch /usr/lib/tuned/mus_rt/script.sh
+  echo "generating script.sh." >> /builder/build_tuned.log
   cat > /usr/lib/tuned/mus_rt/script.sh << 'EOF'
 #!/usr/bin/sh
 . /usr/lib/tuned/functions
@@ -261,6 +267,7 @@ verify() {
 process $@
 EOF
 
+  echo "restarting tuned" >> /builder/build_tuned.log
   # enabled tuned and load profile we created.
   systemctl enable tuned
   systemctl daemon-reload
@@ -281,28 +288,30 @@ if [ -z "$WITH_QAT" ]
 then
 	echo "Skipping QAT phase."
 else
-    modprobe intel_qat
+    modprobe intel_qat &> /builder/qat_loder.log
 fi
 
 ####### SRIOV and Hugepages
 yum install libhugetlbfs libhugetlbfs-devel > /dev/null 2>&1
 if [ -z "$BUILD_SRIOV" ]
 then
-	echo "Skipping SRIOV phase."
+	echo "Skipping SRIOV phase." > /builder/build_sriov.log
 else
-  modprob vfio
+  echo "Loading vfio and vfio-pci." > /builder/build_sriov.log
+  modprobe vfio
   modprobe vfio-pci enable_sriov=1
 	# First enable num VF on interface
 	# Check that we have correct number adjust if needed
 	# then for each VF set to trusted mode and enable disable spoof check
 	SRIOV_NICS=$(trim $SRIOV_NIC_LIST)
+	echo "Building sriov config for $SRIOV_NICS" >> /builder/build_sriov.log
   IFS=',' read -ra SRIOV_NIC_ARRAY <<< "$SRIOV_NICS"
   for SRIOV_NIC in "${SRIOV_NIC_ARRAY[@]}"
   do
     SYS_DEV_PATH="/sys/class/net/$SRIOV_NIC/device/sriov_numvfs"
     if [ -r "$SYS_DEV_PATH" ];
     then
-      echo "Reading from $SYS_DEV_PATH"
+      echo "Reading from $SYS_DEV_PATH" >> /builder/build_sriov.log
       interface_status=$(ip link show "$SRIOV_NIC" | grep UP)
       [ -z "$interface_status" ] && { echo "Error: Interface $SRIOV_NIC either down or invalid."; break; }
       if [ ! -e "$SYS_DEV_PATH" ]; then
@@ -310,48 +319,50 @@ else
       fi
       num_cur_vfs=$(cat "$SYS_DEV_PATH")
       if [ "$NUM_VFS" -ne "$num_cur_vfs" ]; then
-        echo "Error: Expected number of sriov vfs for adapter $SRIOV_NIC vfs=$NUM_VFS, found $num_cur_vfs";
+        echo "Error: Expected number of sriov vfs for adapter $SRIOV_NIC vfs=$NUM_VFS, found $num_cur_vfs" >> /builder/build_sriov.log;
         # note if adapter bouded we will not be able to do that.
         echo $NUM_VFS > "$SYS_DEV_PATH" 2>/dev/null
       fi
       #  set to trusted mode and enable disable spoof check
       for (( i=1; i<=NUM_VFS; i++ ))
       do
-        echo "Enabling trust on $SRIOV_NIC vf $i"
+        echo "Enabling trust on $SRIOV_NIC vf $i" >> /builder/build_sriov.log
         ip link set "$SRIOV_NIC" vf "$i" trust on 2>/dev/null;
         ip link set "$SRIOV_NIC" vf "$i" spoof off 2>/dev/null;
       done
     else
-      echo "Failed to read $SYS_DEV_PATH"
+      echo "Failed to read $SYS_DEV_PATH" >> /builder/build_sriov.log
       echo $NUM_VFS > "$SYS_DEV_PATH" 2>/dev/null
+      echo "Adjusting num vfs $NUM_VFS in $SYS_DEV_PATH" >> /builder/build_sriov.log
     fi
   done
 fi
 
 if [ -z "$BUILD_HUGEPAGES" ]
 then
-    echo "Skipping hugepages allocation."
+    echo "Skipping hugepages allocation." > /builder/build_hugepages.log
 else
   # Huge pages for each NUMA NODE
-  echo "Adjusting numa pages."
+  echo "Adjusting numa pages." > /builder/build_hugepages.log
   IS_SINGLE_NUMA=$(numactl --hardware | grep available | grep 0-1)
   if [ -z "$IS_SINGLE_NUMA" ]
   then
-          echo "Target system with single socket num 2k $PAGES num 1GB $PAGES_1GB."
+          echo "Target system with single socket num 2k $PAGES num 1GB $PAGES_1GB." >> /builder/build_hugepages.log
           echo $PAGES > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
           echo $PAGES_1GB > /sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages
 
   else
-          echo "Target system with dual socket num 2k $PAGES num 1GB $PAGES_1GB."
+          echo "Target system with dual socket num 2k $PAGES num 1GB $PAGES_1GB." >> /builder/build_hugepages.log
           echo $PAGES > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
           echo $PAGES > /sys/devices/system/node/node1/hugepages/hugepages-2048kB/nr_hugepages
           echo $PAGES_1GB  > /sys/devices/system/node/node0/hugepages/hugepages-1048576kB/nr_hugepages
           echo $PAGES_1GB > /sys/devices/system/node/node1/hugepages/hugepages-1048576kB/nr_hugepages
   fi
+  echo "Adjusting /etc/fstab mount hugetlbfs" >> /builder/build_hugepages.log
   FSTAB_FILE='/etc/fstab'
   HUGEPAGES_MOUNT_LINE='nodev /mnt/huge hugetlbfs pagesize=1GB 0 0'
-  mkdir /mnt/huge
-  mount -t hugetlbfs nodev /mnt/huge
+  mkdir /mnt/huge &>> /builder/build_hugepages.log
+  mount -t hugetlbfs nodev /mnt/huge &>> /builder/build_hugepages.log
   grep -qF -- "$HUGEPAGES_MOUNT_LINE" "$FSTAB_FILE" || echo "$HUGEPAGES_MOUNT_LINE" >> "$FSTAB_FILE"
 fi
 
@@ -359,18 +370,21 @@ fi
 #### enable ptp4l
 if [ -z "$BUILD_PTP" ]
 then
-    echo "Skipping ptp configuration."
+    echo "Skipping ptp configuration." > /builder/build_ptp.log
 else
   # enable ptp4l start and create config, restart.
+  echo "Enabling ptp4l ptp4l." > /builder/build_ptp.log
   systemctl enable ptp4l
   systemctl enable phc2sys
   systemctl daemon-reload
   systemctl start ptp4l
   systemctl start phc2sys
+  systemctl ptp4l >> /builder/build_ptp.log
+  systemctl phc2sys >> /builder/build_ptp.log
 
   # generate config.
   rm /etc/ptp4l.conf 2>/dev/null; touch /etc/ptp4l.conf
-  echo "Adjusting  /etc/ptp4l.conf"
+  echo "Adjusting ptp4l config /etc/ptp4l.conf" >> /builder/build_ptp.log
   cat > /etc/ptp4l.conf  << 'EOF'
 [global]
 twoStepFlag		1
@@ -469,17 +483,19 @@ EOF
 
   # adjust /etc/sysconfig/ptp4l
   rm /etc/sysconfig/ptp4l 2>/dev/null; touch /etc/sysconfig/ptp4l
-  echo "Adjusting  /etc/ptp4l.conf and setting ptp for adapter $PTP_ADAPTER"
+  echo "Adjusting  /etc/ptp4l.conf and setting ptp for adapter $PTP_ADAPTER" >> /builder/build_ptp.log
   cat > /etc/sysconfig/ptp4l << EOF
 OPTIONS="-f /etc/ptp4l.conf -i $PTP_ADAPTER"
 EOF
 
   # restart everything.
+  echo "Restarting ptp4l " >> /builder/build_ptp.log
   systemctl daemon-reload
   systemctl restart ptp4l
 
   systemctl restart ptp4l
   systemctl restart phc2sys
+  systemctl status ptp4l >> /builder/build_ptp.log
 fi
 
 #reboot
