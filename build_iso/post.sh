@@ -496,8 +496,8 @@ function build_dpdk() {
     if [ -z "$default_kernel_prefix" ]; then
       log_console_and_file "Using default prefix $default_kernel_prefix"
     else
-      log_console_and_file "Using default prefix $default_kernel_prefix"
-      default_kernel_prefix=custom_kern_prefix
+      log_console_and_file "Using user supplied prefix $default_kernel_prefix"
+      default_kernel_prefix=$custom_kern_prefix
     fi
 
     # kernel source and DPDK, we're building with Intel and Mellanox driver.
