@@ -346,9 +346,15 @@ function enable_sriov() {
 # load_docker_image /builder/build_docker.log image_name, image_path
 function build_docker_images() {
   local log_file=$1
-  local docker_image_name=$2
-  local docker_image_path=$3
-  
+  local docker_image_path=$2
+  local docker_image_name=$3
+
+  if file_exists "$docker_image_path"; then
+    log_console_and_file "Loading docker image $docker_image_path"
+  else
+    echo "File $file_exists not found."
+  fi
+
   if [ -z "$docker_image_name" ]; then
     log_console_and_file "Skipping docker load phase."
   else
@@ -559,12 +565,16 @@ function load_vfio_pci() {
   grep -qF -- "$MODULES_VFIO_LINE" "$MODULES_VFIO_FILE" || echo "$MODULES_VFIO_LINE" >>"$MODULES_VFIO_FILE"
 }
 
-# Function generate a new tuned profile
-# and make it active.
+# Function fix tuned and some build in, generate a new tuned profile
+# updates tuned python and make it active.
 function build_tuned() {
   local log_file=$1
   touch "$log_file" 2>/dev/null
-    
+  mkdir -p /root/build/tuned 2>/dev/null
+
+  git clone https://github.com/spyroot/tuned.git; cd tuned || exit;
+  cp -R tuned /usr/lib/python3.10/site-packages
+
   #### create tuned profile.
   if [ -z "$TUNED_BUILD" ]; then
     log_console_and_file "Skipping tuned optimization."
@@ -636,7 +646,7 @@ verify() {
         tuna -c "$TUNED_isolated_cores" -P > /dev/null 2>&1
         retval=$?
     fi
-    return \$retval
+    return $retval
 }
 process $@
 EOF
@@ -869,7 +879,7 @@ EOF
   systemctl restart systemd-networkd
 }
 
-# Function check installed tools.
+# Function checks if required mandatory tools installed.
 function check_installed() {
   local  result_var_name=$1
   declare -i errors=0
@@ -889,6 +899,7 @@ function check_installed() {
 }
 
 # main entry for a script
+#
 function main() {
 
   log_main_dir=$(dirname "$DEFAULT_BUILDER_LOG")
@@ -904,7 +915,7 @@ function main() {
   # fix-up all vars in case of mistake.
   SRIOV_PCI_LIST=$(remove_all_spaces "$SRIOV_PCI_LIST")
   VLAN_ID_LIST=$(remove_all_spaces "$VLAN_ID_LIST")
-  NUM_VFS=$(remove_all_spaces "$VLAN_ID_LIST")
+  NUM_VFS=$(remove_all_spaces "$NUM_VFS")
   AVX_VERSION=$(remove_all_spaces "$AVX_VERSION")
   MLNX_VER=$(remove_all_spaces "$MLNX_VER")
   DOCKER_IMAGE_PATH=$(remove_all_spaces "$DOCKER_IMAGE_PATH")
