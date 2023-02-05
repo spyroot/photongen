@@ -326,7 +326,7 @@ function enable_sriov() {
         local current_num_vfs
         current_num_vfs=$(cat "$sysfs_path" | grep $target_num_vfs)
         if [ "${target_num_vfs:-0}" -ne "${current_num_vfs:-0}" ]
-        then  
+        then
             log_console_and_file "Error: Expected number of sriov vfs for adapter=$sriov_eth_name vfs=$target_num_vfs found $current_num_vfs"
             # note if adapter bounded we will not be able to do that.
             log_console_and_file "num vfs $target_num_vfs"
@@ -412,7 +412,7 @@ function build_mellanox_driver() {
     mlx_url=http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$mlx_ver"/MLNX_OFED_SRC-debian-"$mlx_ver".tgz
     mlx_file_name=MLNX_OFED_SRC-debian-"$mlx_ver".tgz
     log_console_and_file "Pulling Mellanox ofed from $mlx_url to $mlx_file_name"
-    cd /tmp || exit; wget --quiet "$mlx_url" --directory-prefix="$MLX_DIR" -O "$mlx_file_name" > "$log_file" 2>&1
+    cd /tmp || exit; wget -nc --quiet "$mlx_url" --directory-prefix="$MLX_DIR" -O "$mlx_file_name" > "$log_file" 2>&1
     tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1 > "$log_file" 2>&1
   fi
 }
@@ -430,7 +430,7 @@ function build_intel_iavf() {
   else
     local intel_url
     intel_url=https://downloadmirror.intel.com/738727/iavf-$intel_download_ver.tar.gz
-    cd /tmp || exit; wget --quiet "$intel_url" --directory-prefix="$intel_download_dir" -O iavf-"$intel_download_ver".tar.gz > "$log_file" 2>&1
+    cd /tmp || exit; wget -nc --quiet "$intel_url" --directory-prefix="$intel_download_dir" -O iavf-"$intel_download_ver".tar.gz > "$log_file" 2>&1
     tar -zxvf iavf-* -C iavf --strip-components=1 > "$log_file" 2>&1
     cd "$intel_download_dir"/src || exit; make > "$log_file" 2>&1; make install > "$log_file" 2>&1
   fi
@@ -472,7 +472,7 @@ function build_lib_nl() {
     log_console_and_file "Pulling libnl from build $NL_LIB_LOCATION"
     rm -rf $LIB_NL_TARGET_DIR_BUILD
     cd $ROOT_BUILD || exit
-    wget --quiet $NL_LIB_LOCATION
+    wget -nc --quiet $NL_LIB_LOCATION
     mkdir libnl || exit
     tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1
     cd $LIB_NL_TARGET_DIR_BUILD || exit
@@ -550,7 +550,7 @@ function build_dpdk() {
 
 # Functions load vfio and vfio_pci
 function load_vfio_pci() {
-  
+
   log_console_and_file "Loading vfio and vfio_pci."
 
   # adjust config and load VFIO
@@ -565,7 +565,7 @@ function load_vfio_pci() {
   if [[ ! -e $MODULES_VFIO_FILE ]]; then
     touch $MODULES_VFIO_FILE 2>/dev/null
   fi
-  
+
   local MODULES_VFIO_PCI_LINE='vfio-pci'
   local MODULES_VFIO_PCI_FILE='/etc/modules-load.d/vfio-pci.conf'
   grep -qF -- "$MODULES_VFIO_PCI_LINE" "$MODULES_VFIO_PCI_FILE" || echo "$MODULES_VFIO_PCI_LINE" >>"$MODULES_VFIO_PCI_FILE"
@@ -587,7 +587,7 @@ function build_tuned() {
     rm -rf $ROOT_BUILD/tuned 2>/dev/null
     mkdir -p $ROOT_BUILD/tuned 2>/dev/null
     git clone https://github.com/spyroot/tuned.git; cd tuned || exit;
-    cp -R tuned /usr/lib/python3.10/site-packages
+    cp -Rf tuned /usr/lib/python3.10/site-packages
 
     # profile
     mkdir -p /usr/lib/tuned/mus_rt 2>/dev/null
@@ -601,7 +601,7 @@ EOF
   # create profile
     rm /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
     touch /usr/lib/tuned/mus_rt/tuned.conf 2>/dev/null
-    log_console_and_file "generating tuned config."
+    log_console_and_file "Generating tuned.conf config."
     cat >/usr/lib/tuned/mus_rt/tuned.conf <<'EOF'
 [main]
 summary=Optimize for realtime workloads
@@ -644,7 +644,7 @@ EOF
     # create script used for a tuned.
     rm /usr/lib/tuned/mus_rt/script.sh 2>/dev/null
     touch /usr/lib/tuned/mus_rt/script.sh 2>/dev/null
-    log_console_and_file "generating script.sh."
+    log_console_and_file "Generating tuned script.sh."
     cat >/usr/lib/tuned/mus_rt/script.sh <<'EOF'
 #!/usr/bin/sh
 . /usr/lib/tuned/functions
@@ -661,12 +661,14 @@ verify() {
 process $@
 EOF
 
-    log_console_and_file "enabling and restarting tuned"
+    log_console_and_file "Enabling and restarting tuned."
     # enabled tuned and load profile we created.
     systemctl enable tuned
     systemctl daemon-reload
     systemctl start tuned
+    log_console_and_file "Activating mus_rt profile."
     tuned-adm profile mus_rt
+    systemctl status tuned
   fi
 }
 
@@ -726,6 +728,13 @@ function build_hugepages() {
   fi
 }
 
+# mainly for debug to re-run during dev phase
+function cleanup() {
+    rm /build/*
+    rm -rf $DPDK_TARGET_DIR_BUILD/build
+    docker volume prune -f
+
+}
 
 ## build configs and start ptp
 function build_ptp() {
