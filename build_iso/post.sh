@@ -47,6 +47,10 @@ WITH_QAT=yes
 # SRIOV NIC make sure it up.
 # SRIOV_NIC_LIST="eth4,eth5"
 SRIOV_PCI_LIST="pci@0000:51:00.0,pci@0000:51:00.1"
+# list of PCI device that we use for SRIOV.
+#SRIOV_PCI_LIST="pci@0000:8a:00.0,pci@0000:8a:00.1"
+#SRIOV_PCI_LIST="pci@0000:51:00.0,pci@0000:51:00.1"
+
 # number of VFS we need.
 NUM_VFS=8
 
@@ -97,8 +101,6 @@ DEFAULT_BUILDER_LOG="/build/build_main.log"
 VLAN_ID_LIST="2000,2001"
 # list of adapter
 ADAPTER_LIST=""
-# list of PCI device that we use for SRIOV.
-SRIOV_PCI_LIST="pci@0000:8a:00.0,pci@0000:8a:00.1"
 
 
 #Functions definition,  scroll down to main.
@@ -135,11 +137,9 @@ function is_cmd_installed {
 function pci_to_adapter() {
   local var="$*"
   local adapter
-  log_console_and_file "pci_to_adapter resolving $var"
   var="${var#"${var%%[![:space:]]*}"}"
   var="${var%"${var##*[![:space:]]}"}"
   adapter=$(lshw -class network -businfo -notime | grep "$var" | awk '{print $2}')
-  log_console_and_file "resolved to adapter $adapter"
   echo "$adapter"
 }
 
@@ -275,7 +275,7 @@ function create_log_dir() {
 # log message to console and file.
 function log_console_and_file() {
   local default_log=$DEFAULT_BUILDER_LOG
-  printf "%b %s. %b\n" "${GREEN}" "$@" "${NC}"
+  printf "%b %s %b\n" "${GREEN}" "$@" "${NC}"
 
   if file_exists $default_log; then
     echo "$@" >>$default_log
@@ -292,7 +292,7 @@ function log_console_and_file() {
 function enable_sriov() {
   local eth_array
   local list_of_pci_devices=$1
-  local target_num_vfs=$2
+  declare -i target_num_vfs=$2
   adapters_from_pci_list eth_array "$list_of_pci_devices"
   log_console_and_file "Enabling SRIOV ${eth_array[*]} target num vfs $target_num_vfs"
 
@@ -308,38 +308,40 @@ function enable_sriov() {
   # adjust if needed then for each VF set to trusted mode and enable disable spoof check
   echo "Building sriov config for $eth_array"
   for sriov_eth_name in "${eth_array[@]}"; do
-    local sysfs_eth_path
-    sysfs_eth_path="/sys/class/net/$sriov_eth_name/device/sriov_numvfs"
-    if [ -r "$sysfs_eth_path" ]; then
-      log_console_and_file "Reading from $SYS_DEV_PATH"
-      local if_status
-      if_status=$(ip link show "$sriov_eth_name" | grep UP)
-      [ -z "$if_status" ] && {
-        log_console_and_file "Error: Interface $sriov_eth_name either down or invalid."
-        break
-      }
-      if [ ! -e "$sysfs_eth_path" ]; then
-        touch "$sysfs_eth_path" 2>/dev/null
-      fi
-      local num_cur_vfs
-      num_cur_vfs=$(cat "$sysfs_eth_path")
-      if [ "$target_num_vfs" -ne "$num_cur_vfs" ]; then
-        log_console_and_file "Error: Expected number of sriov vfs for adapter" \
-                     "$sriov_eth_name vfs=$target_num_vfs, "\
-                      "found $num_cur_vfs"
-        # note if adapter bounded we will not be able to do that.
-        log_console_and_file "num vfs $target_num_vfs"
-      fi
-      #  set to trusted mode and enable disable spoof check
-      for ((i = 1; i <= target_num_vfs; i++)); do
-        log_console_and_file "Enabling trust on $sriov_eth_name vf $i"
-        ip link set "$sriov_eth_name" vf "$i" trust on 2>/dev/null
-        ip link set "$sriov_eth_name" vf "$i" spoof off 2>/dev/null
-      done
+    local sysfs_path
+    sysfs_path="/sys/class/net/$sriov_eth_name/device/sriov_numvfs"
+    log_console_and_file "sysfs path $sysfs_path"
+    if [ -r "$sysfs_path" ]
+    then
+        log_console_and_file "Reading from $sysfs_path"
+        local if_status
+        if_status=$(ip link show "$sriov_eth_name" | grep UP)
+        [ -z "$if_status" ] && {
+          log_console_and_file "Error: Interface $sriov_eth_name either down or invalid."
+          break
+        }
+        if [ ! -e "$sysfs_eth_path" ]; then
+          touch "$sysfs_eth_path" 2>/dev/null
+        fi
+        local current_num_vfs
+        current_num_vfs=$(cat "$sysfs_path" | grep $target_num_vfs)
+        if [ "${target_num_vfs:-0}" -ne "${current_num_vfs:-0}" ]
+        then  
+            log_console_and_file "Error: Expected number of sriov vfs for adapter=$sriov_eth_name vfs=$target_num_vfs found $current_num_vfs"
+            # note if adapter bounded we will not be able to do that.
+            log_console_and_file "num vfs $target_num_vfs"
+            echo "$target_num_vfs" > "$sysfs_path"
+        fi
+        #  set to trusted mode and enable disable spoof check
+        for ((i = 1; i <= target_num_vfs; i++)); do
+          log_console_and_file "Enabling trust on $sriov_eth_name vf $i"
+          ip link set "$sriov_eth_name" vf "$i" trust on 2>/dev/null
+          ip link set "$sriov_eth_name" vf "$i" spoof off 2>/dev/null
+        done
     else
-      log_console_and_file "Failed to read $sysfs_eth_path"
-      log_console_and_file "$target_num_vfs" >"$sysfs_eth_path"
-      log_console_and_file "Adjusting number of vf $target_num_vfs in $sysfs_eth_path"
+        log_console_and_file "Failed to read $sysfs_eth_path"
+        log_console_and_file "Adjusting number of vf $target_num_vfs in $sysfs_eth_path"
+        echo "$target_num_vfs" > "$sysfs_path"
     fi
   done
 }
