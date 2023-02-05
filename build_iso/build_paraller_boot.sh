@@ -34,7 +34,6 @@ DEFAULT_IMAGE_NAME=$DEFAULT_DST_IMAGE_NAME
 DEFAULT_LOCATION_MOVE="/var/www/html/"
 IDRAC_IP_ADDR=""
 
-
 # all envs
 if [ ! -f cluster.env ]
 then
