@@ -85,6 +85,20 @@ IFS=',' read -ra IDRAC_IP_ADDR <<< "$IDRAC_IP_LIST"
 for IDRAC_HOST in "${IDRAC_IP_ADDR[@]}"
 do
   addr=$(trim "$IDRAC_HOST")
+  # first we check if SRIOV enabled or not, ( Default disabled)
+  export IDRAC_IP="$addr"; idrac_ctl idrac_ctl bios-registry --attr_name SriovGlobalEnable
+  # we disable memory test, sriov
+  export IDRAC_IP="$addr"; idrac_ctl bios-change  --attr_name MemTest,SriovGlobalEnable --attr_value Disabled,Enabled on-reset -r
+  python idrac_ctl.py --json_only --debug --verbose bios-pending
+
+  # apply
+  python idrac_ctl.py --json_only --debug --verbose job-apply bios
+  # without reboot flag , it will be scheduled
+  python idrac_ctl.py --json_only --debug --verbose jobs --scheduled
+  # verbose mode
+  python idrac_ctl --verbose --debug bios-change  --attr_name MemTest,SriovGlobalEnable,OsWatchdogTimer,ProcCStates,MemFrequency --attr_value Disabled,Enabled,Disabled,Disabled,MaxPerf on-reset --reboot --commit
+  # export IDRAC_IP="$addr"; idrac_ctl --verbose --debug bios-change  --attr_name MemTest,SriovGlobalEnable,OsWatchdogTimer,ProcTurboMode,ProcCStates,MemFrequency --attr_value Disabled,Enabled,Disabled,Disabled,Enabled,Disabled,MaxPerf on-reset -r
+  # idrac_ctl bios --attr_only --filter SriovGlobalEnable
   export IDRAC_IP="$addr"; idrac_ctl get_vm --device_id 1 --filter_key Inserted
   export IDRAC_IP="$addr"; idrac_ctl eject_vm --device_id 1
   export IDRAC_IP="$addr"; idrac_ctl insert_vm --uri_path http://"$IDRAC_REMOTE_HTTP"/$DEFAULT_IMAGE_NAME --device_id 1
