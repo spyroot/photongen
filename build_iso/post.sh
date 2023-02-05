@@ -24,6 +24,10 @@ MLNX_VER=5.4-1.0.3.0
 DOCKER_IMAGE_PATH="/vcu1.tar.gz"
 DOCKER_IMAGE_NAME="vcu1"
 
+export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+
+REQUIRED_TOOLS=("wget" "tar" "lshw" "awk")
+
 # What we are building, flags
 # By default I build all.
 MLX_BUILD="yes"
@@ -86,7 +90,7 @@ BUILD_DPDK_LOG="/build/build_dpdk.log"
 BUILD_TUNED_LOG="/build/build_tuned.log"
 BUILD_HUGEPAGES_LOG="/build/build_hugepages.log"
 BUILD_PTP_IPSEC_BUILD_LOG="/build/build_ptp.log"
-DEFAULT_BUILDER_LOG="/builder/build_main.log"
+DEFAULT_BUILDER_LOG="/build/build_main.log"
 
 # list of vlan we need create
 VLAN_ID_LIST="2000,2001"
@@ -382,7 +386,7 @@ function build_ipsec_lib() {
 function build_mellanox_driver() {
   local log_file=$1
   local mlx_ver=$2
-  touch "$log_file" 2>/dev/null
+  echo "" > "$log_file"
   if [ -z "$MLX_BUILD" ]
   then
       log_console_and_file "Skipping Mellanox driver build."
@@ -403,7 +407,7 @@ function build_intel_iavf() {
   local log_file=$1
   local intel_download_dir=$2
   local intel_download_ver=$3
-  touch "$log_file" 2>/dev/null
+  echo "" >"$log_file"
   if [ -z "$INTEL_BUILD" ]
   then
       log_console_and_file "Skipping intel driver build"
@@ -456,7 +460,7 @@ function build_lib_nl() {
     mkdir libnl || exit
     tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1
     cd $LIB_NL_TARGET_DIR_BUILD || exit
-    ./configure --prefix=/usr &>/builder/configure_nl.log
+    ./configure --prefix=/usr &>/build/configure_nl.log
     make -j 8 > "$log_file" 2>&1; make install > "$log_file" 2>&1
     ldconfig; ldconfig /usr/local/lib
   fi
@@ -724,7 +728,7 @@ function build_ptp() {
 
     # generate config.
     rm /etc/ptp4l.conf 2>/dev/null; touch /etc/ptp4l.conf 2>/dev/null
-    echo "Adjusting ptp4l config /etc/ptp4l.conf" >> /builder/build_ptp.log
+    echo "Adjusting ptp4l config /etc/ptp4l.conf" >> /build/build_ptp.log
     cat > /etc/ptp4l.conf  << 'EOF'
 [global]
 twoStepFlag		1
@@ -823,16 +827,16 @@ EOF
 
     # adjust /etc/sysconfig/ptp4l
     rm /etc/sysconfig/ptp4l 2>/dev/null; touch /etc/sysconfig/ptp4l 2>/dev/null
-    echo "Adjusting /etc/sysconfig/ptp4l and setting ptp for adapter $PTP_ADAPTER" >> /builder/build_ptp.log
+    log_console_and_file "Adjusting /etc/sysconfig/ptp4l and setting ptp for adapter $PTP_ADAPTER"
     cat > /etc/sysconfig/ptp4l << EOF
 OPTIONS="-f /etc/ptp4l.conf -i $PTP_ADAPTER"
 EOF
     # restart everything.
-    echo "Restarting ptp4l " >> /builder/build_ptp.log
+    log_console_and_file "Restarting ptp4l "
     systemctl daemon-reload
     systemctl restart ptp4l
     systemctl restart phc2sys
-    systemctl status ptp4l >> /builder/build_ptp.log
+    systemctl status ptp4l >> $BUILD_PIP_LOG
   fi
 }
 
@@ -840,7 +844,7 @@ EOF
 function build_dirs() {
   mkdir -p $MLX_DIR > /dev/null 2>&1
   mkdir -p $INTEL_DIR > /dev/null 2>&1
-  mkdir -p /builder/ > /dev/null 2>&1
+  mkdir -p /build/ > /dev/null 2>&1
 }
 
 # Function create vlan interface
@@ -865,16 +869,36 @@ EOF
   systemctl restart systemd-networkd
 }
 
+# Function check installed tools.
+function check_installed() {
+  local  result_var_name=$1
+  declare -i errors=0
+  shift
+  local array_tools=("$@")
+  for tool in "${array_tools[@]}"
+  do
+    if is_cmd_installed "$tool"
+    then
+      log_console_and_file "tools $tool installed."
+    else
+      log_console_and_file "tool $tool not installed."
+      errors+=1
+    fi
+  done
+  eval "$result_var_name"="'$errors'"
+}
+
 # main entry for a script
 function main() {
 
-  rm -rf $DEFAULT_BUILDER_LOG
+  log_main_dir=$(dirname "$DEFAULT_BUILDER_LOG")
+  rm -rf "$log_main_dir"
   create_log_dir "$DEFAULT_BUILDER_LOG"
 
   declare -i errs=0
   check_installed errs "${REQUIRED_TOOLS[@]}"
   if [[ $errs -gt 0 ]]; then
-    exit 99
+    echo "Please check required commands."
   fi
 
   # fix-up all vars in case of mistake.
@@ -889,7 +913,7 @@ function main() {
   yum --quiet -y install python3-libcap-ng python3-devel \
   rdma-core-devel util-linux-devel \
   zip zlib zlib-devel libxml2-devel \
-  libudev-devel &> /builder/build_rpms_pull.log
+  libudev-devel &> /build/build_rpms_pull.log
 
   build_dirs
   build_mellanox_driver "$BUILD_MELLANOX_LOG" "$MLNX_VER"
@@ -909,5 +933,6 @@ function main() {
   build_ptp "$BUILD_PTP_IPSEC_BUILD_LOG"
 }
 
+main
 #
 ##reboot
