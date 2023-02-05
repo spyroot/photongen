@@ -66,6 +66,7 @@ PIP_PKG_REQUIRED=("pyelftools" "sphinx")
 PTP_ADAPTER="eth7"
 
 # All links and directories
+ROOT_BUILD="/root/build"
 DPDK_URL_LOCATION="http://fast.dpdk.org/rel/dpdk-21.11.tar.xz"
 IPSEC_LIB_LOCATION="https://github.com/intel/intel-ipsec-mb.git"
 NL_LIB_LOCATION="https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz"
@@ -134,6 +135,7 @@ function is_cmd_installed {
 function pci_to_adapter() {
   local var="$*"
   local adapter
+  log_console_and_file "pci_to_adapter resolving $var"
   var="${var#"${var%%[![:space:]]*}"}"
   var="${var%"${var##*[![:space:]]}"}"
   adapter=$(lshw -class network -businfo -notime | grep "$var" | awk '{print $2}')
@@ -364,9 +366,10 @@ function build_docker_images() {
     local is_docker_running
     is_docker_running=$(systemctl status docker | grep running)
     if [ -z "$is_docker_running" ]; then
-      log_console_and_file "Skipping docker load since it down and failed to start."
+      log_console_and_file "Skipping docker load, failed to start docker."
     else
-      docker load <"$docker_image_path" > "$log_file" 2>&1
+      log_console_and_file "Loading docker image from $docker_image_path"
+      docker load <"$docker_image_path"
       docker image ls > "$log_file" 2>&1
     fi
   fi
@@ -461,7 +464,7 @@ function build_lib_nl() {
   else
     log_console_and_file "Pulling libnl from build $NL_LIB_LOCATION"
     rm -rf $LIB_NL_TARGET_DIR_BUILD
-    cd /root/build || exit
+    cd $ROOT_BUILD || exit
     wget --quiet $NL_LIB_LOCATION
     mkdir libnl || exit
     tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1
@@ -483,7 +486,7 @@ function build_lib_isa() {
     log_console_and_file "Skipping isa-l driver build"
   else
     rm -rf $LIB_ISAL_TARGET_DIR_BUILD >/build_isa.log
-    cd /root/build || exit
+    cd $ROOT_BUILD || exit
     git clone https://github.com/intel/isa-l
     cd $LIB_ISAL_TARGET_DIR_BUILD || exit
     chmod 700 autogen.sh && ./autogen.sh > "$log_file" 2>&1
@@ -570,11 +573,9 @@ function load_vfio_pci() {
 function build_tuned() {
   local log_file=$1
   touch "$log_file" 2>/dev/null
-  mkdir -p /root/build/tuned 2>/dev/null
-
+  mkdir -p $ROOT_BUILD/tuned 2>/dev/null
   git clone https://github.com/spyroot/tuned.git; cd tuned || exit;
   cp -R tuned /usr/lib/python3.10/site-packages
-
   #### create tuned profile.
   if [ -z "$TUNED_BUILD" ]; then
     log_console_and_file "Skipping tuned optimization."
