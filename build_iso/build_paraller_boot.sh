@@ -3,6 +3,16 @@
 # comma separated list of IPS in the env.
 #example:
 #
+# Before you boot.  note if DRAC has pending changes that requires reboot.
+# you need reboot host first or clear all pending changes.
+#
+# The post script will re-adjust all SRIOV based on spec.
+# By default, Sriov disabled on Dell servers.
+#
+# Secondly we want to minimum optimization for
+# a server for real-time.
+#
+# Example what you should have in env.
 #export IDRAC_IPS="192.168.1.1,192.168.1.2"
 #export IDRAC_PASSWORD="password"
 #export IDRAC_USERNAME"root"
