@@ -6,7 +6,7 @@ In both cases, the automated build system, first build a reference iso file.  Fo
 local directory contains ph4-rt-refresh.iso. or system fetch the reference ISO from the web. 
 
 There are three main build scripts that exposed.
-* **build_and_exec.sh**  Build a kick start and all customization and docker container.
+* **build_and_exec.sh**  Build a kick-start and all customization and docker container.
 * **build_iso.sh** Build the final ISO file.
 * **build_praller_boot.sh** (Optional bare-metal only) leverages idract_ctl and boots N hosts from final customized ISO via remote HTTP media and installs the real-time OS.
 
