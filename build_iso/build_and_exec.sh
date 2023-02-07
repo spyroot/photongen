@@ -296,11 +296,12 @@ function git_clone() {
   suffix=".git"
   git_repos_dir="git_repos"
 
+  # do a cleanup first.
+  rm -rf $git_repos_dir
   jq --raw-output -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
     local repo_name
     repo_name=${git_repo/%$suffix/}
     repo_name=${repo_name##*/}
-    rm -rf git_repos/"$repo_name"
     mkdir -p git_repos/"$repo_name"
     echo "Git cloning git clone $git_repo $repo_name"
     git clone "$git_repo" "$repo_name"
