@@ -20,10 +20,6 @@
 
 source shared.bash
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-NC='\033[0m' # No Color
-
 if [[ -z "$DEFAULT_DST_IMAGE_NAME" ]]; then
   echo "Please make sure you have in shared\.bash DEFAULT_DST_IMAGE_NAME var"
   exit 99
@@ -33,6 +29,8 @@ DEFAULT_IMAGE_NAME=$DEFAULT_DST_IMAGE_NAME
 # a location where to copy iso, assume same host runs http.
 DEFAULT_LOCATION_MOVE="/var/www/html/"
 IDRAC_IP_ADDR=""
+# this flag wil skip bios configuration.
+SKIP_BIOS="yes"
 
 # all envs
 if [ ! -f cluster.env ]
@@ -73,6 +71,7 @@ then
     exit 99
 fi
 
+# always get the latest.
 pip --quiet install idrac_ctl -U
 
 ## build-iso.sh generates ph4-rt-refresh_adj.iso
@@ -94,21 +93,23 @@ IFS=',' read -ra IDRAC_IP_ADDR <<< "$IDRAC_IP_LIST"
 for IDRAC_HOST in "${IDRAC_IP_ADDR[@]}"
 do
   addr=$(trim "$IDRAC_HOST")
-
   # first we check if SRIOV enabled or not, ( Default disabled)
-  export IDRAC_IP="$addr"; idrac_ctl idrac_ctl bios-registry --attr_name SriovGlobalEnable
-  # we disable memory test, sriov
-  # export IDRAC_IP="$addr"; idrac_ctl bios-change  --attr_name MemTest,SriovGlobalEnable --attr_value Disabled,Enabled on-reset -r
-  export IDRAC_IP="$addr"; idrac_ctl --verbose --debug bios-change  --attr_name MemTest,SriovGlobalEnable,OsWatchdogTimer,ProcCStates,MemFrequency --attr_value Disabled,Enabled,Disabled,Disabled,MaxPerf on-reset --reboot --commit
-  # check bios pending.  if any host need to be rebooted first or pending must be canceled.
-  export IDRAC_IP="$addr"; idrac_ctl --json_only --debug --verbose bios-pending
-  # apply jobs ( note it optional --commit does a job for bios-change cmd)
-  export IDRAC_IP="$addr"; idrac_ctl --json_only --debug --verbose job-apply bios
+  if [ -z "$SKIP_BIOS" ] || [ $SKIP_BIOS == "yes" ]; then
+    log "Skipping bios reconfiguration"
+  else
+      # reset all bios pending.
+      export IDRAC_IP="$addr"; idrac_ctl idrac_ctl bios-clear-pending --from_spec bios/bios.json
+      export IDRAC_IP="$addr"; idrac_ctl job-apply job-apply
+      # commit changes and reboot
+      export IDRAC_IP="$addr"; idrac_ctl idrac_ctl bios-change --from_spec bios/bios.json on-reset --commit --reboot
+  fi
   # we can check what scheduled / completed etc / check manual, it will be scheduled
-  export IDRAC_IP="$addr"; idrac_ctl --json_only --debug --verbose jobs --scheduled
-  # verbose mode
+  # export IDRAC_IP="$addr"; idrac_ctl --json_only --debug --verbose jobs --scheduled
+  # more details verbose mode
   # export IDRAC_IP="$addr"; idrac_ctl --verbose --debug bios-change  --attr_name MemTest,SriovGlobalEnable,OsWatchdogTimer,ProcTurboMode,ProcCStates,MemFrequency --attr_value Disabled,Enabled,Disabled,Disabled,Enabled,Disabled,MaxPerf on-reset -r
   # idrac_ctl bios --attr_only --filter SriovGlobalEnable
+  #
+  # one shoot boot.
   export IDRAC_IP="$addr"; idrac_ctl get_vm --device_id 1 --filter_key Inserted
   export IDRAC_IP="$addr"; idrac_ctl eject_vm --device_id 1
   export IDRAC_IP="$addr"; idrac_ctl insert_vm --uri_path http://"$IDRAC_REMOTE_HTTP"/$DEFAULT_IMAGE_NAME --device_id 1

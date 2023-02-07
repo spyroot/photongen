@@ -1,0 +1,9 @@
+{
+  "Attributes": {
+    "MemFrequency": "MaxPerf",
+    "MemTest": "Disabled",
+    "OsWatchdogTimer": "Disabled",
+    "ProcCStates": "Disabled",
+    "SriovGlobalEnable": "Enabled"
+  }
+}
