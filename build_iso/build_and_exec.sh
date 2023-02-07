@@ -320,7 +320,7 @@ function download_rpms() {
       log "Skipping rpm downloading."
   else
       log "Downloading rpms."
-      jq -raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r rpm_pkg; do
+      jq --raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r rpm_pkg; do
       mkdir -p direct_rpms
       local url_target
       url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
