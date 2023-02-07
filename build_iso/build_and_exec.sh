@@ -90,7 +90,7 @@ fi
 # this default type
 DEFAULT_JSON_SPEC_DIR="online"
 if [[ -n "$BUILD_TYPE" ]]; then
-  DEFAULT_JSON_SPEC_DIR=BUILD_TYPE
+  DEFAULT_JSON_SPEC_DIR=$BUILD_TYPE
 fi
 
 # default hostname
