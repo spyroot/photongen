@@ -91,15 +91,34 @@ DEFAULT_ROOT_SIZE="8192"
 # will remove docker image
 #DEFAULT_ALWAYS_CLEAN="yes"
 
-ADDITIONAL_FILES=$DEFAULT_JSON_SPEC/additional_files.json
+ADDITIONAL_FILES=$DEFAULT_JSON_SPEC_DIR/additional_files.json
 ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_direct_rpms.json
 ADDITIONAL_PACKAGES=$DEFAULT_JSON_SPEC_DIR/additional_packages.json
 DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC_DIR/additional_load_docker.json
 
+function generate_key_if_need() {
+  # add ssh key
+  local pub_key_location
+  pub_key_location=$HOME/.ssh/id_rsa.pub
+  current_ks_phase="ks.ref.cfg"
+  if test -f "$pub_key_location"; then
+    local ssh_key
+    ssh_key=$(cat "$HOME"/.ssh/id_rsa.pub)
+    export ssh_key
+    jq --arg key "$ssh_key" '.public_key = $key' ks.ref.cfg >ks.phase1.cfg
+    current_ks_phase="ks.phase1.cfg"
+    jsonlint ks.phase1.cfg
+  else
+    ssh-keygen
+  fi
+}
+
 function generate_kick_start() {
-  local current_os=$(uname -a)
+  local current_os
+  current_os=$(uname -a)
   if [[ $current_os == *"xnu"* ]]; then
-    local brew_info_out=$(brew info wget | grep bottled)
+    local brew_info_out
+    brew_info_out=$(brew info wget | grep bottled)
     if [[ $brew_info_out == *"vault: stable"* ]]; then
       echo "wget already installed."
     else
@@ -110,6 +129,7 @@ function generate_kick_start() {
   if [[ $current_os == *"linux"* ]]; then
     apt-get update
     apt-get install ca-certificates curl gnupg lsb-release python3-demjson
+    local DOCKER_PGP_FILE
     DOCKER_PGP_FILE=/etc/apt/keyrings/docker.gpg
     if [ -f "$DOCKER_PGP_FILE" ]; then
       echo "$DOCKER_PGP_FILE exists."
@@ -123,24 +143,15 @@ function generate_kick_start() {
     apt-get install aufs-tools cgroupfs-mount docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
   fi
 
-  # add ssh key
-  PUB_KEY=$HOME/.ssh/id_rsa.pub
-  current_ks_phase="ks.ref.cfg"
-  if test -f "$PUB_KEY"; then
-    ssh_key=$(cat "$HOME"/.ssh/id_rsa.pub)
-    export ssh_key
-    jq --arg key "$ssh_key" '.public_key = $key' ks.ref.cfg >ks.phase1.cfg
-    current_ks_phase="ks.phase1.cfg"
-    jsonlint ks.phase1.cfg
-  else
-    ssh-keygen
-  fi
+  generate_key_if_need
 
   # read additional_packages and add required.
   [ ! -f $ADDITIONAL_PACKAGES ] && {
     echo "$ADDITIONAL_PACKAGES file not found"
     exit 99
   }
+
+  local packages
   packages=$(cat $ADDITIONAL_PACKAGES)
   jq --argjson p "$packages" '.additional_packages += $p' $current_ks_phase >ks.phase2.cfg
   current_ks_phase="ks.phase2.cfg"
@@ -179,7 +190,7 @@ function generate_kick_start() {
 
   jq -c '.[]' $ADDITIONAL_RPMS | while read -r i; do
     mkdir -p direct_rpms
-    target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
+    local target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
     echo "Downloading $target"
     wget -q -nc target
   done
@@ -194,6 +205,7 @@ function generate_kick_start() {
     echo "$DOCKER_LOAD_POST_INSTALL file not found"
     exit 99
   }
+
   docker_imgs=$(cat $DOCKER_LOAD_POST_INSTALL)
   jq --argjson i "$docker_imgs" '.postinstall += $i' $current_ks_phase >ks.phase8.cfg
   current_ks_phase="ks.phase8.cfg"
@@ -204,6 +216,7 @@ function generate_kick_start() {
     echo "$ADDITIONAL_FILES file not found"
     exit 99
   }
+
   additional_files=$(cat "$ADDITIONAL_FILES")
   jq --argjson f "$additional_files" '. += $f' $current_ks_phase >ks.cfg
   current_ks_phase="ks.cfg"
