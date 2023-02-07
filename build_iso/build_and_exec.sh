@@ -203,11 +203,13 @@ function generate_kick_start() {
 
   jq -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r i; do
     mkdir -p direct_rpms
-    local target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
-    echo "Downloading $target"
+    local url_target
+    url_target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
+    echo "Downloading $url_target"
     wget -q -nc target
   done
 
+  local rpms
   rpms=$(cat $ADDITIONAL_DIRECT_RPMS)
   jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase7.cfg
   current_ks_phase="ks.phase7.cfg"
@@ -218,7 +220,7 @@ function generate_kick_start() {
     echo "$DOCKER_LOAD_POST_INSTALL file not found"
     exit 99
   }
-
+  local docker_imgs
   docker_imgs=$(cat $DOCKER_LOAD_POST_INSTALL)
   jq --argjson i "$docker_imgs" '.postinstall += $i' $current_ks_phase >ks.phase8.cfg
   current_ks_phase="ks.phase8.cfg"
@@ -229,7 +231,7 @@ function generate_kick_start() {
     echo "$ADDITIONAL_FILES file not found"
     exit 99
   }
-
+  local additional_files
   additional_files=$(cat "$ADDITIONAL_FILES")
   jq --argjson f "$additional_files" '. += $f' $current_ks_phase >ks.cfg
   current_ks_phase="ks.cfg"
@@ -239,6 +241,7 @@ function generate_kick_start() {
 
   # extra check if ISO os not bootable
   wget -nc -O $DEFAULT_SRC_IMAGE_NAME "$DEFAULT_IMAGE_LOCATION"
+  local ISO_IS_BOOTABLE
   ISO_IS_BOOTABLE=$(file $DEFAULT_SRC_IMAGE_NAME | grep bootable)
   if [ -z "$ISO_IS_BOOTABLE" ]; then
     log "Invalid iso image, failed boot flag check."
@@ -248,6 +251,7 @@ function generate_kick_start() {
   # by a default we always do clean build
   if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
     log "Detecting an existing image."
+    local existing_img
     existing_img=$(docker inspect "$DEFAULT_DOCKER_IMAGE" | jq '.[0].Id')
     if [[ -z "$existing_img" ]]; then
       log "Image not found, building a new image."
@@ -286,6 +290,7 @@ echo "Using $ADDITIONAL_DIRECT_RPMS"
 echo "Using $ADDITIONAL_RPMS"
 echo "Using $DOCKER_LOAD_POST_INSTALL"
 
+echo "Will download $DEFAULT_IMAGE_LOCATION"
 echo "Will download $MELLANOX_DOWNLOAD_URL --directory-prefix=direct"
 echo "Will download $INTEL_DOWNLOAD_URL --directory-prefix=direct"
 echo "Will download $LIB_NL_DOWNLOAD --directory-prefix=direct"
@@ -311,3 +316,8 @@ case "$choice" in
   n|N ) echo "no";;
   * ) echo "invalid";;
 esac
+
+wget -q -nc $MELLANOX_DOWNLOAD_URL --directory-prefix=direct
+wget -q -nc $INTEL_DOWNLOAD_URL --directory-prefix=direct
+wget -q -nc $LIB_NL_DOWNLOAD --directory-prefix=direct
+wget -q -nc $DPDK_DOWNLOAD --directory-prefix=direct
