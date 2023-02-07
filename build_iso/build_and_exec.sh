@@ -261,7 +261,8 @@ function generate_kick_start() {
 
 function start_container() {
   #is_darwin=$(uname -a|grep Darwin)
-  local container_id=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
+  local container_id
+  container_id=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
 
   # we need container running set NO_REMOVE_POST
   if [[ ! -v NO_REMOVE_POST ]]; then
@@ -393,6 +394,7 @@ function main() {
   download_direct
   download_rpms
   git_clone
+  generate_kick_start
 }
 
 main
