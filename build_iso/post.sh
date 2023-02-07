@@ -56,8 +56,6 @@ NUM_VFS=8
 
 # list of vlan interface that we need create.
 VLAN_ID_LIST="2000,2001"
-map['pci_addr_1'] =  [x,y,z]
-map['pci_addr_2'] =  [x,y,z]
 
 # number of huge pages for 2k and 1GB
 # make sure this number is same or less than what I do for mus_rt tuned profile.
