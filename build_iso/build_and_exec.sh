@@ -66,6 +66,7 @@ DPDK_DOWNLOAD="http://fast.dpdk.org/rel/dpdk-$DPDK_VER.tar.xz"
 
 SKIP_GIT="yes"
 SKIP_RPMS_DOWNLOAD="no"
+SKIP_BUILD_CONTAINER="no"
 
 # comma seperated
 DEFAULT_DOCKER_ARC="linux/amd64"
@@ -240,22 +241,31 @@ function generate_kick_start() {
     log "Invalid iso image, failed boot flag check."
     exit 99
   fi
+}
 
-  # by a default we always do clean build
-  if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
-    log "Detecting an existing image."
-    local existing_img
-    existing_img=$(docker inspect "$DEFAULT_DOCKER_IMAGE" | jq '.[0].Id')
-    if [[ -z "$existing_img" ]]; then
-      log "Image not found, building a new image."
-      docker build -t "$DEFAULT_DOCKER_IMAGE" . --platform $DEFAULT_DOCKER_ARC
-    fi
-  elif [[ -z "$DEFAULT_ALWAYS_CLEAN" ]]; then
-    echo "DEFAULT_ALWAYS_CLEAN is set to the empty string"
+# build a container that will be used to as shell
+# to generate iso file from a spec.
+function build_container() {
+  if [ -z "$SKIP_BUILD_CONTAINER" ] || [ $SKIP_BUILD_CONTAINER == "yes" ]
+  then
+      log "Skipping rpm downloading."
   else
-    log "Always clean build set to true, rebuilding image."
-    docker rm -f /photon_iso_builder --platform $DEFAULT_DOCKER_ARC
-    docker build -t "$DEFAULT_DOCKER_IMAGE" .
+    # by a default we always do clean build
+    if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
+      log "Detecting an existing image."
+      local existing_img
+      existing_img=$(docker inspect "$DEFAULT_DOCKER_IMAGE" | jq '.[0].Id')
+      if [[ -z "$existing_img" ]]; then
+        log "Image not found, building a new image."
+        docker build -t "$DEFAULT_DOCKER_IMAGE" . --platform $DEFAULT_DOCKER_ARC
+      fi
+    elif [[ -z "$DEFAULT_ALWAYS_CLEAN" ]]; then
+      echo "DEFAULT_ALWAYS_CLEAN is set to the empty string"
+    else
+      log "Always clean build set to true, rebuilding image."
+      docker rm -f /photon_iso_builder --platform $DEFAULT_DOCKER_ARC
+      docker build -t "$DEFAULT_DOCKER_IMAGE" .
+    fi
   fi
 }
 
