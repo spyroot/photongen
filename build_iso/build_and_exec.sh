@@ -319,12 +319,13 @@ function download_rpms() {
   then
       log "Skipping rpm downloading."
   else
-      jq -raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r i; do
+      log "Downloading rpms."
+      jq -raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r rpm_pkg; do
       mkdir -p direct_rpms
       local url_target
-      url_target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
-      echo "Downloading $url_target"
-      wget -q -nc target
+      url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
+      log "Downloading $url_target"
+#      wget -q -nc url_target
     done
   fi
 }
