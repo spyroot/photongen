@@ -50,13 +50,14 @@ DEFAULT_DOCKER_IMAGE="spyroot/photon_iso_builder:latest"
 
 AVX_VERSION=4.5.3
 MLNX_VER=5.4-1.0.3.0
+NL_VER="3.2.25"
 
 DPDK_VER="21.11.3"
 # 22.11, 22.11.1, 22.07, 22.03. 21.11, 21.11.3, 21.11.2
 
 MELLANOX_DOWNLOAD_URL="http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$MLNX_VER"/MLNX_OFED_SRC-debian-"$MLNX_VER".tgz"
 INTEL_DOWNLOAD_URL="https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.tar.gz"
-LIB_NL_DOWNLOAD="https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz"
+LIB_NL_DOWNLOAD="https://www.infradead.org/~tgr/libnl/files/libnl-$NL_VER.tar.gz"
 DPDK_DOWNLOAD="http://fast.dpdk.org/rel/dpdk-$DPDK_VER.tar.xz"
 
 #DPDK_URL_LOCATION="http://fast.dpdk.org/rel/dpdk-21.11.tar.xz"
@@ -313,11 +314,15 @@ jsonlint $ADDITIONAL_GIT_REPOS
 read -r -p "Please check and confirm (y/n)?" choice
 case "$choice" in
   y|Y ) echo "yes";;
-  n|N ) echo "no";;
+  n|N ) echo exit 1;;
   * ) echo "invalid";;
 esac
 
+echo "Downloading $MELLANOX_DOWNLOAD_URL"
 wget -q -nc $MELLANOX_DOWNLOAD_URL --directory-prefix=direct
+echo "Downloading $INTEL_DOWNLOAD_URL"
 wget -q -nc $INTEL_DOWNLOAD_URL --directory-prefix=direct
+echo "Downloading $LIB_NL_DOWNLOAD"
 wget -q -nc $LIB_NL_DOWNLOAD --directory-prefix=direct
+echo "Downloading $DPDK_DOWNLOAD"
 wget -q -nc $DPDK_DOWNLOAD --directory-prefix=direct
