@@ -110,7 +110,7 @@ ADDITIONAL_PACKAGES=$DEFAULT_JSON_SPEC_DIR/additional_packages.json
 DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC_DIR/additional_load_docker.json
 ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_rpms.json
 ADDITIONAL_GIT_REPOS=$DEFAULT_JSON_SPEC_DIR/additional_git_clone.json
-ADDITIONAL_REMOTE_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_remote_rpms
+ADDITIONAL_REMOTE_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_remote_rpms.json
 
 function generate_key_if_need() {
   # add ssh key
@@ -373,6 +373,7 @@ function print_and_validate_specs() {
   echo "Using $ADDITIONAL_PACKAGES"
   echo "Using $ADDITIONAL_DIRECT_RPMS"
   echo "Using $ADDITIONAL_RPMS"
+  echo "Using $ADDITIONAL_REMOTE_RPMS"
   echo "Using $DOCKER_LOAD_POST_INSTALL"
 
   echo "Will download $DEFAULT_IMAGE_LOCATION"
@@ -398,6 +399,7 @@ function print_and_validate_specs() {
   jsonlint $ADDITIONAL_RPMS
   jsonlint $DOCKER_LOAD_POST_INSTALL
   jsonlint $ADDITIONAL_GIT_REPOS
+  jsonlint $ADDITIONAL_REMOTE_RPMS
 }
 
 function main() {
