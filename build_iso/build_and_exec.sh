@@ -47,6 +47,9 @@ DEFAULT_ISO_PHOTON_5_ARM="https://packages.vmware.com/photon/5.0/Beta/iso/photon
 DEFAULT_PACAKGE_LOCATION="https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"
 DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
 DEFAULT_DOCKER_IMAGE="spyroot/photon_iso_builder:latest"
+DEFAULT_RPM_DIR="direct_rpms"
+DEFAULT_GIT_DIR="git_images"
+DEFAULT_ARC_DIR="direct"
 
 AVX_VERSION=4.5.3
 MLNX_VER=5.4-1.0.3.0
@@ -300,7 +303,7 @@ function git_clone() {
       echo "Compressing $repo_tmp_dir"
       tar -zcvf "$repo_name".tar.gz "$repo_tmp_dir"
       mkdir -p git_images
-      mv "$repo_name".tar.gz git_images
+      mv "$repo_name".tar.gz $DEFAULT_GIT_DIR
       done
     rm -rf $git_repos_dir
   fi
@@ -319,13 +322,14 @@ function download_rpms() {
   then
       log "Skipping rpm downloading."
   else
+      mkdir -p $DEFAULT_RPM_DIR
       log "Downloading rpms."
       jq --raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r rpm_pkg; do
-      mkdir -p direct_rpms
-      local url_target
-      url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
-      log "Downloading $url_target"
-#      wget -q -nc url_target
+        mkdir -p direct_rpms
+        local url_target
+        url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
+        log "Downloading $url_target to $DEFAULT_PACAKGE_LOCATION$"
+        wget -q -nc url_target -O $DEFAULT_RPM_DIR
     done
   fi
 }
@@ -350,10 +354,14 @@ function print_and_validate_specs() {
   echo "Using $DOCKER_LOAD_POST_INSTALL"
 
   echo "Will download $DEFAULT_IMAGE_LOCATION"
-  echo "Will download $MELLANOX_DOWNLOAD_URL --directory-prefix=direct"
-  echo "Will download $INTEL_DOWNLOAD_URL --directory-prefix=direct"
-  echo "Will download $LIB_NL_DOWNLOAD --directory-prefix=direct"
-  echo "Will download $DPDK_DOWNLOAD --directory-prefix=direct"
+  echo "Will download $MELLANOX_DOWNLOAD_URL --directory-prefix=$DEFAULT_ARC_DIR"
+  echo "Will download $INTEL_DOWNLOAD_URL --directory-prefix=$DEFAULT_ARC_DIR"
+  echo "Will download $LIB_NL_DOWNLOAD --directory-prefix=$DEFAULT_ARC_DIR"
+  echo "Will download $DPDK_DOWNLOAD --directory-prefix=$DEFAULT_ARC_DIR"
+  echo "All RPMS wil downloaded to $DEFAULT_RPM_DIR"
+  echo "All GIT tars will be wil downloaded to $ADDITIONAL_GIT_REPOS"
+  echo "All archive  will be wil downloaded to $ADDITIONAL_GIT_REPOS"
+  echo "All archive  will be wil downloaded to $DEFAULT_ARC_DIR"
 
   jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r i; do
     mkdir -p direct
