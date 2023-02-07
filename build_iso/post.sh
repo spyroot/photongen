@@ -920,7 +920,6 @@ function check_installed() {
 # main entry for a script
 #
 function main() {
-
   log_main_dir=$(dirname "$DEFAULT_BUILDER_LOG")
   rm -rf "$log_main_dir"
   create_log_dir "$DEFAULT_BUILDER_LOG"

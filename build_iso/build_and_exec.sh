@@ -60,12 +60,8 @@ INTEL_DOWNLOAD_URL="https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.ta
 LIB_NL_DOWNLOAD="https://www.infradead.org/~tgr/libnl/files/libnl-$NL_VER.tar.gz"
 DPDK_DOWNLOAD="http://fast.dpdk.org/rel/dpdk-$DPDK_VER.tar.xz"
 
-#DPDK_URL_LOCATION="http://fast.dpdk.org/rel/dpdk-21.11.tar.xz"
-#IPSEC_LIB_LOCATION="https://github.com/intel/intel-ipsec-mb.git"
-#NL_LIB_LOCATION="https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz"
-#DPDK_TARGET_DIR_BUILD="/root/dpdk-21.11"
-#LIB_NL_TARGET_DIR_BUILD="/root/build/libnl"
-#LIB_ISAL_TARGET_DIR_BUILD="/root/build/isa-l"
+SKIP_GIT="yes"
+SKIP_RPMS_DOWNLOAD="no"
 
 # comma seperated
 DEFAULT_DOCKER_ARC="linux/amd64"
@@ -202,14 +198,6 @@ function generate_kick_start() {
     exit 99
   }
 
-  jq -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r i; do
-    mkdir -p direct_rpms
-    local url_target
-    url_target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
-    echo "Downloading $url_target"
-    wget -q -nc target
-  done
-
   local rpms
   rpms=$(cat $ADDITIONAL_DIRECT_RPMS)
   jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase7.cfg
@@ -295,25 +283,53 @@ function git_clone() {
 
   suffix=".git"
   git_repos_dir="git_repos"
-
-  # do a cleanup first.
-  rm -rf $git_repos_dir
-  jq --raw-output -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
-    local repo_name
-    repo_name=${git_repo/%$suffix/}
-    repo_name=${repo_name##*/}
-    mkdir -p git_repos/"$repo_name"
-    echo "Git cloning git clone $git_repo $repo_name"
-    git clone "$git_repo" $git_repos_dir/"$repo_name"
-    repo_tmp_dir="$git_repos_dir/$repo_name"
-    echo "Compressing $repo_tmp_dir"
-    tar -zcvf "$repo_name".tar.gz "$repo_tmp_dir"
-    mkdir -p git_images
-    mv "$repo_name".tar.gz git_images
-    done
-  rm -rf $git_repos_dir
+  if [ -z "$SKIP_GIT" ] || [ $SKIP_GIT == "yes" ]
+  then
+      log "Skipping git cloning."
+  else
+    # do a cleanup first.
+    rm -rf $git_repos_dir
+    jq --raw-output -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
+      local repo_name
+      repo_name=${git_repo/%$suffix/}
+      repo_name=${repo_name##*/}
+      mkdir -p git_repos/"$repo_name"
+      echo "Git cloning git clone $git_repo $repo_name"
+      git clone "$git_repo" $git_repos_dir/"$repo_name"
+      repo_tmp_dir="$git_repos_dir/$repo_name"
+      echo "Compressing $repo_tmp_dir"
+      tar -zcvf "$repo_name".tar.gz "$repo_tmp_dir"
+      mkdir -p git_images
+      mv "$repo_name".tar.gz git_images
+      done
+    rm -rf $git_repos_dir
+  fi
 }
 
+# Downloads all rpms to DEFAULT_PACAKGE_LOCATION
+function download_rpms() {
+  if [ -z "$DEFAULT_PACAKGE_LOCATION" ]
+  then
+    log "DEFAULT_PACAKGE_LOCATION empty."
+  else
+    return 1
+  fi
+
+  if [ -z "$SKIP_RPMS_DOWNLOAD" ] || [ $SKIP_RPMS_DOWNLOAD == "yes" ]
+  then
+      log "Skipping rpm downloading."
+  else
+      jq -raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r i; do
+      mkdir -p direct_rpms
+      local url_target
+      url_target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
+      echo "Downloading $url_target"
+      wget -q -nc target
+    done
+  fi
+}
+
+# Download all tar gz that wil lgo to final ISO.
 function download_direct() {
   echo "Downloading $MELLANOX_DOWNLOAD_URL"
   wget -q -nc $MELLANOX_DOWNLOAD_URL --directory-prefix=direct
@@ -323,7 +339,6 @@ function download_direct() {
   wget -q -nc $LIB_NL_DOWNLOAD --directory-prefix=direct
   echo "Downloading $DPDK_DOWNLOAD"
   wget -q -nc $DPDK_DOWNLOAD --directory-prefix=direct
-
 }
 
 function print_and_validate_specs() {
@@ -366,6 +381,7 @@ function main() {
   esac
 
   download_direct
+  download_rpms
   git_clone
 }
 
