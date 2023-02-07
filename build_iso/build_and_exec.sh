@@ -308,10 +308,10 @@ function git_clone() {
 
 # Downloads all rpms to DEFAULT_PACAKGE_LOCATION
 function download_rpms() {
+  local rpm_pkg
   if [ -z "$DEFAULT_PACAKGE_LOCATION" ]
   then
     log "DEFAULT_PACAKGE_LOCATION empty."
-  else
     return 1
   fi
 
