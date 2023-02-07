@@ -32,8 +32,13 @@ if [[ -z "$DEFAULT_DST_IMAGE_NAME" ]]; then
   exit 99
 fi
 
-if [[ -z "$DEFAULT_SRC_IMAGE_NAME" ]]; then
-  echo "Please make sure you have in shared\.bash DEFAULT_SRC_IMAGE_NAME var"
+if [[ -z "$DEFAULT_DST_IMAGE_NAME" ]]; then
+  echo "Please make sure you have in shared\.bash DEFAULT_DST_IMAGE_NAME var"
+  exit 99
+fi
+
+if [[ -z "$BUILD_TYPE" ]]; then
+  echo "Please make sure you have in shared\.bash BUILD_TYPE var"
   exit 99
 fi
 
@@ -70,7 +75,12 @@ if [[ -n "$PHOTON_5_X86" ]]; then
   DEFAULT_RELEASE="5.0"
 fi
 
-DEFAULT_JSON_SPEC="online"
+# this default type
+DEFAULT_JSON_SPEC_DIR="online"
+if [[ -n "$BUILD_TYPE" ]]; then
+  DEFAULT_JSON_SPEC=BUILD_TYPE
+fi
+
 # default hostname
 DEFAULT_HOSTNAME="photon-machine"
 # default size for /boot
@@ -120,7 +130,7 @@ else
 fi
 
 # read additional_packages and add required.
-ADDITIONAL=$DEFAULT_JSON_SPEC/additional_packages.json
+ADDITIONAL=$DEFAULT_JSON_SPEC_DIR/additional_packages.json
 [ ! -f $ADDITIONAL ] && {
   echo "$ADDITIONAL file not found"
   exit 99
@@ -161,7 +171,7 @@ jq -c '.[]' $FILE | while read -r i; do
 done
 
 # adjust installation and add additional if needed.
-ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC/additional_direct_rpms.json
+ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_direct_rpms.json
 [ ! -f $ADDITIONAL_RPMS ] && {
   echo "$ADDITIONAL_RPMS file not found"
   exit 99
@@ -178,7 +188,7 @@ current_ks_phase="ks.phase7.cfg"
 jsonlint $current_ks_phase
 
 # additional docker load.
-DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC/additional_load_docker.json
+DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC_DIR/additional_load_docker.json
 [ ! -f $DOCKER_LOAD_POST_INSTALL ] && {
   echo "$DOCKER_LOAD_POST_INSTALL file not found"
   exit 99
@@ -190,11 +200,11 @@ jsonlint $current_ks_phase
 
 # additional files that we copy from a cdrom
 ADDITIONAL_FILES=$DEFAULT_JSON_SPEC/additional_files.json
-[ ! -f $ADDITIONAL_FILES ] && {
+[ ! -f "$ADDITIONAL_FILES" ] && {
   echo "$ADDITIONAL_FILES file not found"
   exit 99
 }
-additional_files=$(cat $ADDITIONAL_FILES)
+additional_files=$(cat "$ADDITIONAL_FILES")
 jq --argjson f "$additional_files" '. += $f' $current_ks_phase >ks.cfg
 current_ks_phase="ks.cfg"
 jsonlint $current_ks_phase
