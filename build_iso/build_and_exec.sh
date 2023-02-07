@@ -10,7 +10,7 @@
 # The container itself client need  build_iso.sh script, and it will generate
 # new iso file.
 # The new iso file generate to be a reference kick-start unattended installer.
-# Note: that docker run use current dir as volume make sure if you run on macos you
+# Note: that docker run use current dir as volume make sure if you run on macOS you
 # current dir added to resource.    Docker -> Preference -> Resource and add dir.
 #
 #
@@ -70,6 +70,7 @@ if [[ -n "$PHOTON_5_X86" ]]; then
   DEFAULT_RELEASE="5.0"
 fi
 
+DEFAULT_JSON_SPEC="online"
 # default hostname
 DEFAULT_HOSTNAME="photon-machine"
 # default size for /boot
@@ -119,7 +120,7 @@ else
 fi
 
 # read additional_packages and add required.
-ADDITIONAL=additional_packages.json
+ADDITIONAL=$DEFAULT_JSON_SPEC/additional_packages.json
 [ ! -f $ADDITIONAL ] && {
   echo "$ADDITIONAL file not found"
   exit 99
@@ -155,19 +156,29 @@ jq --arg s "$DEFAULT_BOOT_SIZE" '.partitions[2].size=$s' $current_ks_phase >ks.p
 current_ks_phase="ks.phase6.cfg"
 jsonlint $current_ks_phase
 
+jq -c '.[]' $FILE | while read -r i; do
+  wget --recursive --no-parent https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"${i}".rpm
+done
+
 # adjust installation and add additional if needed.
-ADDITIONAL_RPMS=additional_direct_rpms.json
+ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC/additional_direct_rpms.json
 [ ! -f $ADDITIONAL_RPMS ] && {
   echo "$ADDITIONAL_RPMS file not found"
   exit 99
 }
+
+jq -c '.[]' $ADDITIONAL_RPMS | while read -r i; do
+  mkdir -p direct_rpms
+  wget -q -nc https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"${i}".rpm
+done
+
 rpms=$(cat $ADDITIONAL_RPMS)
 jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase7.cfg
 current_ks_phase="ks.phase7.cfg"
 jsonlint $current_ks_phase
 
 # additional docker load.
-DOCKER_LOAD_POST_INSTALL=additional_load_docker.json
+DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC/additional_load_docker.json
 [ ! -f $DOCKER_LOAD_POST_INSTALL ] && {
   echo "$DOCKER_LOAD_POST_INSTALL file not found"
   exit 99
@@ -178,7 +189,7 @@ current_ks_phase="ks.phase8.cfg"
 jsonlint $current_ks_phase
 
 # additional files that we copy from a cdrom
-ADDITIONAL_FILES=additional_files.json
+ADDITIONAL_FILES=$DEFAULT_JSON_SPEC/additional_files.json
 [ ! -f $ADDITIONAL_FILES ] && {
   echo "$ADDITIONAL_FILES file not found"
   exit 99
@@ -216,7 +227,6 @@ fi
 
 #is_darwin=$(uname -a|grep Darwin)
 container_id=$(cat /proc/sys/kernel/random/uuid | sed 's/[-]//g' | head -c 20)
-/usr/bin/uuidgen
 
 # we need container running set NO_REMOVE_POST
 if [[ ! -v NO_REMOVE_POST ]]; then

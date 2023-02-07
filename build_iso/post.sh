@@ -56,6 +56,8 @@ NUM_VFS=8
 
 # list of vlan interface that we need create.
 VLAN_ID_LIST="2000,2001"
+map['pci_addr_1'] =  [x,y,z]
+map['pci_addr_2'] =  [x,y,z]
 
 # number of huge pages for 2k and 1GB
 # make sure this number is same or less than what I do for mus_rt tuned profile.
@@ -890,10 +892,10 @@ Id=$vlan_id
 Description=physical ethernet device
 VLAN=vlan_"$vlan_id"
 LinkLocalAddressing=no
-LLDP=no
-EmitLLDP=no
-IPv6AcceptRA=no
-IPv6SendRA=no
+LLDP={}
+EmitLLDP={}
+IPv6AcceptRA={}
+IPv6SendRA={}
 EOF
   systemctl restart systemd-networkd
 }
@@ -944,6 +946,10 @@ function main() {
   rdma-core-devel util-linux-devel \
   zip zlib zlib-devel libxml2-devel \
   libudev-devel &> /build/build_rpms_pull.log
+
+  # installed.before and after our diff
+  yum list installed > /installed.after.log
+  rpm -qa > /rpm.installed.after.log
 
   build_dirs
   build_mellanox_driver "$BUILD_MELLANOX_LOG" "$MLNX_VER"

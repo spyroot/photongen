@@ -1,0 +1,6 @@
+#!/bin/bash
+
+
+jq -c '.[]' $FILE | while read -r i; do
+  wget --recursive --no-parent https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"${i}".rpm
+done
