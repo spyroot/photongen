@@ -74,9 +74,9 @@ ROOT_BUILD="/root/build"
 DPDK_URL_LOCATION="http://fast.dpdk.org/rel/dpdk-21.11.tar.xz"
 IPSEC_LIB_LOCATION="https://github.com/intel/intel-ipsec-mb.git"
 NL_LIB_LOCATION="https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz"
-DPDK_TARGET_DIR_BUILD="/root/dpdk-21.11"
-LIB_NL_TARGET_DIR_BUILD="/root/build/libnl"
-LIB_ISAL_TARGET_DIR_BUILD="/root/build/isa-l"
+DPDK_TARGET_DIR_BUILD="$ROOT_BUILD/dpdk-21.11"
+LIB_NL_TARGET_DIR_BUILD="$ROOT_BUILD/libnl"
+LIB_ISAL_TARGET_DIR_BUILD="$ROOT_BUILD/build/isa-l"
 
 # DRIVER TMP DIR where we are building.
 MLX_DIR=/tmp/mlnx_ofed_src
@@ -385,14 +385,19 @@ function build_docker_images() {
 # function builds an ipsec lib, required for DPDK.
 function build_ipsec_lib() {
   local log_file=$1
+  local suffix
+  local repo_name
   touch "$log_file" 2>/dev/null
+  suffix=".git"
   if [ -z "$IPSEC_BUILD" ]
   then
       log_console_and_file "Skipping ipsec lib build."
   else
     log_console_and_file "Building ipsec lib."
-    cd /root || exit; mkdir -p build; git clone "$IPSEC_LIB_LOCATION" > "$log_file" 2>&1
-    cd intel-ipsec-mb || exit; make -j 8 > "$log_file" 2>&1
+    cd $ROOT_BUILD || exit; git clone "$IPSEC_LIB_LOCATION" > "$log_file" 2>&1
+    repo_name=${IPSEC_LIB_LOCATION/%$suffix/}
+    repo_name=${repo_name##*/}
+    cd $ROOT_BUILD/"$repo_name" || exit; make -j 8 > "$log_file" 2>&1
     make install &> "$log_file"; ldconfig
   fi
 }
@@ -514,7 +519,7 @@ function build_dpdk() {
     local default_kernel_prefix="/usr/src/linux-headers-"
     local custom_kern_prefix=$2
     if [ -z "$default_kernel_prefix" ]; then
-      log_console_and_file "Using default prefix $default_kernel_prefix"
+      log_console_and_file "Using default kernel header prefix $default_kernel_prefix"
     else
       log_console_and_file "Using user supplied prefix $default_kernel_prefix"
       default_kernel_prefix=$custom_kern_prefix
@@ -539,7 +544,8 @@ function build_dpdk() {
       wget --quiet -nc -O dpdk.tar.gz $DPDK_URL_LOCATION
       tar xf dpdk.tar.gz > "$log_file" 2>&1
       ldconfig; ldconfig /usr/local/lib
-      cd $DPDK_TARGET_DIR_BUILD || exit
+      mkdir -p $DPDK_TARGET_DIR_BUILD/build
+      cd $DPDK_TARGET_DIR_BUILD/build || exit
       meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/"$target_system" -Dibverbs_link=shared -Dwerror=true build > "$log_file" 2>&1
       ninja -C build -j 8 > "$log_file" 2>&1
       cd $DPDK_TARGET_DIR_BUILD/build || exit
