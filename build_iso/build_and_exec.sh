@@ -285,44 +285,67 @@ function start_container() {
   fi
 }
 
-echo "Using $ADDITIONAL_FILES"
-echo "Using $ADDITIONAL_PACKAGES"
-echo "Using $ADDITIONAL_DIRECT_RPMS"
-echo "Using $ADDITIONAL_RPMS"
-echo "Using $DOCKER_LOAD_POST_INSTALL"
+function git_clone() {
+  jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
+    mkdir -p git_repo_dir
+    echo "Git cloning $git_repo"
+    git clone "$git_repo" git_repo_dir
+    done
+}
 
-echo "Will download $DEFAULT_IMAGE_LOCATION"
-echo "Will download $MELLANOX_DOWNLOAD_URL --directory-prefix=direct"
-echo "Will download $INTEL_DOWNLOAD_URL --directory-prefix=direct"
-echo "Will download $LIB_NL_DOWNLOAD --directory-prefix=direct"
-echo "Will download $DPDK_DOWNLOAD --directory-prefix=direct"
+function download_direct() {
+  echo "Downloading $MELLANOX_DOWNLOAD_URL"
+  wget -q -nc $MELLANOX_DOWNLOAD_URL --directory-prefix=direct
+  echo "Downloading $INTEL_DOWNLOAD_URL"
+  wget -q -nc $INTEL_DOWNLOAD_URL --directory-prefix=direct
+  echo "Downloading $LIB_NL_DOWNLOAD"
+  wget -q -nc $LIB_NL_DOWNLOAD --directory-prefix=direct
+  echo "Downloading $DPDK_DOWNLOAD"
+  wget -q -nc $DPDK_DOWNLOAD --directory-prefix=direct
 
-jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r i; do
-  mkdir -p direct
-  echo "Will git clone $i"
-done
+}
 
-echo "Verifying JSON files"
-jsonlint ks.ref.cfg
-jsonlint $ADDITIONAL_FILES
-jsonlint $ADDITIONAL_PACKAGES
-jsonlint $ADDITIONAL_DIRECT_RPMS
-jsonlint $ADDITIONAL_RPMS
-jsonlint $DOCKER_LOAD_POST_INSTALL
-jsonlint $ADDITIONAL_GIT_REPOS
+function print_and_validate_specs() {
+  echo "Using $ADDITIONAL_FILES"
+  echo "Using $ADDITIONAL_PACKAGES"
+  echo "Using $ADDITIONAL_DIRECT_RPMS"
+  echo "Using $ADDITIONAL_RPMS"
+  echo "Using $DOCKER_LOAD_POST_INSTALL"
 
-read -r -p "Please check and confirm (y/n)?" choice
-case "$choice" in
-  y|Y ) echo "yes";;
-  n|N ) echo exit 1;;
-  * ) echo "invalid";;
-esac
+  echo "Will download $DEFAULT_IMAGE_LOCATION"
+  echo "Will download $MELLANOX_DOWNLOAD_URL --directory-prefix=direct"
+  echo "Will download $INTEL_DOWNLOAD_URL --directory-prefix=direct"
+  echo "Will download $LIB_NL_DOWNLOAD --directory-prefix=direct"
+  echo "Will download $DPDK_DOWNLOAD --directory-prefix=direct"
 
-echo "Downloading $MELLANOX_DOWNLOAD_URL"
-wget -q -nc $MELLANOX_DOWNLOAD_URL --directory-prefix=direct
-echo "Downloading $INTEL_DOWNLOAD_URL"
-wget -q -nc $INTEL_DOWNLOAD_URL --directory-prefix=direct
-echo "Downloading $LIB_NL_DOWNLOAD"
-wget -q -nc $LIB_NL_DOWNLOAD --directory-prefix=direct
-echo "Downloading $DPDK_DOWNLOAD"
-wget -q -nc $DPDK_DOWNLOAD --directory-prefix=direct
+  jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r i; do
+    mkdir -p direct
+    echo "Will git clone $i"
+  done
+
+  echo "Verifying JSON files"
+  jsonlint ks.ref.cfg
+  jsonlint $ADDITIONAL_FILES
+  jsonlint $ADDITIONAL_PACKAGES
+  jsonlint $ADDITIONAL_DIRECT_RPMS
+  jsonlint $ADDITIONAL_RPMS
+  jsonlint $DOCKER_LOAD_POST_INSTALL
+  jsonlint $ADDITIONAL_GIT_REPOS
+}
+
+function main() {
+
+  print_and_validate_specs
+  local choice
+  read -r -p "Please check and confirm (y/n)?" choice
+  case "$choice" in
+    y|Y ) echo "yes";;
+    n|N ) echo exit 1;;
+    * ) echo "invalid";;
+  esac
+
+  download_direct
+  git_clone
+}
+
+main
