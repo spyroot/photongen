@@ -263,6 +263,7 @@ function start_container() {
 echo "Using $ADDITIONAL_FILES"
 echo "Using $ADDITIONAL_PACKAGES"
 echo "Using $ADDITIONAL_DIRECT_RPMS"
+echo "Using $ADDITIONAL_RPMS"
 echo "Using $DOCKER_LOAD_POST_INSTALL"
 
 # lint in case it has error.
@@ -273,11 +274,11 @@ ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_rpms.json
 DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC_DIR/additional_load_docker.json
 
 jsonlint ks.ref.cfg
-jsonlint ADDITIONAL_FILES
-jsonlint ADDITIONAL_PACKAGES
-jsonlint ADDITIONAL_DIRECT_RPMS
-jsonlint ADDITIONAL_RPMS
-jsonlint DOCKER_LOAD_POST_INSTALL
+jsonlint $ADDITIONAL_FILES
+jsonlint $ADDITIONAL_PACKAGES
+jsonlint $ADDITIONAL_DIRECT_RPMS
+jsonlint $ADDITIONAL_RPMS
+jsonlint $DOCKER_LOAD_POST_INSTALL
 
 read -r -p "Please check and confirm (y/n)?" choice
 case "$choice" in
