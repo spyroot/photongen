@@ -110,6 +110,7 @@ ADDITIONAL_PACKAGES=$DEFAULT_JSON_SPEC_DIR/additional_packages.json
 DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC_DIR/additional_load_docker.json
 ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_rpms.json
 ADDITIONAL_GIT_REPOS=$DEFAULT_JSON_SPEC_DIR/additional_git_clone.json
+ADDITIONAL_REMOTE_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_remote_rpms
 
 function generate_key_if_need() {
   # add ssh key
@@ -177,8 +178,8 @@ function generate_kick_start() {
   current_ks_phase="ks.phase3.cfg"
   jsonlint $current_ks_phase
 
+  # adjust release
   if [[ "$DEFAULT_RELEASE" == "4.0" ]]; then
-    # adjust release
     echo "Strings are equal."
     jq --arg r "$DEFAULT_RELEASE" '.photon_release_version=$r' $current_ks_phase >ks.phase4.cfg
     current_ks_phase="ks.phase4.cfg"
@@ -197,17 +198,30 @@ function generate_kick_start() {
   current_ks_phase="ks.phase6.cfg"
   jsonlint $current_ks_phase
 
-  # adjust installation and add additional if needed.
-  [ ! -f $ADDITIONAL_DIRECT_RPMS ] && {
-    echo "$ADDITIONAL_DIRECT_RPMS file not found"
+  # adjust installation and adds additional rpms located on remote location.
+  [ ! -f $ADDITIONAL_REMOTE_RPMS ] && {
+    echo "$ADDITIONAL_REMOTE_RPMS file not found"
     exit 99
   }
-
   local rpms
-  rpms=$(cat $ADDITIONAL_DIRECT_RPMS)
+  rpms=$(cat $ADDITIONAL_REMOTE_RPMS)
   jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase7.cfg
   current_ks_phase="ks.phase7.cfg"
   jsonlint $current_ks_phase
+
+#
+#  local rpms
+#  rpms=$(cat $ADDITIONAL_REMOTE_RPMS)
+#  jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase7.cfg
+#  current_ks_phase="ks.phase7.cfg"
+#  jsonlint $current_ks_phase
+#  jq --raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r rpm_pkg; do
+#    mkdir -p direct_rpms
+#    local url_target
+#    url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
+#    log "Downloading $url_target to $DEFAULT_RPM_DIR$"
+#    wget -q -nc "$url_target" -O $DEFAULT_RPM_DIR/"${rpm_pkg}".rpm
+#  done
 
   # additional docker load.
   [ ! -f $DOCKER_LOAD_POST_INSTALL ] && {
@@ -246,9 +260,8 @@ function generate_kick_start() {
 # build a container that will be used to as shell
 # to generate iso file from a spec.
 function build_container() {
-  if [ -z "$SKIP_BUILD_CONTAINER" ] || [ $SKIP_BUILD_CONTAINER == "yes" ]
-  then
-      log "Skipping rpm downloading."
+  if [ -z "$SKIP_BUILD_CONTAINER" ] || [ $SKIP_BUILD_CONTAINER == "yes" ]; then
+    log "Skipping rpm downloading."
   else
     # by a default we always do clean build
     if [[ ! -v DEFAULT_ALWAYS_CLEAN ]]; then
@@ -298,9 +311,8 @@ function git_clone() {
 
   suffix=".git"
   git_repos_dir="git_repos"
-  if [ -z "$SKIP_GIT" ] || [ $SKIP_GIT == "yes" ]
-  then
-      log "Skipping git cloning."
+  if [ -z "$SKIP_GIT" ] || [ $SKIP_GIT == "yes" ]; then
+    log "Skipping git cloning."
   else
     # do a cleanup first.
     rm -rf $git_repos_dir
@@ -316,7 +328,7 @@ function git_clone() {
       tar -zcvf "$repo_name".tar.gz "$repo_tmp_dir"
       mkdir -p git_images
       mv "$repo_name".tar.gz $DEFAULT_GIT_DIR
-      done
+    done
     rm -rf $git_repos_dir
   fi
 }
@@ -324,24 +336,22 @@ function git_clone() {
 # Downloads all rpms to DEFAULT_PACAKGE_LOCATION
 function download_rpms() {
   local rpm_pkg
-  if [ -z "$DEFAULT_PACAKGE_LOCATION" ]
-  then
+  if [ -z "$DEFAULT_PACAKGE_LOCATION" ]; then
     log "DEFAULT_PACAKGE_LOCATION empty."
     return 1
   fi
 
-  if [ -z "$SKIP_RPMS_DOWNLOAD" ] || [ $SKIP_RPMS_DOWNLOAD == "yes" ]
-  then
-      log "Skipping rpm downloading."
+  if [ -z "$SKIP_RPMS_DOWNLOAD" ] || [ $SKIP_RPMS_DOWNLOAD == "yes" ]; then
+    log "Skipping rpm downloading."
   else
-      mkdir -p $DEFAULT_RPM_DIR
-      log "Downloading rpms."
-      jq --raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r rpm_pkg; do
-        mkdir -p direct_rpms
-        local url_target
-        url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
-        log "Downloading $url_target to $DEFAULT_RPM_DIR$"
-        wget -q -nc "$url_target" -O $DEFAULT_RPM_DIR/"${rpm_pkg}".rpm
+    mkdir -p $DEFAULT_RPM_DIR
+    log "Downloading rpms."
+    jq --raw-output -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r rpm_pkg; do
+      mkdir -p direct_rpms
+      local url_target
+      url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
+      log "Downloading $url_target to $DEFAULT_RPM_DIR$"
+      wget -q -nc "$url_target" -O $DEFAULT_RPM_DIR/"${rpm_pkg}".rpm
     done
   fi
 }
@@ -396,9 +406,9 @@ function main() {
   local choice
   read -r -p "Please check and confirm (y/n)?" choice
   case "$choice" in
-    y|Y ) echo "yes";;
-    n|N ) echo return 1;;
-    * ) echo "invalid";;
+  y | Y) echo "yes" ;;
+  n | N) echo return 1 ;;
+  *) echo "invalid" ;;
   esac
 
   download_direct
