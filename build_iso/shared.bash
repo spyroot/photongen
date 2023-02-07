@@ -13,3 +13,5 @@ else
     DEFAULT_SRC_IMAGE_NAME="ph5-rt-refresh.iso"
     DEFAULT_DST_IMAGE_NAME="ph5-rt-refresh_adj.iso"
 fi
+
+export BUILD_TYPE="offline"
