@@ -286,9 +286,10 @@ function start_container() {
 }
 
 function git_clone() {
+  local git_repo
   jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
     mkdir -p git_repo_dir
-    echo "Git cloning $git_repo"
+    echo "Git cloning git clone $git_repo git_repo_dir"
     git clone "$git_repo" git_repo_dir
     done
 }
@@ -340,7 +341,7 @@ function main() {
   read -r -p "Please check and confirm (y/n)?" choice
   case "$choice" in
     y|Y ) echo "yes";;
-    n|N ) echo exit 1;;
+    n|N ) echo return 1;;
     * ) echo "invalid";;
   esac
 
