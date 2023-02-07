@@ -287,10 +287,17 @@ function start_container() {
 
 function git_clone() {
   local git_repo
+  local repo_name
+  local suffix
+  suffix=".git"
+
   jq --raw-output -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
-    mkdir -p git_repo_dir
-    echo "Git cloning git clone $git_repo git_repo_dir"
-    git clone "$git_repo" git_repo_dir
+    local repo_name
+    repo_name=${git_repo/%$suffix/}
+    repo_name=${repo_name##*/}
+    mkdir -p git_repo_dir/"$repo_name"
+    echo "Git cloning git clone $git_repo $repo_name"
+    git clone "$git_repo" "$repo_name"
     done
 }
 
