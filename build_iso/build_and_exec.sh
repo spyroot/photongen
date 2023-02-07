@@ -52,6 +52,7 @@ DEFAULT_RELEASE="4.0"
 DEFAULT_ISO_LOCATION_4_X86="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
 DEFAULT_ISO_PHOTON_5_X86="https://packages.vmware.com/photon/5.0/Beta/iso/photon-rt-5.0-9e778f409.iso"
 DEFAULT_ISO_PHOTON_5_ARM="https://packages.vmware.com/photon/5.0/Beta/iso/photon-5.0-9e778f409-aarch64.iso"
+DEFAULT_PACAKGE_LOCATION="https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"
 DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
 DEFAULT_DOCKER_IMAGE="spyroot/photon_iso_builder:latest"
 # comma seperated
@@ -166,10 +167,6 @@ jq --arg s "$DEFAULT_BOOT_SIZE" '.partitions[2].size=$s' $current_ks_phase >ks.p
 current_ks_phase="ks.phase6.cfg"
 jsonlint $current_ks_phase
 
-jq -c '.[]' $FILE | while read -r i; do
-  wget --recursive --no-parent https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"${i}".rpm
-done
-
 # adjust installation and add additional if needed.
 ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_direct_rpms.json
 [ ! -f $ADDITIONAL_RPMS ] && {
@@ -179,7 +176,9 @@ ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_direct_rpms.json
 
 jq -c '.[]' $ADDITIONAL_RPMS | while read -r i; do
   mkdir -p direct_rpms
-  wget -q -nc https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"${i}".rpm
+  target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
+  echo "Downloading $target"
+  wget -q -nc target
 done
 
 rpms=$(cat $ADDITIONAL_RPMS)
