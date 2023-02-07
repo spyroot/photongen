@@ -305,7 +305,7 @@ function git_clone() {
     mkdir -p git_repos/"$repo_name"
     echo "Git cloning git clone $git_repo $repo_name"
     git clone "$git_repo" $git_repos_dir/"$repo_name"
-    tar -cfzv "$git_repos_dir"/"$repo_name"".tar.gz" $git_repos_dir/"$repo_name"
+    tar -cfzv "$repo_name".tar.gz $git_repos_dir/"$repo_name" -C $git_repos_dir
     done
 }
 
