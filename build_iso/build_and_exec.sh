@@ -329,7 +329,7 @@ function download_rpms() {
         local url_target
         url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
         log "Downloading $url_target to $DEFAULT_PACAKGE_LOCATION$"
-        wget -q -nc url_target -O $DEFAULT_RPM_DIR
+        wget -q -nc $url_target -O $DEFAULT_RPM_DIR/
     done
   fi
 }
@@ -363,9 +363,9 @@ function print_and_validate_specs() {
   echo "All archive  will be wil downloaded to $ADDITIONAL_GIT_REPOS"
   echo "All archive  will be wil downloaded to $DEFAULT_ARC_DIR"
 
-  jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r i; do
+  jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r repo; do
     mkdir -p direct
-    echo "Will git clone $i"
+    echo "Will git clone $repo"
   done
 
   echo "Verifying JSON files"
