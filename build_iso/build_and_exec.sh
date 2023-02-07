@@ -47,6 +47,7 @@ DEFAULT_ISO_PHOTON_5_ARM="https://packages.vmware.com/photon/5.0/Beta/iso/photon
 DEFAULT_PACAKGE_LOCATION="https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"
 DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
 DEFAULT_DOCKER_IMAGE="spyroot/photon_iso_builder:latest"
+#
 DEFAULT_RPM_DIR="direct_rpms"
 DEFAULT_GIT_DIR="git_images"
 DEFAULT_ARC_DIR="direct"
@@ -328,7 +329,7 @@ function download_rpms() {
         mkdir -p direct_rpms
         local url_target
         url_target="$DEFAULT_PACAKGE_LOCATION${rpm_pkg}.rpm"
-        log "Downloading $url_target to $DEFAULT_PACAKGE_LOCATION$"
+        log "Downloading $url_target to $DEFAULT_RPM_DIR$"
         wget -q -nc "$url_target" -O $DEFAULT_RPM_DIR/"${rpm_pkg}".rpm
     done
   fi

@@ -15,3 +15,16 @@ else
 fi
 
 export BUILD_TYPE="offline"
+# all direct rpms will download and stored in direct_rpms
+DEFAULT_RPM_DIR="direct_rpms"
+# all cloned and tar.gzed repos in git_repos
+DEFAULT_GIT_DIR="git_images"
+# all downloaded tar.gz ( drivers and other arc) will be in direct.
+DEFAULT_ARC_DIR="direct"
+
+# this directory will be created inside ISO
+DEFAULT_RPM_DST_DIR="direct_rpms"
+# this directory will be created inside ISO
+DEFAULT_GIT_DST_DIR="git_images"
+# this directory will be created inside ISO
+DEFAULT_ARC_DST_DIR="direct"
