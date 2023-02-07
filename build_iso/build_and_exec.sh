@@ -308,7 +308,10 @@ function git_clone() {
     repo_tmp_dir="$git_repos_dir/$repo_name"
     echo "Compressing $repo_tmp_dir"
     tar -zcvf "$repo_name".tar.gz "$repo_tmp_dir"
+    mkdir -p git_images
+    mv "$repo_name".tar.gz git_images
     done
+  rm -rf $git_repos_dir
 }
 
 function download_direct() {
