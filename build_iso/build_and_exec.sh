@@ -17,14 +17,6 @@
 # spyroot@gmail.com
 # Author Mustafa Bayramov
 
-# lint in case it has error.
-jsonlint ks.ref.cfg
-jsonlint additional_direct_rpms.json
-jsonlint additional_files.json
-jsonlint additional_load_docker.json
-jsonlint additional_packages.json
-jsonlint additional_rpms.json
-
 source shared.bash
 
 if [[ -z "$DEFAULT_DST_IMAGE_NAME" ]]; then
@@ -92,9 +84,10 @@ DEFAULT_ROOT_SIZE="8192"
 #DEFAULT_ALWAYS_CLEAN="yes"
 
 ADDITIONAL_FILES=$DEFAULT_JSON_SPEC_DIR/additional_files.json
-ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_direct_rpms.json
+ADDITIONAL_DIRECT_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_direct_rpms.json
 ADDITIONAL_PACKAGES=$DEFAULT_JSON_SPEC_DIR/additional_packages.json
 DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC_DIR/additional_load_docker.json
+ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_rpms.json
 
 function generate_key_if_need() {
   # add ssh key
@@ -183,19 +176,19 @@ function generate_kick_start() {
   jsonlint $current_ks_phase
 
   # adjust installation and add additional if needed.
-  [ ! -f $ADDITIONAL_RPMS ] && {
-    echo "$ADDITIONAL_RPMS file not found"
+  [ ! -f $ADDITIONAL_DIRECT_RPMS ] && {
+    echo "$ADDITIONAL_DIRECT_RPMS file not found"
     exit 99
   }
 
-  jq -c '.[]' $ADDITIONAL_RPMS | while read -r i; do
+  jq -c '.[]' $ADDITIONAL_DIRECT_RPMS | while read -r i; do
     mkdir -p direct_rpms
     local target="$DEFAULT_PACAKGE_LOCATION${i}.rpm"
     echo "Downloading $target"
     wget -q -nc target
   done
 
-  rpms=$(cat $ADDITIONAL_RPMS)
+  rpms=$(cat $ADDITIONAL_DIRECT_RPMS)
   jq --argjson p "$rpms" '.postinstall += $p' $current_ks_phase >ks.phase7.cfg
   current_ks_phase="ks.phase7.cfg"
   jsonlint $current_ks_phase
@@ -269,8 +262,22 @@ function start_container() {
 
 echo "Using $ADDITIONAL_FILES"
 echo "Using $ADDITIONAL_PACKAGES"
-echo "Using $ADDITIONAL_RPMS"
+echo "Using $ADDITIONAL_DIRECT_RPMS"
 echo "Using $DOCKER_LOAD_POST_INSTALL"
+
+# lint in case it has error.
+ADDITIONAL_FILES=$DEFAULT_JSON_SPEC_DIR/additional_files.json
+ADDITIONAL_PACKAGES=$DEFAULT_JSON_SPEC_DIR/additional_packages.json
+ADDITIONAL_DIRECT_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_direct_rpms.json
+ADDITIONAL_RPMS=$DEFAULT_JSON_SPEC_DIR/additional_rpms.json
+DOCKER_LOAD_POST_INSTALL=$DEFAULT_JSON_SPEC_DIR/additional_load_docker.json
+
+jsonlint ks.ref.cfg
+jsonlint ADDITIONAL_FILES
+jsonlint ADDITIONAL_PACKAGES
+jsonlint ADDITIONAL_DIRECT_RPMS
+jsonlint ADDITIONAL_RPMS
+jsonlint DOCKER_LOAD_POST_INSTALL
 
 read -r -p "Please check and confirm (y/n)?" choice
 case "$choice" in
