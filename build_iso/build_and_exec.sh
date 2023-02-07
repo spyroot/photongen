@@ -287,7 +287,7 @@ function start_container() {
 
 function git_clone() {
   local git_repo
-  jq -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
+  jq --raw-output -c '.[]' $ADDITIONAL_GIT_REPOS | while read -r git_repo; do
     mkdir -p git_repo_dir
     echo "Git cloning git clone $git_repo git_repo_dir"
     git clone "$git_repo" git_repo_dir
