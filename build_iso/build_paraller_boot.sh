@@ -72,11 +72,17 @@ then
 fi
 
 # always get the latest.
-pip --quiet install idrac_ctl -U
+pip --quiet install idrac_ctl -U &> /dev/null
+pip --quiet pygments tqdm requests -U &> /dev/null
 
 ## build-iso.sh generates ph4-rt-refresh_adj.iso
-log "Coping $DEFAULT_IMAGE_NAME to $DEFAULT_LOCATION_MOVE"
-cp $DEFAULT_IMAGE_NAME $DEFAULT_LOCATION_MOVE
+src_hash=$(md5sum $DEFAULT_IMAGE_NAME)
+dst_hash=$(md5sum $DEFAULT_LOCATION_MOVE/$DEFAULT_IMAGE_NAME)
+if [ "$src_hash" != "$dst_hash" ]
+then
+  log "Coping $DEFAULT_IMAGE_NAME to $DEFAULT_LOCATION_MOVE"
+  cp $DEFAULT_IMAGE_NAME $DEFAULT_LOCATION_MOVE
+fi
 
 # by a default we always do clean build
 if [[ -z "$IDRAC_IPS" ]]; then
@@ -110,6 +116,7 @@ do
   # idrac_ctl bios --attr_only --filter SriovGlobalEnable
   #
   # one shoot boot.
+  log "Mount cdrom server $addr"
   export IDRAC_IP="$addr"; idrac_ctl get_vm --device_id 1 --filter_key Inserted
   export IDRAC_IP="$addr"; idrac_ctl eject_vm --device_id 1
   export IDRAC_IP="$addr"; idrac_ctl insert_vm --uri_path http://"$IDRAC_REMOTE_HTTP"/$DEFAULT_IMAGE_NAME --device_id 1
