@@ -18,18 +18,24 @@
 # - automatically generate tuned profile , load.
 # spyroot@gmail.com
 # Author Mustafa Bayramov
+export LANG=en_US.UTF-8
+export LC_ALL=$LANG
+export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
 
 AVX_VERSION=4.5.3
 MLNX_VER=5.4-1.0.3.0
 DOCKER_IMAGE_PATH="/vcu1.tar.gz"
 DOCKER_IMAGE_NAME="vcu1"
 
-export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-
+# all require tools
 REQUIRED_TOOLS=("wget" "tar" "lshw" "awk")
+# dirs that we expect to hold tar.gz
+EXPECTED_DIRS=("/direct" "/mnt/cdrom/direct" "/")
+# list of required pip packages.
+PIP_PKG_REQUIRED=("pyelftools" "sphinx")
 
-# What we are building, flags
-# By default I build all.
+# What we are building, all flags on by default.
+# i.e. by default we build all.
 MLX_BUILD="yes"
 INTEL_BUILD="yes"
 DPDK_BUILD="yes"
@@ -43,16 +49,16 @@ BUILD_SRIOV="yes"
 BUILD_PTP="yes"
 BUILD_LOAD_DOCKER_IMAGE="yes"
 WITH_QAT=yes
+SKIP_CLEANUP="yes"
 
 # SRIOV NIC make sure it up.
 # SRIOV_NIC_LIST="eth4,eth5"
 SRIOV_PCI_LIST="pci@0000:51:00.0,pci@0000:51:00.1"
-# list of PCI device that we use for SRIOV.
-#SRIOV_PCI_LIST="pci@0000:8a:00.0,pci@0000:8a:00.1"
-#SRIOV_PCI_LIST="pci@0000:51:00.0,pci@0000:51:00.1"
-
-# number of VFS we need.
 NUM_VFS=8
+# list of PCI device that we use for SRIOV.
+# SRIOV_PCI_LIST="pci@0000:8a:00.0,pci@0000:8a:00.1"
+# SRIOV_PCI_LIST="pci@0000:51:00.0,pci@0000:51:00.1"
+# number of VFS we need.
 
 # list of vlan interface that we need create.
 VLAN_ID_LIST="2000,2001"
@@ -63,27 +69,40 @@ VLAN_ID_LIST="2000,2001"
 PAGES="2048"
 PAGES_1GB="8"
 
-# LIST of required pip packages.
-PIP_PKG_REQUIRED=("pyelftools" "sphinx")
-
 # PTP adapter. i.e 810 or PCI_PT
-PTP_ADAPTER="eth7"
+PTP_ADAPTER="pci@0000:8a:00.1"
 
 # All links and directories
 ROOT_BUILD="/root/build"
-DPDK_URL_LOCATION="http://fast.dpdk.org/rel/dpdk-21.11.tar.xz"
 IPSEC_LIB_LOCATION="https://github.com/intel/intel-ipsec-mb.git"
-NL_LIB_LOCATION="https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz"
+
+# mirror for all online files.
+# drivers etc.
+DPDK_URL_LOCATIONS=(
+  "http://fast.dpdk.org/rel/dpdk-21.11.tar.xz" "https://drive.google.com/u/0/uc?id=1EllCI6gkZ3O70CXAXW9F4QCFD6IrGgZx&export=download&confirm=1e-b")
+# Lib NL
+LIB_NL_LOCATION=(
+  "https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz" "https://www.infradead.org/~tgr/libnl/files/libnl-3.2.25.tar.gz"
+)
+# Mellanox IAVF driver
+IAVF_LOCATION=(
+  "https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.tar.gz" "https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.tar.gz"
+)
+# Mellanox OFED driver
+MELLANOX_LOCATION=(
+  "http://www.mellanox.com/downloads/ofed/MLNX_OFED-$MLNX_VER/MLNX_OFED_SRC-debian-$MLNX_VER.tgz"
+  "http://www.mellanox.com/downloads/ofed/MLNX_OFED-$MLNX_VER/MLNX_OFED_SRC-debian-$MLNX_VER.tgz"
+)
+
 DPDK_TARGET_DIR_BUILD="$ROOT_BUILD/dpdk-21.11"
 LIB_NL_TARGET_DIR_BUILD="$ROOT_BUILD/libnl"
-LIB_ISAL_TARGET_DIR_BUILD="$ROOT_BUILD/build/isa-l"
+LIB_ISAL_TARGET_DIR_BUILD="$ROOT_BUILD/isa-l"
 
 # DRIVER TMP DIR where we are building.
 MLX_DIR=/tmp/mlnx_ofed_src
 INTEL_DIR=/tmp/iavf
 
-export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
-
+# all logs
 BUILD_MELLANOX_LOG="/build/build_mellanox_driver.log"
 BUILD_INTEL_LOG="/build/build_intel_driver.log"
 BUILD_DOCKER_LOG="/build/build_docker_images.log"
@@ -102,8 +121,7 @@ VLAN_ID_LIST="2000,2001"
 # list of adapter
 ADAPTER_LIST=""
 
-
-#Functions definition,  scroll down to main.
+# Functions definition,  scroll down to main.
 
 # remove all spaces from a string
 function remove_all_spaces {
@@ -273,14 +291,24 @@ function create_log_dir() {
 }
 
 # log message to console and file.
+# if log dir not present it will create it.
+# if log file already present, log msg will be appended.
+
+# log message to console and file.
 function log_console_and_file() {
+  local log_dir
   local default_log=$DEFAULT_BUILDER_LOG
   printf "%b %s %b\n" "${GREEN}" "$@" "${NC}"
 
-  if file_exists $default_log; then
-    echo "$@" >>$default_log
+  log_dir=$(extrac_dir $default_log)
+  if [ ! -d log_dir ]; then
+    mkdir -p "$log_dir"
+  fi
+
+  if file_exists "$default_log"; then
+    echo "$@" >>"$default_log"
   else
-    echo "$@" >$default_log
+    echo "$@" >"$default_log"
   fi
 }
 
@@ -402,42 +430,33 @@ function build_ipsec_lib() {
   fi
 }
 
-# build mellanox driver
+# Function builds mellanox driver
 # args log file, file_name, mlx_ver
 function build_mellanox_driver() {
   local log_file=$1
-  local mlx_ver=$2
+  local build_dir=$2
   echo "" > "$log_file"
+
   if [ -z "$MLX_BUILD" ]
   then
       log_console_and_file "Skipping Mellanox driver build."
   else
-    local mlx_url
-    local mlx_file_name
-    mlx_url=http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$mlx_ver"/MLNX_OFED_SRC-debian-"$mlx_ver".tgz
-    mlx_file_name=MLNX_OFED_SRC-debian-"$mlx_ver".tgz
-    log_console_and_file "Pulling Mellanox ofed from $mlx_url to $mlx_file_name"
-    cd /tmp || exit; wget -nc --quiet "$mlx_url" --directory-prefix="$MLX_DIR" -O "$mlx_file_name" > "$log_file" 2>&1
-    tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1 > "$log_file" 2>&1
+    cd "$build_dir" || exit; tar -zxvf MLNX_OFED_SRC-debian-* -C  mlnx_ofed_src --strip-components=1 > "$log_file" 2>&1
   fi
 }
 
 # Function builds intel iavf
-# args log_file , download dir, download ver
+# args log_file , download dir
 function build_intel_iavf() {
   local log_file=$1
-  local intel_download_dir=$2
-  local intel_download_ver=$3
+  local build_dir=$2
   echo "" >"$log_file"
   if [ -z "$INTEL_BUILD" ]
   then
       log_console_and_file "Skipping intel driver build"
   else
-    local intel_url
-    intel_url=https://downloadmirror.intel.com/738727/iavf-$intel_download_ver.tar.gz
-    cd /tmp || exit; wget -nc --quiet "$intel_url" --directory-prefix="$intel_download_dir" -O iavf-"$intel_download_ver".tar.gz > "$log_file" 2>&1
-    tar -zxvf iavf-* -C iavf --strip-components=1 > "$log_file" 2>&1
-    cd "$intel_download_dir"/src || exit; make > "$log_file" 2>&1; make install > "$log_file" 2>&1
+    cd "$build_dir" || exit; tar -zxvf iavf-* -C iavf --strip-components=1 > "$log_file" 2>&1
+    cd "$build_dir"/src || exit; make > "$log_file" 2>&1; make install > "$log_file" 2>&1
   fi
 }
 
@@ -468,19 +487,16 @@ function build_install_pips_deb() {
 #  First argument a path to log file.
 function build_lib_nl() {
   local log_file=$1
+  local build_dir=$2
   touch "$log_file" 2>/dev/null
 
   # build and install libnl
   if [ -z "$LIBNL_BUILD" ]; then
     log_console_and_file "Skipping libnl driver build"
   else
-    log_console_and_file "Pulling libnl from build $NL_LIB_LOCATION"
-    rm -rf $LIB_NL_TARGET_DIR_BUILD
-    cd $ROOT_BUILD || exit
-    wget -nc --quiet $NL_LIB_LOCATION
-    mkdir libnl || exit
-    tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1
-    cd $LIB_NL_TARGET_DIR_BUILD || exit
+    log_console_and_file "Extracting libnl to $build_dir"
+    cd "$build_dir" || exit; tar -zxvf libnl-*.tar.gz -C libnl --strip-components=1 > "$log_file" 2>&1
+    cd "$build_dir" || exit
     ./configure --prefix=/usr &>/build/configure_nl.log
     make -j 8 > "$log_file" 2>&1; make install > "$log_file" 2>&1
     ldconfig; ldconfig /usr/local/lib
@@ -489,6 +505,7 @@ function build_lib_nl() {
 
 # Function builds lib isa
 #  First argument a path to log file.
+#  it downloads only.
 function build_lib_isa() {
   local log_file=$1
   touch "$log_file" 2>/dev/null
@@ -539,48 +556,24 @@ function build_dpdk() {
     if [ -z "$DPDK_BUILD" ]; then
       log_console_and_file "Skipping DPDK build."
     else
-      export PATH="$PATH":/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+      log_console_and_file "Building DPDK."
       local target_system
+      local meson_build_dir
       target_system=$(uname -r)
       # in case pip wasn't called , we need install pyelftools
       pip3 install pyelftools sphinx > "$log_file" > "$log_file" 2>&1
       /usr/bin/python3 -c "import importlib.util; import sys; from elftools.elf.elffile import ELFFile" > "$log_file" 2>&1
       ln -s /usr/src/linux-headers-"$target_system"/ /usr/src/linux 2>/dev/null
-      rm $DPDK_TARGET_DIR_BUILD 2>/dev/null
-      cd $DPDK_TARGET_DIR_BUILD || exit;
-
-      # first check /direct , if it empty dir, try
-      # to mount cd and get the file from cdrom
-      log_console_and_file "Search DPDK in /direct."
-      direct_file=$(ls /direct 2>/dev/null | grep "dpdk*")
-      if [ -z "$direct_file" ]; then
-        log_console_and_file "Mounting cdrom."
-        mount /dev/cdrom 2>/dev/null
-        direct_file=$(ls /mnt/cdrom/direct | grep "dpdk*")
-      else
-        log_console_and_file "Found direct $direct_file"
-        tar xf "$direct_file" > "$log_file" 2>&1
-        direct_file=${direct_file/#$prefix/}
-        direct_file=${direct_file/%$suffix/}
-        DPDK_TARGET_DIR_BUILD=$ROOT_BUILD/$direct_file
-        log_console_and_file "Unpacked DPDK direct from /cdrom to $DPDK_TARGET_DIR_BUILD"
-      fi
-
-      # if all failed we download.
-      if [ -z "$direct_file" ]; then
-         log_console_and_file "Downloading DPDK"
-         wget --quiet -nc -O dpdk.tar.gz $DPDK_URL_LOCATION
-         tar xf dpdk.tar.gz > "$log_file" 2>&1
-      fi
-
       ldconfig; ldconfig /usr/local/lib
-      build_dir=$DPDK_TARGET_DIR_BUILD/build
-      log_console_and_file "Using dir $build_dir as build staging"
-      mkdir -p "$build_dir"; cd "$build_dir" || exit
+      meson_build_dir=$build_dir/build
+      log_console_and_file "Using dir $meson_build_dir as build staging"
+      mkdir -p "$meson_build_dir"; cd "$meson_build_dir" || exit
       meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/"$target_system" -Dibverbs_link=shared -Dwerror=true build > "$log_file" 2>&1
+      log_console_and_file "Finished building DPDK."
       ninja -C build -j 8 > "$log_file" 2>&1
-      cd build_dir || exit;
+      cd "$meson_build_dir" || exit;
       ninja install > "$log_file" 2>&1
+      log_console_and_file "Installing DPDK."
       ldconfig; ldconfig /usr/local/lib
     fi
 }
@@ -890,10 +883,10 @@ manufacturerIdentity	00:00:00
 userDescription		;
 timeSource		0xA0
 EOF
-
+    ptp_adapter_name=$(pci_to_adapter "$PTP_ADAPTER")
     # adjust /etc/sysconfig/ptp4l
     rm /etc/sysconfig/ptp4l 2>/dev/null; touch /etc/sysconfig/ptp4l 2>/dev/null
-    log_console_and_file "Adjusting /etc/sysconfig/ptp4l and setting ptp for adapter $PTP_ADAPTER"
+    log_console_and_file "Adjusting /etc/sysconfig/ptp4l and setting ptp for adapter $ptp_adapter_name"
     cat > /etc/sysconfig/ptp4l << EOF
 OPTIONS="-f /etc/ptp4l.conf -i $PTP_ADAPTER"
 EOF
@@ -954,11 +947,214 @@ function check_installed() {
   eval "$result_var_name"="'$errors'"
 }
 
+
+# /mnt/cdrom/direct/dpdk-21.11.3.tar.xz
+# Function extract version from
+# filename, url , or full path
+# "dpdk-21.11.3.tar.xz" -> 21.11.3
+# "/mnt/cdrom/direct/dpdk-21.11.3.tar.xz" -> 21.11.3
+# http://fast.dpdk.org/rel/dpdk-21.11.tar.xz" -> 21.11
+function extrac_version() {
+  local file_path=$1
+  local pref=$2
+  local suffix=$3
+  local version
+  version=""
+
+  if [ -z "$file_path" ] || [ -z "$pref" ] || [ -z "$suffix" ]; then
+    version=""
+  else
+    file_path=$(trim "$file_path")
+    local file_name
+    file_name=$(basename "$file_path")
+    version=${file_name/#$pref/}
+    version=${version/%$suffix/}
+  fi
+
+  echo "$version"
+}
+
+# Extract directory
+function extrac_dir() {
+  local dir_path=$1
+  local dir_name
+  dir_name=""
+
+  if [ -z "$dir_path" ]; then
+    dir_name=""
+  else
+    local dir_name
+    dir_path=$(trim "$dir_path")
+    dir_name=$(dirname "$dir_path")
+  fi
+
+  echo "$dir_name"
+}
+
+# extrac filename
+function extrac_filename() {
+  local file_path=$1
+  local file_name
+  file_name=""
+
+  if [ -z "$file_path" ]; then
+    file_name=""
+  else
+    local file_name
+    file_path=$(trim "$file_path")
+    file_name=$(basename "$file_path")
+  fi
+
+  echo "$file_name"
+}
+
+# Function search a file in array of dirs
+# first argument is suffix for a file
+# second argument is prefix.
+# suffix and prefix used to extrac version.
+# third argument a pattern dpdk, iavf etc.
+# last argument what we search, for logging purpose.
+function search_file() {
+  local search_pattern=$1
+  local target_name=$2
+  local suffix=$3
+  local  __resul_search_var=$4
+  local found_file=""
+  local found_dir=""
+
+  # first check all expected dirs
+  for expected_dir in "${EXPECTED_DIRS[@]}"; do
+    log_console_and_file "Searching $target_name in $expected_dir"
+    found_file=$(ls "$expected_dir" 2>/dev/null | grep "$search_pattern*")
+    if [ -n "$found_file" ]; then
+      log_console_and_file "Found $target_name in $expected_dir"
+      found_dir=expected_dir
+      break
+    fi
+  done
+
+  # mount cdrom and check
+  if [ -z "$found_file" ]; then
+    log_console_and_file "Mounting cdrom and searching $target_name"
+    mount /dev/cdrom 2>/dev/null
+    found_file=$(ls /mnt/cdrom/direct 2>/dev/null | grep "$search_pattern*")
+  else
+    log_console_and_file "Found local copy $direct_file"
+  fi
+
+  # mount cdrom and check
+  if [ -z "$found_file" ]; then
+    local search_regex
+    search_regex=".*$search_pattern.*.$suffix"
+    log_console_and_file "File not found, doing deep search pattern $search_regex"
+    found_file="$(cd / || exit; find / -type f -regex "$search_regex" -maxdepth 10 2>/dev/null | head -n 1)"
+    log_console_and_file "Result of deep search $found_file"
+  fi
+
+  if file_exists "$found_file"; then
+    log_console_and_file "Deep search found a file $found_file"
+  fi
+
+  if [[ "$__resul_search_var" ]]; then
+    eval "$__resul_search_var"="'$found_file'"
+  else
+    echo "$found_file"
+  fi
+}
+
+
+# Function takes target dir where to store a file
+# and list of location mirror for a given file.
+function fetch_file() {
+  local target_dir=$1
+  local  __result_fetch_var=$2
+  shift 2
+  local urls=("$@")
+  local remote_file_name
+  local full_path
+
+  if [ ! -d target_dir ]; then
+    mkdir -p "$target_dir"
+  fi
+
+  log_console_and_file "File will be saved in $target_dir"
+
+  for url in "${urls[@]}"; do
+    remote_file_name=$(extrac_filename "$url")
+    log_console_and_file "Fetching file $remote_file_name from $url"
+    full_path=$target_dir"/"$remote_file_name
+    wget --quiet -nc "$url" -O "$remote_file_name" || rm -f "$remote_file_name"
+    if file_exists "$remote_file_name"; then
+      log_console_and_file "Downloaded file to $remote_file_name"
+      break
+    else
+      log_console_and_file "Failed to fetch $remote_file_name from $url"
+    fi
+  done
+
+  if file_exists "$remote_file_name"; then
+    log_console_and_file "Copy file to $remote_file_name to $full_path"
+    cp "$remote_file_name" "$full_path"
+  fi
+
+  if [[ "$__result_fetch_var" ]]; then
+    eval "$__result_fetch_var"="'$full_path'"
+  else
+    echo "$full_path"
+  fi
+}
+
+#unpack_all_files
+function unpack_all_files() {
+  local search_criterion=$1
+  local file_name=$2
+  local suffix=$3
+  local  __result_loc_var=$4
+  shift 4
+  local mirrors=("$@")
+  local build_location=$ROOT_BUILD/$file_name
+  local search_result
+  search_file "$search_criterion" "$file_name" "$suffix" search_result
+  if file_exists "$search_result"; then
+    log_console_and_file "Found existing file $search_result"
+    mkdir -p "$build_location"
+    tar -xf "$search_result" --directory "$build_location" --strip-components=1
+  else
+    local download_result=""
+    log_console_and_file "File not found need downloading $file_name"
+    fetch_file $ROOT_BUILD download_result "${mirrors[@]}"
+    if file_exists "$download_result"; then
+      log_console_and_file "File successfully downloaded $file_name location $download_result"
+      mkdir -p "$build_location"
+      tar -xf "$download_result" --directory "$build_location" --strip-components=1
+    fi
+  fi
+
+  if [[ "$__result_loc_var" ]]; then
+    eval "$__result_loc_var"="'$build_location'"
+  else
+    echo "$build_location"
+  fi
+}
+
+function clean_up() {
+  if [ -z "$SKIP_CLEANUP" ] || [ $SKIP_CLEANUP == "yes" ]; then
+    log_console_and_file "Skipping clean up"
+    rm -rf dpdk*
+    rm -rf iavf-*
+    rm -rf libnl-*.tgz
+    rm -rf MLNX_OFED_SRC-*.tgz
+    rm -rf "${ROOT_BUILD:?}/"*
+  fi
+}
+
 # main entry for a script
 #
 function main() {
+  local log_main_dir
   log_main_dir=$(dirname "$DEFAULT_BUILDER_LOG")
   rm -rf "$log_main_dir"
+  rm -rf $ROOT_BUILD
   create_log_dir "$DEFAULT_BUILDER_LOG"
 
   declare -i errs=0
@@ -986,15 +1182,35 @@ function main() {
   rpm -qa > /rpm.installed.after.log
 
   build_dirs
-  build_mellanox_driver "$BUILD_MELLANOX_LOG" "$MLNX_VER"
-  build_intel_iavf "$BUILD_INTEL_LOG" "$INTEL_DIR" "$AVX_VERSION"
+
+    # all location updated
+  local dpdk_build_location=""
+  local iavf_build_location=""
+  local libnl_build_location=""
+  local mellanox_build_location=""
+
+  clean_up
+
+  # either fetch from local or remote
+  unpack_all_files "dpdk" "dpdk-21.11" "tar.xz" dpdk_build_location "${DPDK_URL_LOCATIONS[@]}"
+  unpack_all_files "iavf-$AVX_VERSION" "iavf-$AVX_VERSION" "tar.gz" iavf_build_location "${IAVF_LOCATION[@]}"
+  unpack_all_files "libnl-3.2.25" "libnl-3.2.25" "tar.gz" libnl_build_location "${LIB_NL_LOCATION[@]}"
+  unpack_all_files "MLNX_OFED_SRC" "MLNX_OFED_SRC-debian-$MLNX_VER" "tgz" mellanox_build_location "${MELLANOX_LOCATION[@]}"
+
+  echo "DPDK Build location $dpdk_build_location"
+  echo "IAVF Build location $iavf_build_location"
+  echo "LIBNL Build location $libnl_build_location"
+  echo "Mellanox Build location $mellanox_build_location"
+
+  build_mellanox_driver "$BUILD_MELLANOX_LOG" "$mellanox_build_location"
+  build_intel_iavf "$BUILD_INTEL_LOG" "$iavf_build_location"
   build_docker_images $BUILD_DOCKER_LOG "$DOCKER_IMAGE_PATH" "$DOCKER_IMAGE_NAME"
   build_ipsec_lib "$BUILD_IPSEC_LOG"
   adjust_shared_libs
   build_install_pips_deb "$BUILD_PIP_LOG" "${PIP_PKG_REQUIRED[@]}"
-  build_lib_nl "$BUILD_NL_LOG"
+  build_lib_nl "$BUILD_NL_LOG" "$libnl_build_location"
   build_lib_isa "$BUILD_ISA_LOG"
-  build_dpdk "$BUILD_DPDK_LOG"
+  build_dpdk "$BUILD_DPDK_LOG" "$dpdk_build_location"
   load_vfio_pci
   build_tuned "$BUILD_TUNED_LOG"
 
