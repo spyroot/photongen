@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# test
 #dpdk-21.11.3.tar.xz  iavf-4.5.3.tar.gz  libnl-3.2.25.tar.gz  MLNX_OFED_SRC-debian-5.4-1.0.3.0.tgz
 
 s1="dpdk-21.11.3.tar.xz"
