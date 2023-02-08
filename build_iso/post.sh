@@ -1022,17 +1022,18 @@ function search_file() {
   local suffix=$3
   local  __resul_search_var=$4
   local found_file=""
-  local found_dir=""
+  local found_in=""
   local found=false
 
-  log_console_and_file "Searching search_pattern $search_pattern target_name $target_name suffix $suffix"
+  log_console_and_file "Searching search_pattern $search_pattern target_name $target_name suffix $suffix var name $__resul_search_var"
   # first check all expected dirs
   for expected_dir in "${EXPECTED_DIRS[@]}"; do
     log_console_and_file "Searching $target_name in $expected_dir"
     found_file=$(ls "$expected_dir" 2>/dev/null | grep "$search_pattern*")
     if [ -n "$found_file" ]; then
-      log_console_and_file "Found $target_name in $expected_dir"
-      found_dir=$expected_dir
+      found_in=$expected_dir/$found_file
+      log_console_and_file "Found $target_name in $found_in"
+      eval "$__resul_search_var"="$found_in"
       found=true
       break
     fi
@@ -1040,19 +1041,20 @@ function search_file() {
 
   # if not found in expect location, mount cdrom and check
   # in /direct dir
-  if [ -z "$found_file" ] || [ "$found" = false ]; then
+  if [ -z "$found_in" ] || [ "$found" = false ]; then
     log_console_and_file "Mounting cdrom and searching a $target_name"
     mount /dev/cdrom 2>/dev/null
     found_file=$(ls /mnt/cdrom/direct 2>/dev/null | grep "$search_pattern*")
     if [ -n "$found_file" ]; then
       log_console_and_file "File found in local cdrom $found_file"
+      found_in="/mnt/cdrom/direct"/$found_file
+      __resul_search_var="'$found_in'"
       found=true
-      __resul_search_var=$found_file
     fi
   fi
 
   # if we didn't found do a deep search
-  if [ -z "$found_file" ] || [ "$found" = false ]; then
+  if [ -z "$found_in" ] || [ "$found" = false ]; then
     local search_regex
     search_regex=".*$search_pattern.*.$suffix"
     log_console_and_file "File not found, doing deep search pattern $search_regex"
@@ -1107,7 +1109,7 @@ function fetch_file() {
   fi
 
   if [[ "$__result_fetch_var" ]]; then
-    eval "$__result_fetch_var"="'$full_path'"
+    eval $__result_fetch_var="'$full_path'"
   else
     echo "$full_path"
   fi
