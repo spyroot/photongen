@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#dpdk-21.11.3.tar.xz  iavf-4.5.3.tar.gz  libnl-3.2.25.tar.gz  MLNX_OFED_SRC-debian-5.4-1.0.3.0.tgz
+
+s1="dpdk-21.11.3.tar.xz"
+s2="iavf-4.5.3.tar.gz"
+s3="libnl-3.2.25.tar.gz"
+s4="MLNX_OFED_SRC-debian-5.4-1.0.3.0.tgz"
+
+suffix=".tar.xz"
+prefix="dpdk-"
+s1=${s1/#$prefix/}
+s1=${s1/%$suffix/}
+echo "$s1"
+
+suffix=".tar.gz"
+prefix="iavf-"
+s2=${s2/#$prefix/}
+s2=${s2/%$suffix/}
+echo "$s2"
+
+suffix=".tar.gz"
+prefix="libnl-"
+s3=${s3/#$prefix/}
+s3=${s3/%$suffix/}
+echo "$s3"
+
+suffix=".tgz"
+prefix="MLNX_OFED_SRC-debian-"
+s4=${s4/#$prefix/}
+s4=${s4/%$suffix/}
+echo "$s4"
+
+
+#
+#echo "${s%.*}.$((${s##*.}))"

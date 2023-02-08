@@ -514,6 +514,13 @@ function build_lib_isa() {
 #  Second optional arg path to a kernel headers.
 function build_dpdk() {
     local log_file=$1
+    local direct_file
+    local suffix
+    local prefix
+    local build_dir
+    suffix=".tar.xz"
+    prefix="dpdk-"
+
     touch "$log_file" 2>/dev/null
 
     local default_kernel_prefix="/usr/src/linux-headers-"
@@ -540,15 +547,39 @@ function build_dpdk() {
       /usr/bin/python3 -c "import importlib.util; import sys; from elftools.elf.elffile import ELFFile" > "$log_file" 2>&1
       ln -s /usr/src/linux-headers-"$target_system"/ /usr/src/linux 2>/dev/null
       rm $DPDK_TARGET_DIR_BUILD 2>/dev/null
-      cd /root || exit;
-      wget --quiet -nc -O dpdk.tar.gz $DPDK_URL_LOCATION
-      tar xf dpdk.tar.gz > "$log_file" 2>&1
+      cd $DPDK_TARGET_DIR_BUILD || exit;
+
+      # first check /direct , if it empty dir, try
+      # to mount cd and get the file from cdrom
+      log_console_and_file "Search DPDK in /direct."
+      direct_file=$(ls /direct 2>/dev/null | grep "dpdk*")
+      if [ -z "$direct_file" ]; then
+        log_console_and_file "Mounting cdrom."
+        mount /dev/cdrom 2>/dev/null
+        direct_file=$(ls /mnt/cdrom/direct | grep "dpdk*")
+      else
+        log_console_and_file "Found direct $direct_file"
+        tar xf "$direct_file" > "$log_file" 2>&1
+        direct_file=${direct_file/#$prefix/}
+        direct_file=${direct_file/%$suffix/}
+        DPDK_TARGET_DIR_BUILD=$ROOT_BUILD/$direct_file
+        log_console_and_file "Unpacked DPDK direct from /cdrom to $DPDK_TARGET_DIR_BUILD"
+      fi
+
+      # if all failed we download.
+      if [ -z "$direct_file" ]; then
+         log_console_and_file "Downloading DPDK"
+         wget --quiet -nc -O dpdk.tar.gz $DPDK_URL_LOCATION
+         tar xf dpdk.tar.gz > "$log_file" 2>&1
+      fi
+
       ldconfig; ldconfig /usr/local/lib
-      mkdir -p $DPDK_TARGET_DIR_BUILD/build
-      cd $DPDK_TARGET_DIR_BUILD/build || exit
+      build_dir=$DPDK_TARGET_DIR_BUILD/build
+      log_console_and_file "Using dir $build_dir as build staging"
+      mkdir -p "$build_dir"; cd "$build_dir" || exit
       meson -Dplatform=native -Dexamples=all -Denable_kmods=true -Dkernel_dir=/lib/modules/"$target_system" -Dibverbs_link=shared -Dwerror=true build > "$log_file" 2>&1
       ninja -C build -j 8 > "$log_file" 2>&1
-      cd $DPDK_TARGET_DIR_BUILD/build || exit
+      cd build_dir || exit;
       ninja install > "$log_file" 2>&1
       ldconfig; ldconfig /usr/local/lib
     fi
