@@ -409,7 +409,7 @@ function main() {
   read -r -p "Please check and confirm (y/n)?" choice
   case "$choice" in
   y | Y) echo "yes" ;;
-  n | N) echo return 1 ;;
+  n | N) return 1 ;;
   *) echo "invalid" ;;
   esac
 
