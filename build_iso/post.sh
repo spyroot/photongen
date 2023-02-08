@@ -1009,10 +1009,12 @@ function extrac_filename() {
 }
 
 # Function search a file in array of dirs
-# first argument is suffix for a file
-# second argument is prefix.
-# suffix and prefix used to extrac version.
-# third argument a pattern dpdk, iavf etc.
+# arg: first argument is prefix for a file pattern "dpdk-"
+# arg: Second argument is target. tag.gz etc.
+# arg: Third suffix argument a pattern tag.gz etc.
+#      Suffix and prefix used to extrac version.
+# arg: Last arg is name of variable that function will set
+#      if it found a file
 # last argument what we search, for logging purpose.
 function search_file() {
   local search_pattern=$1
@@ -1021,29 +1023,36 @@ function search_file() {
   local  __resul_search_var=$4
   local found_file=""
   local found_dir=""
+  local found=false
 
+  log_console_and_file "Searching search_pattern $search_pattern target_name $target_name suffix $suffix"
   # first check all expected dirs
   for expected_dir in "${EXPECTED_DIRS[@]}"; do
     log_console_and_file "Searching $target_name in $expected_dir"
     found_file=$(ls "$expected_dir" 2>/dev/null | grep "$search_pattern*")
     if [ -n "$found_file" ]; then
       log_console_and_file "Found $target_name in $expected_dir"
-      found_dir=expected_dir
+      found_dir=$expected_dir
+      found=true
       break
     fi
   done
 
-  # mount cdrom and check
-  if [ -z "$found_file" ]; then
-    log_console_and_file "Mounting cdrom and searching $target_name"
+  # if not found in expect location, mount cdrom and check
+  # in /direct dir
+  if [ -z "$found_file" ] || [ "$found" = false ]; then
+    log_console_and_file "Mounting cdrom and searching a $target_name"
     mount /dev/cdrom 2>/dev/null
     found_file=$(ls /mnt/cdrom/direct 2>/dev/null | grep "$search_pattern*")
-  else
-    log_console_and_file "Found local copy $direct_file"
+    if [ -n "$found_file" ]; then
+      log_console_and_file "File found in local cdrom $found_file"
+      found=true
+      __resul_search_var=$found_file
+    fi
   fi
 
-  # mount cdrom and check
-  if [ -z "$found_file" ]; then
+  # if we didn't found do a deep search
+  if [ -z "$found_file" ] || [ "$found" = false ]; then
     local search_regex
     search_regex=".*$search_pattern.*.$suffix"
     log_console_and_file "File not found, doing deep search pattern $search_regex"
