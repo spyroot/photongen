@@ -34,7 +34,7 @@ WORKDIR /root/build
 RUN git clone git://git.kernel.org/pub/scm/utils/rt-tests/rt-tests.git
 WORKDIR /root/build/rt-tests
 ENV PATH="/root/build/rt-tests:${PATH}"
-RUN make; make install; pip3 install click matplotlib hdrhistogram hdr_plot
+RUN make; make install; pip3 install click matplotlib hdrhistogram==0.8.0 hdr_plot==0.2.3
 COPY ["utils.py", "cyclictest-plot-80us", "cyclictest-hist-to-percentiles", "cycle-test-auto", "run-cyclic-test", "./"]
 
 CMD ["ldconfig; /bin/bash"]
