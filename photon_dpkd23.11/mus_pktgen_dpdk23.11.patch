@@ -1,0 +1,104 @@
+diff --git a/app/pktgen-cmds.c b/app/pktgen-cmds.c
+index d48aff1..44c548e 100644
+--- a/app/pktgen-cmds.c
++++ b/app/pktgen-cmds.c
+@@ -1945,14 +1945,14 @@ enable_bonding(port_info_t *info, uint32_t state)
+         return;
+     }
+
+-    num_workers = rte_eth_bond_slaves_get(info->pid, workers, RTE_MAX_ETHPORTS);
++    num_workers = rte_eth_bond_members_get(info->pid, workers, RTE_MAX_ETHPORTS);
+     if (num_workers < 0) {
+         printf("Failed to get worker list for port = %d\n", info->pid);
+         return;
+     }
+
+     num_active_workers =
+-        rte_eth_bond_active_slaves_get(info->pid, active_workers, RTE_MAX_ETHPORTS);
++        rte_eth_bond_active_members_get(info->pid, active_workers, RTE_MAX_ETHPORTS);
+     if (num_active_workers < 0) {
+         printf("Failed to get active worker list for port = %d\n", info->pid);
+         return;
+@@ -2050,7 +2050,7 @@ show_bonding_mode(port_info_t *info)
+         printf("\n");
+     }
+
+-    num_workers = rte_eth_bond_slaves_get(port_id, workers, RTE_MAX_ETHPORTS);
++    num_workers = rte_eth_bond_members_get(port_id, workers, RTE_MAX_ETHPORTS);
+
+     if (num_workers < 0) {
+         printf("\tFailed to get worker list for port = %d\n", port_id);
+@@ -2066,7 +2066,7 @@ show_bonding_mode(port_info_t *info)
+         printf("\tSlaves: []\n");
+     }
+
+-    num_active_workers = rte_eth_bond_active_slaves_get(port_id, workers, RTE_MAX_ETHPORTS);
++    num_active_workers = rte_eth_bond_active_members_get(port_id, workers, RTE_MAX_ETHPORTS);
+
+     if (num_active_workers < 0) {
+         printf("\tFailed to get active worker list for port = %d\n", port_id);
+@@ -2084,10 +2084,10 @@ show_bonding_mode(port_info_t *info)
+     }
+
+     for (i = 0; i < num_active_workers; i++) {
+-        struct rte_eth_bond_8023ad_slave_info conf;
++        struct rte_eth_bond_8023ad_member_info conf;
+
+         printf("\t\tSlave %u\n", workers[i]);
+-        rte_eth_bond_8023ad_slave_info(info->pid, workers[i], &conf);
++        rte_eth_bond_8023ad_member_info(info->pid, workers[i], &conf);
+         printf("\t\t  %sSelected\n\t\t  Actor States  ( ", conf.selected ? "" : "Not ");
+         show_states(conf.actor_state);
+         printf(")\n\t\t  Partner States( ");
+diff --git a/app/pktgen-port-cfg.h b/app/pktgen-port-cfg.h
+index 1788a73..6b09e98 100644
+--- a/app/pktgen-port-cfg.h
++++ b/app/pktgen-port-cfg.h
+@@ -232,7 +232,7 @@ typedef struct port_info_s {
+
+     rate_info_t rate;
+
+-    RTE_STD_C11
++    //RTE_STD_C11
+     union {
+         uint64_t vxlan; /**< VxLAN 64 bit word */
+         struct {
+diff --git a/app/pktgen-seq.h b/app/pktgen-seq.h
+index b762e58..2d6eb85 100644
+--- a/app/pktgen-seq.h
++++ b/app/pktgen-seq.h
+@@ -59,7 +59,7 @@ typedef struct pkt_seq_s {
+     };
+     uint32_t gtpu_teid; /**< GTP-U TEID, if UDP dport=2152 */
+
+-    RTE_STD_C11
++    //RTE_STD_C11
+     union {
+         uint64_t vxlan; /**< VxLAN 64 bit word */
+         struct {
+diff --git a/lib/common/mbuf.h b/lib/common/mbuf.h
+index ba55ab0..8b32075 100644
+--- a/lib/common/mbuf.h
++++ b/lib/common/mbuf.h
+@@ -17,7 +17,7 @@ extern "C" {
+
+ union pktgen_data {
+     uint64_t udata;
+-    RTE_STD_C11
++    //RTE_STD_C11
+     struct {
+         uint16_t data_len;
+         uint16_t buf_len;
+diff --git a/lib/plugin/plugin.h b/lib/plugin/plugin.h
+index b5c8574..8c86823 100644
+--- a/lib/plugin/plugin.h
++++ b/lib/plugin/plugin.h
+@@ -46,7 +46,7 @@ struct plugin_info {
+     int (*stop)(int inst);             /**< stop function optional */
+     void *pfuncs;                      /**< plugin defined functions/info */
+
+-    RTE_STD_C11
++    //RTE_STD_C11
+     union {
+         uint32_t version; /* 18.04.00-rc1 == 18040001 */
+         struct {
