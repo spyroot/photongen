@@ -1,6 +1,9 @@
 # Author Mustafa Bayramov 
 FROM library/photon
 
+LABEL maintainer="Mustafa Bayramov <spyroot@gmail.com>"
+LABEL description="A DPDK 21.11 LTS with pkt gen and photon OS"
+
 # Install tornado library.
 RUN tdnf install yum
 RUN yum -y install gcc meson git wget numactl make curl \
@@ -17,7 +20,7 @@ RUN mkdir build
 RUN cd build
 RUN git clone https://github.com/intel/intel-ipsec-mb.git
 WORKDIR intel-ipsec-mb
-RUN make
+RUN make -j 32
 RUN make install
 RUN ldconfig
 
@@ -31,7 +34,7 @@ RUN wget http://fast.dpdk.org/rel/dpdk-21.11.tar.xz
 RUN tar xf dpdk*
 WORKDIR /root/build/dpdk-21.11
 RUN meson -Dexamples=all build
-RUN ninja -C build
+RUN ninja -C build -j 32
 WORKDIR /root/build/dpdk-21.11/build
 RUN ninja install
 
@@ -44,8 +47,9 @@ WORKDIR /root/build
 RUN git clone http://dpdk.org/git/apps/pktgen-dpdk
 WORKDIR /root/build/pktgen-dpdk
 RUN export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/; meson build
-RUN ninja -C build
+RUN ninja -C build -j 32
 RUN ninja -C build install
 RUN ldconfig
+RUN yum clean all
 
 CMD ["ldconfig; /bin/bash"]
