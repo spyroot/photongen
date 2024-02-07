@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dpdkpod
+  labels:
+    environment: dpdk_tester
+    app: dpdkpod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      environment: dpdk_tester
+      app: dpdkpod
+  template:
+    metadata:
+      labels:
+        environment: dpdk_tester
+        app: dpdkpod
+    spec:
+      containers:
+      - name: dpdkpod
+        command: ["/bin/bash", "-c", "PID=; trap 'kill $PID' TERM INT; sleep infinity & PID=$!; wait $PID"]
+        image: spyroot/dpdk_tester
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          capabilities:
+            add: ["NET_ADMIN", "SYS_TIME", "CAP_NET_RAW", "CAP_BPF"]
+          privileged: true
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: "2"
+            intel.com/sriovdpdk: '1'
+          limits:
+            hugepages-1Gi: 2Gi
+            cpu: "2"
+            intel.com/sriovdpdk: '1'
+      nodeSelector:
+        kubernetes.io/os: linux

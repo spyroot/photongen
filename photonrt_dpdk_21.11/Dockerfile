@@ -38,14 +38,14 @@ RUN ninja -C build -j 32
 WORKDIR /root/build/dpdk-21.11/build
 RUN ninja install
 
-RUN pip3 install tensorflow-gpu
-
 ENV TERM=xterm-256color
 
 # Last stage pkt-gen
 WORKDIR /root/build
 RUN git clone http://dpdk.org/git/apps/pktgen-dpdk
 WORKDIR /root/build/pktgen-dpdk
+COPY mus_pktgen_dpdk23.11.patch .
+RUN patch -p1 < mus_pktgen_dpdk23.11.patch
 RUN export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/; meson build
 RUN ninja -C build -j 32
 RUN ninja -C build install
