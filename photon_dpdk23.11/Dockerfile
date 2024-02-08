@@ -91,9 +91,15 @@
 # 	crypto/uadk:	missing dependency, "libwd"
 # 	gpu/cuda:	missing dependency, "cuda.h"
 
+# docker buildx --build-arg MESON_ARGS="-Dplatform=native" -t my_image .
+# docker buildx build --platform linux/amd64 MESON_ARGS="-Dplatform=native" -t cnfdemo.io/spyroot/dpdk_native_tester:latest .
+# docker buildx build --platform linux/amd64 MESON_ARGS="-Dplatform=generic" -t cnfdemo.io/spyroot/dpdk_generic_tester:latest .
+
+
 FROM library/photon
 LABEL maintainer="Mustafa Bayramov <spyroot@gmail.com>"
 LABEL description="A DPDK 23.11 LTS with pkt gen and photon OS"
+ARG MESON_ARGS="-Dplatform=generic"
 
 # Install library.
 RUN tdnf install yum
@@ -154,7 +160,7 @@ RUN ldconfig
 RUN wget http://fast.dpdk.org/rel/dpdk-23.11.tar.xz
 RUN tar xf dpdk*
 WORKDIR /root/build/dpdk-23.11
-RUN meson -Dexamples=all build
+RUN meson ${MESON_ARGS} -Dexamples=all build
 RUN ninja -C build -j 32
 WORKDIR /root/build/dpdk-23.11/build
 RUN ninja install
@@ -167,10 +173,16 @@ RUN git clone http://dpdk.org/git/apps/pktgen-dpdk
 WORKDIR /root/build/pktgen-dpdk
 COPY mus_pktgen_dpdk23.11.patch .
 RUN patch -p1 < mus_pktgen_dpdk23.11.patch
-RUN export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/; meson build
+RUN export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig/; meson build 
 RUN ninja -C build
 RUN ninja -C build install
 RUN ldconfig
 RUN yum clean all
 
+RUN yum -y install python3-libcap-ng python3-devel
+RUN pip3 install pyelftools sphinx
+
+ENV PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${PATH}"
+
 CMD ["ldconfig; /bin/bash"]
+

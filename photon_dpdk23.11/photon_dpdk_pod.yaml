@@ -20,12 +20,22 @@ spec:
       containers:
       - name: dpdkpod
         command: ["/bin/bash", "-c", "PID=; trap 'kill $PID' TERM INT; sleep infinity & PID=$!; wait $PID"]
-        image: spyroot/dpdk_tester
-        imagePullPolicy: IfNotPresent
+        image: airgap.vmvo.registry.vf/registry/spyroot/dpdk_tester
+        imagePullPolicy: Always
         securityContext:
           capabilities:
-            add: ["NET_ADMIN", "SYS_TIME", "CAP_NET_RAW", "CAP_BPF"]
+            add: ["IPC_LOCK", "NET_ADMIN", "SYS_TIME", "CAP_NET_RAW", "CAP_BPF", "CAP_SYS_ADMIN", "SYS_ADMIN"]
           privileged: true
+        env:
+          - name: PATH
+            value: "/bin:/sbin:/usr/bin:/usr/sbin:/usr/bin:/usr/local/sbin:/usr/local/bin:$PATH"
+        volumeMounts:
+        - name: sys
+          mountPath: /sys
+          readOnly: true
+        - name: modules
+          mountPath: /lib/modules
+          readOnly: true
         resources:
           requests:
             memory: 2Gi
@@ -35,5 +45,13 @@ spec:
             hugepages-1Gi: 2Gi
             cpu: "2"
             intel.com/sriovdpdk: '1'
+      volumes:
+      - name: sys
+        hostPath:
+          path: /sys
+      - name: modules
+        hostPath:
+          path: /lib/modules
       nodeSelector:
         kubernetes.io/os: linux
+
