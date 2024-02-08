@@ -569,3 +569,191 @@ dpdk-devbind.py      dpdk-pdump         dpdk-telemetry.py  dpdk-test-cmdline    
 dpdk-dumpcap         dpdk-pmdinfo.py    dpdk-test          dpdk-test-compress-perf  dpdk-test-fib        dpdk-test-pipeline  dpdk-testpmd             pqos-msr
 dpdk-graph           dpdk-proc-info     dpdk-test-acl      dpdk-test-crypto-perf    dpdk-test-flow-perf  dpdk-test-regex     membw                    pqos-os
 ```
+
+### Developing DPKD App
+
+Start container
+
+```bash
+modprobe $default_kmod && modprobe $default_kmod enable_sriov=1 && \
+ echo "Using device $vf_target_device" && \
+	docker run --privileged --name "$container_name" --device="/sys/bus/pci/devices/*" \
+	-v "$default_dev_hugepage":/dev/hugepages  \
+	--cap-add=SYS_RAWIO --cap-add IPC_LOCK \
+	--cap-add NET_ADMIN --cap-add SYS_ADMIN \
+	--cap-add SYS_NICE \
+	--rm \
+	-i -t $default_img_name /bin/bash -c \
+	"dpdk-devbind.py -b '$default_kmod' '$vf_target_device' || true && /bin/bash"
+```
+
+```bash
+modprobe $default_kmod && modprobe $default_kmod enable_sriov=1 && \
+ echo "Using device $vf_target_device" && \
+	docker run --privileged --name "$container_name" --device="/sys/bus/pci/devices/*" \
+	-v "$default_dev_hugepage":/dev/hugepages  \
+	--cap-add=SYS_RAWIO --cap-add IPC_LOCK \
+	--cap-add NET_ADMIN --cap-add SYS_ADMIN \
+	--cap-add SYS_NICE \
+	--rm \
+	-i -t $default_img_name /bin/bash -c \
+	"dpdk-devbind.py -b '$default_kmod' '$vf_target_device' || true && sleep 2 && /bin/bash"
+```
+
+Create project
+
+```bash
+mkdir /root/devices
+touch /root/devices/main.c
+touch /root/devices/Makefile
+
+```
+
+Example code that bind to same PCI device used in other example
+and print mac address and tx and rq queue.
+
+Add this code in /root/devices/main.c
+
+```C
+/**
+Example bind to a target device and print mac and TX/RQ queue
+
+Mus mbayramov@vmware.com
+*/
+#include <getopt.h>
+#include <inttypes.h>
+#include <rte_common.h>
+#include <rte_cycles.h>
+#include <rte_eal.h>
+#include <rte_ethdev.h>
+#include <rte_interrupts.h>
+#include <rte_launch.h>
+#include <rte_lcore.h>
+#include <rte_log.h>
+#include <rte_malloc.h>
+#include <rte_memcpy.h>
+#include <rte_memory.h>
+#include <rte_per_lcore.h>
+#include <rte_prefetch.h>
+#include <rte_random.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/queue.h>
+#include <sys/types.h>
+
+int main(int argc, char* argv[]) {
+	int ret;
+	uint8_t nb_ports, portid;
+
+	ret = rte_eal_init(argc, argv);
+	if (ret < 0) {
+		rte_exit(EXIT_FAILURE, "Error with EAL initialization\n");
+	}
+
+	nb_ports = rte_eth_dev_count_avail();
+	printf("Number of available Ethernet ports: %" PRIu8 "\n", nb_ports);
+
+	for (portid = 0; portid < nb_ports; portid++) {
+		struct rte_ether_addr addr;
+		struct rte_eth_dev_info dev_info;
+
+		// Retrieve the MAC address of the port.
+		rte_eth_macaddr_get(portid, &addr);
+
+		// Print the MAC address.
+		printf("Port %u MAC: %02" PRIx8 ":%02" PRIx8 ":%02" PRIx8
+		       ":%02" PRIx8 ":%02" PRIx8 ":%02" PRIx8 "\n",
+		       (unsigned)portid, addr.addr_bytes[0], addr.addr_bytes[1],
+		       addr.addr_bytes[2], addr.addr_bytes[3],
+		       addr.addr_bytes[4], addr.addr_bytes[5]);
+
+		// retrieve and print the number of RX and TX queues
+		uint16_t nb_rx_queues, nb_tx_queues;
+		rte_eth_dev_info_get(portid, &dev_info);
+		nb_rx_queues = dev_info.nb_rx_queues;
+		nb_tx_queues = dev_info.nb_tx_queues;
+		printf("Port %u: Number of RX queues: %" PRIu16
+		       ", Number of TX queues: %" PRIu16 "\n",
+		       (unsigned)portid, nb_rx_queues, nb_tx_queues);
+	}
+
+	rte_eal_cleanup();
+	return 0;
+}
+```
+
+Add this code in /root/devices/Makefile
+cd /root/devices && make
+
+```
+APP = devices
+
+# all source are stored in SRCS-y
+SRCS-y := main.c
+
+PKGCONF ?= pkg-config
+
+# Build using pkg-config variables if possible
+ifneq ($(shell $(PKGCONF) --exists libdpdk && echo 0),0)
+    $(error "no installation of DPDK found")
+endif
+
+all: shared
+.PHONY: shared static
+
+shared: build/$(APP)-shared
+    ln -sf $(APP)-shared build/$(APP)
+
+static: build/$(APP)-static
+    ln -sf $(APP)-static build/$(APP)
+
+PC_FILE := $(shell $(PKGCONF) --path libdpdk 2>/dev/null)
+CFLAGS += -O3 $(shell $(PKGCONF) --cflags libdpdk)
+CFLAGS += -DALLOW_EXPERIMENTAL_API
+LDFLAGS_SHARED = $(shell $(PKGCONF) --libs libdpdk)
+LDFLAGS_STATIC = $(shell $(PKGCONF) --static --libs libdpdk)
+
+ifeq ($(MAKECMDGOALS),static)
+    # check for broken pkg-config
+    ifeq ($(shell echo $(LDFLAGS_STATIC) | grep 'whole-archive.*l:lib.*no-whole-archive'),)
+        $(warning "pkg-config output list does not contain drivers between 'whole-archive'/'no-whole-archive' flags.")
+        $(error "Cannot generate statically-linked binaries with this version of pkg-config")
+    endif
+endif
+
+build/$(APP)-shared: $(SRCS-y) Makefile $(PC_FILE) | build
+    $(CC) $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS) $(LDFLAGS_SHARED)
+
+build/$(APP)-static: $(SRCS-y) Makefile $(PC_FILE) | build
+    $(CC) $(CFLAGS) $(SRCS-y) -o $@ $(LDFLAGS) $(LDFLAGS_STATIC)
+
+build:
+    @mkdir -p $@
+
+.PHONY: clean
+clean:
+    rm -f build/$(APP) build/$(APP)-static build/$(APP)-shared
+    test -d build && rmdir -p build || true
+```
+
+build/devices
+
+```bash
+EAL: Detected CPU lcores: 96
+EAL: Detected NUMA nodes: 4
+EAL: Detected shared linkage of DPDK
+EAL: Multi-process socket /var/run/dpdk/rte/mp_socket
+EAL: Selected IOVA mode 'PA'
+EAL: No free 2048 kB hugepages reported on node 1
+EAL: No free 2048 kB hugepages reported on node 2
+EAL: No free 2048 kB hugepages reported on node 3
+EAL: VFIO support initialized
+EAL: Using IOMMU type 8 (No-IOMMU)
+EAL: Probe PCI driver: net_iavf (8086:154c) device: 0000:03:02.0 (socket 0)
+TELEMETRY: No legacy callbacks, legacy socket not created
+Number of available Ethernet ports: 1
+Port 0 MAC: d6:60:60:18:dc:6b
+```
