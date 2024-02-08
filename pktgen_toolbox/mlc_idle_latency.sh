@@ -7,3 +7,5 @@ for size in "${BUFFER_SIZE[@]}"
 do
     /root/mlc/Linux/mlc --idle_latency -t10 -b"${size}"m | grep -oP '(?<=\().*(?=ns)' >> "output_idle_latency.txt"
 done
+
+cat /output_idle_latency.txt
