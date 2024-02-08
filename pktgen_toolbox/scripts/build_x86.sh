@@ -6,3 +6,5 @@ docker buildx build \
 	-t cnfdemo.io/spyroot/pktgen_toolbox:latest ../
 
 docker tag cnfdemo.io/spyroot/pktgen_toolbox:latest spyroot/pktgen_toolbox:latest
+docker rmi cnfdemo.io/spyroot/pktgen_toolbox
+
