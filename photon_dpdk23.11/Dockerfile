@@ -100,6 +100,7 @@ FROM library/photon
 LABEL maintainer="Mustafa Bayramov <spyroot@gmail.com>"
 LABEL description="A DPDK 23.11 LTS with pkt gen and photon OS"
 ARG MESON_ARGS="-Dplatform=generic"
+RUN date
 
 # Install library.
 RUN tdnf install yum
