@@ -1,6 +1,10 @@
+# Author Mustafa Bayramov
+# This image uses as base photon_dpdk23.11 build
+
+
 FROM spyroot/dpdk_native_tester:latest
 LABEL maintainer="Mustafa Bayramov <spyroot@gmail.com>"
-LABEL description="A DPDK 23.11 LTS with pkt gen and photon OS"
+LABEL description="A packet generation and dev toolbox"
 
 RUN yum install -y lua lua-devel lua-libs \
 	ncurses ncurses-devel ncurses-compat ncurses-libs ncurses-terminfo
