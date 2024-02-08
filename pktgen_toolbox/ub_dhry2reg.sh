@@ -1,0 +1,1 @@
+cd ~/unixbench/UnixBench && ./Run dhry2reg
