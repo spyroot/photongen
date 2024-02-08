@@ -19,4 +19,5 @@ fio --name=write_iops \
 --rw=randwrite \
 --group_reporting=1  \
 --iodepth_batch_submit="${IODEPTH_BATCH_SUBMIT:-256}"  \
---iodepth_batch_complete_max="${IODEPTH_BATCH_COMPLETE_MAX:-256}"
+--iodepth_batch_complete_max="${IODEPTH_BATCH_COMPLETE_MAX:-256}" \
+--output-format json

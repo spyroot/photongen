@@ -19,4 +19,5 @@ fio --name=read_throughput \
 --iodepth="${IODEPTH:-64}" --rw=read \
 --group_reporting=1 \
 --iodepth_batch_submit="${IODEPTH_BATCH_SUBMIT:-64}" \
---iodepth_batch_complete_max="${IODEPTH_BATCH_COMPLETE_MAX:-64}"
+--iodepth_batch_complete_max="${IODEPTH_BATCH_COMPLETE_MAX:-64}" \
+--output-format json
