@@ -70,7 +70,9 @@ First make sure you have latest driver.
 
 - Download, extract, build, and install i40e
 - Download, extract, build, and install iavf
-- at end we verify that we have right version loaded.
+- and verify that we have right version loaded.
+
+This latest driver as for Feb 2024
 
 ```bash
 export version_i40e="2.24.6"
@@ -88,13 +90,21 @@ make && make install
 
 modinfo i40e | grep "$version_i40e"
 modinfo iavf | grep "$version_iavf"
-
 ```
 
-## Option secure boot ( Be careful this path for Ubunty host)
+## Optional step for secure boot and signing kernel modules. 
+
+Please note that the specified path is intended for Ubuntu hosts. 
+If you are using a different Linux distribution, ensure you locate the directory where the 
+key for signing other kernel modules is stored
+
+* Initially, we sign both modules.
+* Verification of the kernel module signature is crucial; otherwise, errors may occur.
+* We inspect the dmesg log for signature validation.
+* Subsequently, we unload the old driver and load the new kernel modules.
+* Please be aware that during loading and unloading, especially if done remotely, there is a risk of disconnection.
 
 ```bash
-
 /lib/modules/$(uname -r)/updates/drivers/net/ethernet/intel/i40e/i40e.ko
 /lib/modules/$(uname -r)/updates/drivers/net/ethernet/intel/iavf/iavf.ko
 
@@ -117,11 +127,15 @@ dmesg | grep -i signature
 
 # now we can load. load first iavf since i40e might your primary card
 # used to ssh to a host
-modinfo iavf | grep "$version_iavf" && rmmod -f iavf && modprobe iavf
+modinfo iavf | grep "$version_iavf" && rmmod -f iavf || true&& modprobe iavf &
 
 # after this command you might lss connection
-modinfo i40e | grep "$version_i40e" && rmmod -f i40e && modprobe i40e
+modinfo i40e | grep "$version_i40e" && rmmod -f i40e || true && modprobe i40e &
 ```
+
+### Hugepages
+
+This is a very basic setup.
 
 ```bash
 hpagesize=1024
@@ -130,20 +144,32 @@ mountpoint -q /dev/hugepages || mount -t hugetlbfs nodev /dev/hugepages
 echo $hpagesize > /sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages
 ```
 
-Verify all VS
 
-We expose the local sysfs and devfs. Please note that the device and MAC address mentioned 
-here are for illustrative purposes only. Additionally, we are utilizing UIO (Userspace I/O) 
-in this scenario. If the container is running inside a virtual machine, 
-you can utilize IOMMU (Input-Output Memory Management Unit) for enhanced performance.
+In the subsequent step, we begin by selecting the target network adapter and enabling 
+8 virtual functions. This ensures that even if you have only one adapter, you can still conduct a basic test.
 
+We then expose the local sysfs and devfs to the target container.
+
+It's important to note that the device and MAC addresses mentioned here are purely for 
+illustrative purposes. Additionally, we're utilizing UIO (Userspace I/O) and VFIO_PCI.
+
+In the first scenario, we leverage VFIO_PCI kernel interface. 
+Please If the container is running inside a virtual machine, you have the option 
+to utilize IOMMU (Input-Output Memory Management Unit) for enhanced performance.
+
+It's worth noting that in this step, we load VFIO_PCI without IO MMU support 
+for testing purposes. This approach ensures that you can bind to a VF within 
+a container without making any changes to the actual OS. It only 
+simply assumes that you have a relatively modern OS with 
+VFIO_PCI support.
+
+In follow first scenario we indicate step required for UIO (Userspace I/O).
 
 
 ```bash
 
 export default_device0="/dev/uio0"
 export default_adapter="eno1"
-
 export default_peer_mac=$(ip addr show $default_adapter | awk '/ether/{print $2}')
 export target_device=$(ethtool -i $default_adapter | awk '/bus-info/{print $2}')
 export default_forward_mode="txonly"
@@ -158,8 +184,11 @@ export default_kmod="vfio-pci"
 
 ```
 
-In our example we are using VF , hence we first create 8 VFs , we set all VF to trusted mode and disable spoof check
-we store a VF mac address and vf_local_name a vf local interface name
+In our example, we are utilizing Virtual Functions (VFs). Therefore, we begin 
+by creating 8 VFs on the target adapter. In the example below, the parent adapter PF is named eno1.
+
+We set all VFs to trusted mode and disable spoof check. 
+Additionally, we store a VF MAC address and VF local interface name (vf_local_name).
 
 ```bash
 ip link show $default_adapter
@@ -170,9 +199,9 @@ export vf_target_device=$(ethtool -i $vf_local_name | awk '/bus-info/{print $2}'
 echo "VF mac $vf_mac_address, VF ifname $vf_local_name, VF pci addr $vf_target_device"
 ```
 
-To bind to a DPDK device, either bind to an existing binding or check for an existing binding. 
-Note that binding can occur either in the guest OS or inside a container, depending on the specific use 
-case and the PMD (Poll Mode Driver) being utilized.
+To bind to a DPDK device, either bind to an VF binding or check for an existing binding. 
+Note that binding can occur either in the guest OS or inside a container, depending on 
+the specific use case and the PMD (Poll Mode Driver) being utilized.
 
 ```bash
 modprobe $default_kmod && modprobe $default_kmod enable_sriov=1 && \
@@ -194,7 +223,6 @@ This command should output something along this line.
 0000:03:02.1 'Ethernet Virtual Function 700 Series 154c' if= drv=iavf unused=vfio-pci
 ```
 
-
 This script first ensures that the necessary kernel modules are loaded and SR-IOV is enabled. 
 Then it starts a Docker container to bind the VF device, waits for a few seconds, 
 prints the current device binding status, stops and removes the Docker 
@@ -215,7 +243,10 @@ modprobe $default_kmod && modprobe $default_kmod enable_sriov=1 && \
 		sleep 2
 ```
 
-Here we construct NUMA node that we later pass to pktgen.  Note you should use bash or sh
+Here we select a numa node we index to 0 element and 
+construct NUMA cores list that we later pass to pktgen and test pmd.
+
+Please note you should use bash or sh. 
 
 ```bash
 export NUMA_NODES=$(numactl --hardware | grep cpus | tr -cd "[:digit:] \n")
