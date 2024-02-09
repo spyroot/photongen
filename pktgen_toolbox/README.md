@@ -23,6 +23,53 @@ THe base os VMware Photon OS 5.0
 
 ## Usage
 
+Please check all scripts in scripts folder.
+
+### MLC memory latency
+
+```bash
+./run_mlc_peak_inject_bw.sh
+```
+
+This script invokes Intel MLC tool. The Intel's Memory Latency Checker (MLC) is a tool 
+designed to measure the memory bandwidth and latency of Intel processors.
+It can test the bandwidth between caches and main memory, and the latency of memory accesses.
+The tool provides a way to measure the capabilities of memory subsystems across various
+CPU generations and configurations.
+
+Memory Bandwidth: The rate at which data can be read from or stored into memory by a processor. 
+High bandwidth is essential for applications that process large amounts of data.
+
+Memory Latency: The delay time between a request to access memory and the moment the data 
+is available to the processor. Lower latency is crucial for performance-sensitive applications.
+
+#### Environment Variables and Their Effects
+When running the MLC tool within a Docker container, as in the provided command,
+the behavior of the tool can be customized through environment variables:
+
+BUFFER_SIZE: Specifies a list of buffer sizes in megabytes for the test. 
+Buffer size impacts the amount of data MLC attempts to read or write in memory during the test. Larger buffers might show how the system performs under heavy load, while smaller ones can highlight latency characteristics for smaller, more frequent accesses. Example: "8 16" sets buffer sizes to 8MB and 16MB.
+STRIDE: Determines the gap between successive memory accesses in the test. 
+
+A larger stride might bypass cache memory, forcing direct accesses to main 
+memory and thus highlighting different bandwidth and latency characteristics. 
+Example: "24 32" sets stride sizes to 24 and 32.
+
+CONSOLE_OUT: A flag to control whether the test results should be printed to the console. 
+Setting this variable to "true" makes the script output the results directly 
+to the terminal, allowing for immediate inspection without needing to open the 
+output file. This is particularly useful for quick tests or when running 
+the container interactively.
+
+```bash
+docker run \
+-e BUFFER_SIZE="8 16" \
+-e STRIDE="24 32" \
+-e CONSOLE_OUT="true" \
+-it --privileged --rm \
+spyroot/pktgen_toolbox:latest /bin/bash -c "/mlc_peak_inject_bw.sh"
+```
+
 ### Packet Gen
 
 ### Devices

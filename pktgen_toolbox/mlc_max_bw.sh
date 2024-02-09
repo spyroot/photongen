@@ -71,13 +71,15 @@ for stride in "${STRIDE[@]}"
 do
   for bs in "${BUFFER_SIZE[@]}"
   do
-    echo "Running for buffer ${bs}m stride ${stride} cores ${cores_str}"
+    echo "- Running for buffer ${bs}m stride ${stride} cores ${cores_str}"
     mlc_command="/root/mlc/Linux/mlc --max_bandwidth -t1 -b${bs}m ${if_per_cores}"
     rw=$(eval "$mlc_command" | awk -v bs="$bs" \
     -v cores="$cores_str" '/ALL Reads/ {flag=1} flag {print "size " bs ", cores " cores ", " $0}')
     echo "$rw" | awk '/size [0-9]+, cores [^,]+, .+:/ {print}' >> "$OUTPUT_PATH_FILE"
   done
 done
+
+cat "$OUTPUT_PATH_FILE"
 
 awk '{
 # Match lines and extract parts

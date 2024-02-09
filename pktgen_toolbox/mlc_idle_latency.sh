@@ -56,7 +56,7 @@ for stride in "${STRIDE[@]}"
 do
   for size in "${BUFFER_SIZE[@]}"
   do
-    echo "Running for buffer ${size}m stride ${stride}"
+    echo "- Running for buffer ${size}m stride ${stride}"
     latency=$(/root/mlc/Linux/mlc --idle_latency -t10 -b"${size}"m -l"${stride}" | grep -oP '(?<=\().*(?=ns)' | sed 's/ //g') && \
       echo "${latency}ns - ${size}MB - ${stride}" >> "/output_idle_latency.txt"
   done
