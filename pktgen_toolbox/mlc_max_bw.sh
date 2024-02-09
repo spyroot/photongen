@@ -56,8 +56,8 @@ else
     STRIDE=(8 16 24 32 64 128)
 fi
 
-if [[ -n "$cores" ]]; then
-    IFS=' ' read -r -a cores <<< "$cores"
+if [[ -n "$CORES" ]]; then
+    IFS=' ' read -r -a cores <<< "$CORES"
     cores_str="${cores[*]}"
     if_per_cores="-k$cores_str"
 else
