@@ -134,6 +134,67 @@ ALL Reads        , 16, 2-3, 49945.12
 Stream-triad like, 16, 2-3, 61238.47
 ```
 
+### Storage and IO tests
+
+Sequential read
+
+```bash
+./run_fio_seq_read.sh
+```
+
+This trim version but for each job we can get details stats
+
+```json
+{
+  "fio version" : "fio-3.33",
+  "timestamp" : 1707442887,
+  "timestamp_ms" : 1707442887053,
+  "time" : "Fri Feb  9 01:41:27 2024",
+  "jobs" : [
+    {
+      "jobname": "read_throughput",
+      "groupid": 0,
+      "error": 0,
+      "eta": 0,
+      "elapsed": 63,
+      "job options": {
+        "name": "read_throughput",
+        "directory": "/tmp",
+        "numjobs": "16",
+        "size": "10G",
+        "runtime": "60s",
+        "ramp_time": "2s",
+        "ioengine": "libaio",
+        "direct": "1",
+        "verify": "0",
+        "bs": "1M",
+        "iodepth": "64",
+        "rw": "read",
+        "group_reporting": "1",
+        "iodepth_batch": "64",
+        "iodepth_batch_complete_max": "64"
+      },
+      "read": {
+        "io_bytes": 215883972608,
+        "io_kbytes": 210824192,
+        "bw_bytes": 3579987274,
+        "bw": 3496081,
+        "iops": 3397.426330,
+        "runtime": 60303,
+        "total_ios": 204875,
+        "short_ios": 0,
+        "drop_ios": 0,
+        "slat_ns": {
+          "min": 20975,
+          "max": 204523,
+          "mean": 75041.056420,
+          "stddev": 7613.382214,
+          "N": 204875
+        }
+      }
+    }
+}
+```
 ### Packet Gen
 
 ### Devices
