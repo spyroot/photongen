@@ -72,9 +72,42 @@ the container interactively.
 docker run \
 -e BUFFER_SIZE="8 16" \
 -e STRIDE="24 32" \
+-e CORES="2-3"
 -e CONSOLE_OUT="true" \
 -it --privileged --rm \
 spyroot/pktgen_toolbox:latest /bin/bash -c "/mlc_peak_inject_bw.sh"
+```
+
+Example output at end we get cvs that we can plot
+
+```bash
+Running peak injection bandwidth tests for buffer sizes: 8 16 and strides: 24 32 with cores: 2-3
+- Running for buffer 8m stride 24 cores 2-3
+- Running for buffer 16m stride 24 cores 2-3
+- Running for buffer 8m stride 32 cores 2-3
+- Running for buffer 16m stride 32 cores 2-3
+CSV file created: /output_peak_injection_bandwidth.csv
+Displaying CSV file contents due to CONSOLE_OUT being set:
+ALL Reads        , 8, 2-3, 65124.9
+3:1 Reads-Writes , 8, 2-3, 81412.6
+2:1 Reads-Writes , 8, 2-3, 78044.5
+1:1 Reads-Writes , 8, 2-3, 110839.6
+Stream-triad like, 8, 2-3, 78399.1
+ALL Reads        , 16, 2-3, 50011.8
+3:1 Reads-Writes , 16, 2-3, 62360.3
+2:1 Reads-Writes , 16, 2-3, 52736.9
+1:1 Reads-Writes , 16, 2-3, 93439.8
+Stream-triad like, 16, 2-3, 61942.0
+ALL Reads        , 8, 2-3, 64762.9
+3:1 Reads-Writes , 8, 2-3, 81537.8
+2:1 Reads-Writes , 8, 2-3, 78034.9
+1:1 Reads-Writes , 8, 2-3, 110847.5
+Stream-triad like, 8, 2-3, 78344.9
+ALL Reads        , 16, 2-3, 50088.0
+3:1 Reads-Writes , 16, 2-3, 62400.7
+2:1 Reads-Writes , 16, 2-3, 53746.8
+1:1 Reads-Writes , 16, 2-3, 93401.3
+Stream-triad like, 16, 2-3, 61643.5
 ```
 
 ### Max Bandwitch
