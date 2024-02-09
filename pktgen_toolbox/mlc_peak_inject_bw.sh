@@ -41,7 +41,7 @@
 OUTPUT_PATH_FILE="/output_peak_injection_bandwidth.txt"
 > "$OUTPUT_PATH_FILE"
 
-CSV_FILE="/output_peak_injection_bandwidth.csv"
+CSV_FILE="${CSV_OUTPUT_PATH:-/output_peak_injection_bandwidth.csv}"
 > "$CSV_FILE"
 
 if [[ -n "$BUFFER_SIZE" ]]; then
@@ -91,4 +91,9 @@ if (match($0, /size ([0-9]+), cores ([^,]+), (.+):[[:space:]]+([0-9.]+)/, arr)) 
 }' "$OUTPUT_PATH_FILE" > "$CSV_FILE"
 
 echo "CSV file created: $CSV_FILE"
-cat "$CSV_FILE"
+
+if [[ -n "$CONSOLE_OUT" ]]; then
+    echo "Displaying CSV file contents due to CONSOLE_OUT being set:"
+    cat "$CSV_FILE"
+fi
+
