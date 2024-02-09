@@ -114,13 +114,24 @@ Stream-triad like, 16, 2-3, 61643.5
 
 Measure maximum Bandwitch
 
+Example stride one
+
 ```bash
-docker run \
--e BUFFER_SIZE="8 16" \
--e STRIDE="24 32" \
--e CONSOLE_OUT="true" \
--it --privileged --rm \
-spyroot/pktgen_toolbox:latest /bin/bash -c "/mlc_max_bw.sh"
+./run_mlc_max_bw_stride_one.sh                                                          
+Running max bandwidth tests for buffer sizes: 8 16 and strides: 1 with cores: 2-3
+- Running for buffer 8m stride 1 cores 2-3
+- Running for buffer 16m stride 1 cores 2-3
+Displaying CSV file contents due to CONSOLE_OUT being set:
+ALL Reads        , 8, 2-3, 65194.33
+3:1 Reads-Writes , 8, 2-3, 81248.84
+2:1 Reads-Writes , 8, 2-3, 77943.26
+1:1 Reads-Writes , 8, 2-3, 110804.35
+Stream-triad like, 8, 2-3, 77739.80
+ALL Reads        , 16, 2-3, 49945.12
+3:1 Reads-Writes , 16, 2-3, 61381.74
+2:1 Reads-Writes , 16, 2-3, 42431.49
+1:1 Reads-Writes , 16, 2-3, 93461.18
+Stream-triad like, 16, 2-3, 61238.47
 ```
 
 ### Packet Gen
