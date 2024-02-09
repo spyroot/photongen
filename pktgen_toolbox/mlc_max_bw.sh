@@ -41,6 +41,9 @@
 OUTPUT_PATH_FILE="/output_max_bandwidth.txt"
 > "$OUTPUT_PATH_FILE"
 
+CSV_FILE="/output_max_bandwidth.csv"
+> "$CSV_FILE"
+
 if [[ -n "$BUFFER_SIZE" ]]; then
     IFS=' ' read -r -a BUFFER_SIZE <<< "$BUFFER_SIZE"
 else
@@ -76,4 +79,13 @@ do
   done
 done
 
-cat "$OUTPUT_PATH_FILE"
+awk '{
+# Match lines and extract parts
+if (match($0, /size ([0-9]+), cores ([^,]+), (.+):[[:space:]]+([0-9.]+)/, arr)) {
+	# Write to CSV format: Test Type, Buffer Size, Cores, Value
+	print arr[3] ", " arr[1] ", " arr[2] ", " arr[4]
+}
+}' "$OUTPUT_PATH_FILE" > "$CSV_FILE"
+
+echo "CSV file created: $CSV_FILE"
+cat "$CSV_FILE"

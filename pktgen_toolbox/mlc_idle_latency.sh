@@ -49,8 +49,9 @@ else
 	STRIDE=(8 16 24 32 64 128)
 fi
 
-echo "Running idle latency tests for buffer sizes: ${BUFFER_SIZE[*]} and strides: ${STRIDE[*]}"
-# collect for over each stride and buffer size
+echo "Running idle latency tests for \
+buffer sizes: ${BUFFER_SIZE[*]} and strides: ${STRIDE[*]}"
+
 for stride in "${STRIDE[@]}"
 do
   for size in "${BUFFER_SIZE[@]}"
