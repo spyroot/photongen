@@ -79,8 +79,6 @@ do
   done
 done
 
-cat "$OUTPUT_PATH_FILE"
-
 awk '{
 # Match lines and extract parts
 if (match($0, /size ([0-9]+), cores ([^,]+), (.+):[[:space:]]+([0-9.]+)/, arr)) {

@@ -14,7 +14,7 @@
 #   STRIDE      - A space-separated list of stride sizes. The stride size
 #                 determines the gap between successive memory accesses.
 #                 Example: "8 16 24 32"
-#   cores       - A space-separated list of CPU cores on which the test should
+#   CORES       - A space-separated list of CPU cores on which the test should
 #                 be run. This controls the core affinity for the test.
 #                 Example: "0 1 2 3"
 #
@@ -56,8 +56,8 @@ else
     STRIDE=(8 16 24 32 64 128)
 fi
 
-if [[ -n "$cores" ]]; then
-    IFS=' ' read -r -a cores <<< "$cores"
+if [[ -n "$CORES" ]]; then
+    IFS=' ' read -r -a cores <<< "$CORES"
     cores_str="${cores[*]}"
     if_per_cores="-k$cores_str"
 else
@@ -81,8 +81,6 @@ do
     echo "$rw" | awk '/size [0-9]+, cores [^,]+, .+:/ {print}' >> "$OUTPUT_PATH_FILE"
   done
 done
-
-cat "$OUTPUT_PATH_FILE"
 
 awk '{
 # Match lines and extract parts

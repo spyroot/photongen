@@ -102,7 +102,7 @@ Network devices using kernel driver
 0000:03:00.1 'Ethernet Controller X710 for 10GBASE-T 15ff' if= drv=i40e unused=
 ```
 
-### DPDK Packege Gen
+### DPDK Packets Generator
 
 ```bash
 docker run -it --privileged --rm spyroot/dpdk_generic_tester pktgen --help
