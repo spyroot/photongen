@@ -122,8 +122,7 @@ docker run \
 -e TARGET_VFS="$SELECTED_VF" \
 -e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES" \
 -e ALLOCATE_SOCKET_MEMORY=ALLOCATE_SOCKET_MEMORY \
--it --privileged --rm \
-spyroot/pktgen_toolbox_generic:latest:latest /bin/bash
+-it --privileged --rm spyroot/pktgen_toolbox_generic:latest /bin/bash
 
 #pktgen \
 #-l 2-14 -n 4 --proc-type auto --log-level 7 --file-prefix pg -a 0000:23:02.0 -- -T -m "[4-7:10-13].0"
