@@ -52,7 +52,10 @@ IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
 unset IFS
 
 NUM_PORTS=${#PCI_LIST[@]}
+echo "Num ports mapping: $NUM_PORTS"
 NUM_WORKER_CORES=$((${#SORTED_CORES[@]} - 1))
+echo "Num worker cores mapping: $NUM_WORKER_CORES"
+
 CORES_PER_PORT=$((NUM_WORKER_CORES / NUM_PORTS))
 EXTRA_CORES=$((NUM_WORKER_CORES % NUM_PORTS))
 
