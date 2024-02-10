@@ -23,7 +23,6 @@
 #   socket from where we selected cores
 # Autor Mus spyroot@gmail.com
 
-echo "- Start on NUMA $NUMAS"
 
 # Check for environment variables and use defaults if not provided
 NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
@@ -34,7 +33,7 @@ NUM_CHANNELS=${NUM_CHANNELS:-2}
 NUMAS=${NUMAS:-""}
 DPDK_APP=${DPDK_APP:-pktgen}
 
-echo "- Start a on a numa $NUMAS"
+echo "- Start a on a numa node $NUMAS"
 # if hugepage is not 1G we assume it 2048KB
 if [ "$HUGEPAGE_SIZE" == "1G" ]; then
     HUGEPAGE_DIR="/dev/hugepages1G"
@@ -87,16 +86,16 @@ generate_core_mapping() {
 
 function allocate_hugepages_single() {
     echo "$NUM_HUGEPAGES" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
-    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages)"
-    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
+    echo " - Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages)"
+    echo " - Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
 }
 
 # Function to allocate hugepages for dual-socket system
 function allocate_hugepages_multi_socket() {
     for node in $NUMAS; do
         echo "$NUM_HUGEPAGES" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
-        echo "Number of hugepages for $node: $(< "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_SIZE}kB/nr_hugepages")"
-        echo "Total size of hugepages for $node: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages) * HUGEPAGE_SIZE )) kB"
+        echo " - Total Number of hugepages in numa $node: $(< "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_SIZE}kB/nr_hugepages")"
+        echo " - Total size of hugepages in numa   $node: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages) * HUGEPAGE_SIZE )) kB"
     done
 }
 
@@ -110,10 +109,8 @@ mount_huge_if_needed() {
 
     # Allocate hugepages based on system configuration
     if [ -z "$NUMAS" ]; then
-         echo "Single socket"
         allocate_hugepages_single
     else
-        echo "Allocate from NUMA $NUMAS"
         allocate_hugepages_multi_socket
     fi
 
