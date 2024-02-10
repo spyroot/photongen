@@ -207,7 +207,8 @@ if ! command -v dmidecode &> /dev/null; then
     exit 1
 fi
 
-NUM_CHANNELS=$(dmidecode -t memory | grep "Locator:" | grep Bank | sort -u | wc -l)
+NUM_CHANNELS=$(dmidecode -t memory dmidecode -t memory 2>/dev/null \
+| grep "Locator:" | grep Bank | sort -u | wc -l)
 
 docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
