@@ -222,4 +222,4 @@ docker run \
 -e SOCKET_MEMORY=$SOCKET_MEMORY \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -e NUM_CHANNELS="$NUM_CHANNELS" \
--it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh
+-it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh

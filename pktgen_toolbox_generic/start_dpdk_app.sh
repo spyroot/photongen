@@ -197,7 +197,7 @@ if [[ "$DPDK_APP" == "pktgen" ]]; then
     fi
 
     cmd=("${DPDK_APP}" "${dpdk_app_args[@]}" "--" "${pktgen_args[@]}")
-elif [[ "$DPDK_APP" == "testpmd" ]]; then
+elif [[ "$DPDK_APP" == "dpdk-testpmd" ]]; then
      # args that we compute for testpmd, the extra if client need pass anything
     testpmd_args=(
         "-i"
