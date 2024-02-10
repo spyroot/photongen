@@ -64,7 +64,7 @@ RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellche
 COPY *.sh /
 COPY yamllint_config ~/.config/yamllint/config
 
-RUN git git clone https://github.com/sharkdp/fd.git ~/fd_find && \
+RUN git clone https://github.com/sharkdp/fd.git ~/fd_find && \
     cd ~/fd_find && make && make install && cd / && ~/fd_find
 
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
