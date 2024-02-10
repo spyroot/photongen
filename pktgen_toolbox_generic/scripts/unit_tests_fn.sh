@@ -12,6 +12,7 @@ test_vf_mac_address() {
         "0000:03:02.0"
         "0000:03:02.4"
         ""
+        "0000:03"  # partial pci
       )
 
     # expected MAC addresses corresponding to the PCI addresses above
@@ -19,6 +20,7 @@ test_vf_mac_address() {
         "da:07:79:7a:69:54"
         "1a:50:a2:68:75:0b"
         "c2:3a:01:e2:c0:9c"
+        ""
         ""
     )
 
