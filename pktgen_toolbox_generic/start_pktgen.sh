@@ -24,6 +24,7 @@ NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
 HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
+NUM_CHANNELS=${HUGEPAGE_SIZE:-2}
 
 # This function spread all cores expect allocate to master
 # to all ports note it spread evently so each tx and rx get
