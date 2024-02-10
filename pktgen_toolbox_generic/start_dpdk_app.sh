@@ -29,7 +29,7 @@ HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 NUM_CHANNELS=${NUM_CHANNELS:-2}
-SOCKETS=""  # assume single socket if not specified
+SOCKETS=${SOCKETS:-""}
 DPDK_APP=${DPDK_APP:-pktgen}
 
 # if hugepage is not 1G we assume it 2048KB
