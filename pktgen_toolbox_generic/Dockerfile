@@ -13,7 +13,7 @@ RUN yum install -y tree lua lua-devel lua-libs \
     userspace-rcu userspace-rcu-devel libnetfilter_conntrack libsodium libsodium-devel \
     libnetconf2 libnetconf2-devel libnl libnl-devel \
     libnetfilter_conntrack-devel go rust cppcheck python3-autopep8  \
-    nodejs nodejs-devel fontconfig && \
+    nodejs nodejs-devel fontconfig socat && \
     yum clean all && \
     rm -rf /var/cache/yum
 
