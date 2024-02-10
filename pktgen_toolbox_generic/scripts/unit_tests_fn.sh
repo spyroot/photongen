@@ -183,7 +183,7 @@ function test_validate_numa() {
 #test_validate_numa
 
 # positive case all adapter in numa 0 for numa 0 ok for any other numa not ok
- positive_case_pci01=(
+positive_case_pci01=(
     "0000:03:00.0"  # pf
     "0000:03:00.1"  # vf
 )
