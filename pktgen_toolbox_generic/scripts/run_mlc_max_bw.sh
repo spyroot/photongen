@@ -4,4 +4,4 @@ docker run \
 -e CORES="2-3" \
 -e CONSOLE_OUT="true" \
 -it --privileged --rm \
-spyroot/pktgen_toolbox:latest /bin/bash -c "/mlc_max_bw.sh"
+spyroot/pktgen_toolbox_generic:latest /bin/bash -c "/mlc_max_bw.sh"

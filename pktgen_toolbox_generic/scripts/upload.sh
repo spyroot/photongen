@@ -1,1 +1,1 @@
-docker push spyroot/pktgen_toolbox:latest
+docker push spyroot/spyroot/pktgen_toolbox_generic:latest:latest

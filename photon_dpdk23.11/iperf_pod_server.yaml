@@ -1,24 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dpdkpod
+  name: iperf-server
   labels:
-    environment: dpdk_tester
-    app: dpdkpod
+    environment: iperf-server_tester
+    app: iperf-server
 spec:
-  replicas: 2
+  replicas: 3
   selector:
     matchLabels:
-      environment: dpdk_tester
-      app: dpdkpod
+      environment: iperf-server_tester
+      app: iperf-server
   template:
     metadata:
       labels:
-        environment: dpdk_tester
-        app: dpdkpod
+        environment: iperf-server_tester
+        app: iperf-server
     spec:
+      nodeName: wrk-np-q2fhg-5587ccf57fxxpfj9-j2gt9
       containers:
-      - name: dpdkpod
+      - name: iperf-server
         command: ["/bin/bash", "-c", "PID=; trap 'kill $PID' TERM INT; sleep infinity & PID=$!; wait $PID"]
         image: airgap.vmvo.registry.vf/registry/spyroot/pktgen_toolbox_generic
         imagePullPolicy: IfNotPresent
@@ -36,20 +37,14 @@ spec:
         - name: modules
           mountPath: /lib/modules
           readOnly: true
-        - mountPath: /hugepages-2Mi
-          name: hugepage-2mi
-        - mountPath: /hugepages-1Gi
-          name: hugepage-1gi
         resources:
           requests:
             cpu: "8"
-            intel.com/sriovdpdk: '1'
+            intel.com/sriovdirect: '1'
             memory: 8Gi
           limits:
             cpu: "8"
-            intel.com/sriovdpdk: '1'
-            hugepages-2Mi: 200Mi
-            hugepages-1Gi: 2Gi
+            intel.com/sriovdirect: '1'
             memory: 8Gi
       volumes:
       - name: sys
@@ -58,11 +53,5 @@ spec:
       - name: modules
         hostPath:
           path: /lib/modules
-      - name: hugepage-2mi
-        emptyDir:
-          medium: HugePages-2Mi
-      - name: hugepage-1gi
-        emptyDir:
-          medium: HugePages-1Gi
       nodeSelector:
         kubernetes.io/os: linux

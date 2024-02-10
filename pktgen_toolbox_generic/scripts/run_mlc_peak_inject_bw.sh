@@ -4,4 +4,4 @@ docker run \
 -e CORES="2-3" \
 -e CONSOLE_OUT="true" \
 -it --privileged --rm \
-spyroot/pktgen_toolbox:latest /bin/bash -c "/mlc_peak_inject_bw.sh"
+spyroot/pktgen_toolbox_generic:latest:latest /bin/bash -c "/mlc_peak_inject_bw.sh"

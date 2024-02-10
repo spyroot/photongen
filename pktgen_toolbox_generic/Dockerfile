@@ -1,18 +1,18 @@
 # Author Mustafa Bayramov
-# This image uses as base photon_dpdk23.11 build
+# This image uses as base photon_dpdk23.11 build it include dev tool chain and set of
+# tools to benchmark system including packet generation , IO , CPU and memory.
 
 
 FROM spyroot/dpdk_generic_tester:latest
 LABEL maintainer="Mustafa Bayramov <spyroot@gmail.com>"
-LABEL description="A packet generation and dev toolbox it include iperf3 , netsniff-ng , Intel MLC , fio ,  DPKD and many other tools"
+LABEL description="A packet generation and dev toolbox it include iperf3, netsniff-ng, Intel MLC, fio, DPKD and many other tools"
 
 RUN yum install -y lua lua-devel lua-libs \
 	fio python3-curses ncurses ncurses-devel \
 	ncurses-compat ncurses-libs ncurses-terminfo \
 	userspace-rcu userspace-rcu-devel libnetfilter_conntrack libsodium libsodium-devel \
- 	libnetconf2 libnetconf2-devel libnl libnl-devel \ 
+ 	libnetconf2 libnetconf2-devel libnl libnl-devel \
 	libnetfilter_conntrack-devel go rust cppcheck 
-
 
 WORKDIR /root/
 RUN git clone https://github.com/vim/vim.git && \
@@ -42,10 +42,13 @@ RUN bash ~/miniconda.sh -b -p $HOME/miniconda
 RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda init
 RUN yum install -y python3-curses && pip3 install 'glances[all]'
 
-RUN git clone https://github.com/libnet/libnet.git ~/libnet && cd ~/libnet && ./autogen.sh && ./configure > configure.log && make -j 32 && make install
-RUN git clone https://github.com/netsniff-ng/netsniff-ng.git ~/netsniff && cd ~/netsniff && ./configure > configure.log && make -j 32 && make install 
+RUN git clone https://github.com/libnet/libnet.git ~/libnet && cd ~/libnet && \
+    ./autogen.sh && ./configure > configure.log && make -j 32 && make install
+RUN git clone https://github.com/netsniff-ng/netsniff-ng.git ~/netsniff && \
+    cd ~/netsniff && ./configure > configure.log && make -j 32 && make install
 
-RUN rm -rf ~/mlc/Windows && rm -rf ~/mlc_v3.11.tgz && rm -rf /root/build && rm -rf /root/vim && rm -rf /root/intel-ipsec-mb
+RUN rm -rf ~/mlc/Windows && rm -rf ~/mlc_v3.11.tgz && \
+    rm -rf /root/build && rm -rf /root/vim && rm -rf /root/intel-ipsec-mb
 RUN yum clean all
 
 RUN git clone --recursive https://github.com/jqlang/jq.git ~/jq && \
@@ -58,8 +61,15 @@ COPY *.sh /
 
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
 ENV PATH="/root/go/bin:${PATH}"
+ENV TERM=xterm-256color
+ENV LC_CTYPE=UTF-8
+ENV COLORTERM=truecolor
+ENV LANG=en_US.UTF-8
+ENV LS_COLORS="di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43"
+ENV LSCOLORS=Gxfxcxdxbxegedabagacad
+ENV EDITOR=vim
 
 RUN vim -c "PlugUpdate" -c "qa!"
+
 WORKDIR /
 CMD ["ldconfig; /bin/bash"]
-
