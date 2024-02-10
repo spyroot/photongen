@@ -68,7 +68,7 @@ cores_from_numa(){
 # from numa 0, select 4 cores at random
 numa_node=0
 num_cores_to_select=4
-num_vf_to_select=3
+num_vf_to_select=2
 BUS_FILTER="0000:03"
 
 declare -a selected_target_vf
@@ -89,8 +89,10 @@ echo "available cores:"
 for core in "${core_list[@]}"; do echo "$core"
 done
 
+echo "Selected VF(s):"
+for vf in "${selected_target_vf[@]}"; do echo "$vf"; done
 
-echo "$selected_target_vf"
+#echo "$selected_target_vf"
 
 #docker run \
 #-e SELECTED_CORES=""$selected_cores"" \
