@@ -140,4 +140,4 @@ docker run \
 -e ALLOCATE_SOCKET_MEMORY="$ALLOCATE_SOCKET_MEMORY" \
 -e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
--it --privileged --rm spyroot/pktgen_toolbox_generic:latest /bin/bash
+-it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh
