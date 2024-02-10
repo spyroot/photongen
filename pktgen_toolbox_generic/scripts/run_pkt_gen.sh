@@ -68,7 +68,7 @@ cores_from_numa(){
 # from numa 0, select 4 cores at random
 numa_node=0
 num_cores_to_select=4
-num_vf_to_select=2
+num_vf_to_select=3
 BUS_FILTER="0000:03"
 
 declare -a selected_target_vf
