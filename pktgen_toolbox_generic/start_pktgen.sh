@@ -1,5 +1,9 @@
 #!/bin/bash
-# This a generic ELA wrapper receiver side.
+# This a generic DPDK ELA wrapper it receiver side.
+# mandatory ELA args and target app.
+#
+# Each target app can have own set of args.
+# We pass required one and all optional are in extra args.
 #
 # Most of all DPDK app require
 # a) list of core
@@ -26,6 +30,7 @@ HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 NUM_CHANNELS=${NUM_CHANNELS:-2}
 SOCKETS=""  # assume single socket if not specified
+DPDK_APP=${HUGEPAGE_MOUNT:-pktgen}
 
 # if hugepage is not 1G we assume it 2048KB
 if [ "$HUGEPAGE_SIZE" == "1G" ]; then
@@ -78,13 +83,13 @@ generate_core_mapping() {
 }
 
 function allocate_hugepages_single() {
-    echo "$NUM_HUGEPAGES_SINGLE" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+    echo "$NUM_HUGEPAGES" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
 }
 
 # Function to allocate hugepages for dual-socket system
 function allocate_hugepages_multi_socket() {
     for node in $SOCKETS; do
-        echo "$NUM_HUGEPAGES_DUAL" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+        echo "$NUM_HUGEPAGES" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
     done
 }
 
@@ -120,7 +125,7 @@ mount_huge_if_needed
 
 # Bind each target VF to the specified PMD
 for vf in $TARGET_VFS; do
-	echo "Binding $vf to $DPDK_PMD_TYPE"
+	echo "-Binding $vf to pmd type: $DPDK_PMD_TYPE"
 	dpdk-devbind.py --bind="$DPDK_PMD_TYPE" "$vf"
 done
 
@@ -129,7 +134,7 @@ for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
 done
 NUM_PORTS=$(( ${#PCI_LIST[@]} / 2 ))
 
-echo "Num ports mapping: $NUM_PORTS"
+echo "- Number of ports: $NUM_PORTS"
 read -ra CORES_ARRAY <<<"$SELECTED_CORES"
 IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
 unset IFS
@@ -139,35 +144,74 @@ WORKER_CORES=("${SORTED_CORES[@]:1:$NUM_WORKER_CORES}")
 SELECTED_WORKER_CORES=$(IFS=' '; echo "${WORKER_CORES[*]}"; IFS=$'\n')
 CORE_MAPPING=$(generate_core_mapping "$NUM_PORTS" "$SELECTED_WORKER_CORES")
 
-echo "Num worker cores mapping: $NUM_WORKER_CORES"
-echo "Core mapping: $CORE_MAPPING"
+echo " - Number of worker cores mapping: $NUM_WORKER_CORES"
+echo " - Core mapping: $CORE_MAPPING"
 
 CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
 
 echo "calling pktgen with CORE_LIST: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
 
-cmd=(pktgen -l "$CORE_LIST" \
--n "$NUM_CHANNELS" \
---proc-type auto \
---log-level "$LOG_LEVEL" \
-"${PCI_LIST[@]}")
+
+dpdk_app_args=(
+    "-l" "$CORE_LIST"
+    "-n" "$NUM_CHANNELS"
+    "--proc-type" "auto"
+    "--log-level" "$LOG_LEVEL"
+    "${PCI_LIST[@]}"
+)
 
 if [[ -n "$SOCKET_MEMORY" ]]; then
-    cmd+=(--socket-mem="$SOCKET_MEMORY")
+    dpdk_app_args+=("--socket-mem=$SOCKET_MEMORY")
 fi
+
+#cmd=($DPDK_APP -l "$CORE_LIST" \
+#-n "$NUM_CHANNELS" \
+#--proc-type auto \
+#--log-level "$LOG_LEVEL" \
+#"${PCI_LIST[@]}")
+
+#if [[ -n "$SOCKET_MEMORY" ]]; then
+#    cmd+=(--socket-mem="$SOCKET_MEMORY")
+#fi
 
 # legacy
 #if [[ -n "$ALLOCATE_SOCKET_MEMORY" ]]; then
 #    cmd+=(-m "$ALLOCATE_SOCKET_MEMORY")
 #fi
 
-cmd+=(-- -T)
-cmd+=(-m "$CORE_MAPPING")
+#cmd+=(-- -T)
+#cmd+=(-m "$CORE_MAPPING")
 
-if [[ -n "$EXTRA_ARGS" ]]; then
-    read -ra EXTRA_ARGS_ARR <<< "$EXTRA_ARGS"
-    cmd+=("${EXTRA_ARGS_ARR[@]}")
+if [[ "$DPDK_APP" == "pktgen" ]]; then
+   # args that we compute,  extra if client need pass anything
+    pktgen_args=(
+        "-T"
+        "-m" "$CORE_MAPPING"
+    )
+
+    if [[ -n "$EXTRA_ARGS" ]]; then
+        # extra args for pkt gen
+        read -ra EXTRA_ARGS_ARR <<< "$EXTRA_ARGS"
+        pktgen_args+=("${EXTRA_ARGS_ARR[@]}")
+    fi
+
+    cmd=("${DPDK_APP}" "${dpdk_app_args[@]}" "--" "${pktgen_args[@]}")
+elif [[ "$DPDK_APP" == "testpmd" ]]; then
+     # args that we compute for testpmd, the extra if client need pass anything
+    testpmd_args=(
+        "-i"
+    )
+    if [[ -n "$EXTRA_ARGS" ]]; then
+        # extra args for testpmd
+        read -ra EXTRA_ARGS_ARR <<< "$EXTRA_ARGS"
+        testpmd_args+=("${EXTRA_ARGS_ARR[@]}")
+    fi
+
+    cmd=("${DPDK_APP}" "${dpdk_app_args[@]}" "--" "${testpmd_args[@]}")
+else
+    echo "Unsupported DPDK application: $DPDK_APP"
+    exit 1
 fi
 
 echo "Executing command: ${cmd[*]}"

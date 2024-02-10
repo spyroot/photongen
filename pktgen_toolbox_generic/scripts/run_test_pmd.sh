@@ -188,7 +188,7 @@ docker run \
 -e NUM_HUGEPAGES="$NUM_HUGEPAGES" \
 -e HUGEPAGE_SIZE="$HUGEPAGE_SIZE" \
 -e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
--e DPDK_APP="start_testpmd" \
+-e DPDK_APP="testpmd" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_testpmd.sh
