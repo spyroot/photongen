@@ -9,11 +9,11 @@ num_cores_to_select=4
 num_vf_to_select=2
 BUS_FILTER="0000:03"
 ALLOCATE_SOCKET_MEMORY=64
+DPDK_PMD_TYPE=vfio-pci
 
 # Select vf based on PMD driver and PMD BUS
 # Note this function uses container ( you change to dpdk-devbind.py
 function select_vf_dpdk {
-    local DPDK_PMD_TYPE="vfio-pci"
     local BUS_FILTER="$1"
 
     local output="$(docker run -it --privileged --rm \
@@ -121,7 +121,8 @@ docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
 -e TARGET_VFS="$SELECTED_VF" \
 -e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES" \
--e ALLOCATE_SOCKET_MEMORY=ALLOCATE_SOCKET_MEMORY \
+-e ALLOCATE_SOCKET_MEMORY="$ALLOCATE_SOCKET_MEMORY" \
+-e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /bin/bash
 
 #pktgen \
@@ -141,3 +142,8 @@ docker run \
 
 #pktgen \
 #-l 2-14 -n 4 --proc-type auto --log-level 7 --file-prefix pg -a 0000:23:02.0 -- -T -m "[4-7:10-13].0"
+
+~
+~
+~
+~
