@@ -109,8 +109,8 @@ mount_huge_if_needed() {
     fi
 
     echo "Hugepages allocated and mounted successfully:"
-    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}"/nr_hugepages)"
-    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
+    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages)"
+    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
     echo "Current hugepages settings from /proc/meminfo:"
     grep -i hugepages /proc/meminfo
 }
