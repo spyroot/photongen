@@ -1,12 +1,28 @@
 #!/bin/bash
-# Set of utility function to work with NUMA , DPDK and pktgen
+# This a generic ELA wrapper.  Most of all DPDK app require
+# a) list of core
+# b) list of DPDK device
+# c) huge pages allocated for app
+# d) some sort of mapping core to port , or nxCore to TX and RX etc
 #
+# Hence this a generic wrapper that you can call before ELA
+# - to select N random core from a given NUMA
+# - to select N random VF from a some PF ( or consider all PFs)
+# - pass to a container original MAC ( note container doesn't need to bind to DPDK)
+#   if OS already did bind ( Multus etc) do that. it a bit hard to get MAC hence we need
+#   to see initial what kernel located via kernel driver
+#   hence based on SELECTED VF we construct SELECTED MAC
+#
+# - Memory that we want to pass. i.e a memory for particular
+#   socket from where we selected cores
 # Autor Mus spyroot@gmail.com
 
 # from numa 0, select 4 cores at random
 numa_node=0
 num_cores_to_select=4
 num_vf_to_select=2
+
+# our PF
 BUS_FILTER="0000:03"
 ALLOCATE_SOCKET_MEMORY=64
 DPDK_PMD_TYPE=vfio-pci
@@ -122,28 +138,6 @@ docker run \
 -e TARGET_VFS="$SELECTED_VF" \
 -e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES" \
 -e ALLOCATE_SOCKET_MEMORY="$ALLOCATE_SOCKET_MEMORY" \
+-e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /bin/bash
-
-#pktgen \
-#-l 2-14 -n 4 --proc-type auto --log-level 7 --file-prefix pg -a 0000:23:02.0 -- -T -m "[4-7:10-13].0"
-#
-#do echo "$vf";
-#done
-#
-#echo "Starting pkt gen selected cores $SELECTED_CORES selected VFs $SELECTED_VF"
-
-#echo "$selected_target_vf"
-#docker run \
-#-e SELECTED_CORES=""$selected_cores"" \
-#-e TARGET_VFS="$selected_vfs"
-#-it --privileged --rm \
-#spyroot/pktgen_toolbox_generic:latest:latest run_pktgen.sh
-
-#pktgen \
-#-l 2-14 -n 4 --proc-type auto --log-level 7 --file-prefix pg -a 0000:23:02.0 -- -T -m "[4-7:10-13].0"
-
-~
-~
-~
-~
