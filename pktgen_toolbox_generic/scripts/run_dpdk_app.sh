@@ -141,7 +141,6 @@ core_list() {
 #   $1: PCI address of the adapter
 # Outputs:
 #   Prints the NUMA node information for the adapter
-
 function adapter_numa() {
     local _pci_addr=$1
     adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
@@ -189,6 +188,25 @@ function vf_mac_address() {
     local _mac_address=$(dmesg | grep "$_pci_address" | \
     grep 'MAC' | awk '{print $NF}' | grep -Eo '([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}' | tail -n 1)
     echo "$_mac_address"
+}
+
+# Function to check if all network adapters are in the specified NUMA node
+# Args:
+#   $1: Selected target NUMA node
+#   $2: Array of selected network adapter PCI addresses
+# Outputs:
+#   Prints an error message if any adapter is not in the specified NUMA node
+validate_numa() {
+    local selected_numa=$1
+    local -n adapters=$2
+
+    for adapter in "${adapters[@]}"; do
+        local adapter_numa=$(adapter_numa "$adapter")
+        if [[ "$adapter_numa" != "$selected_numa" ]]; then
+            echo "Error: Adapter $adapter is not in NUMA node $selected_numa" >&2
+            exit 1
+        fi
+    done
 }
 
 if [[ ! $numa_node =~ ^[0-9]+$ ]]; then
@@ -248,6 +266,7 @@ for vf_pci_addr in "${selected_target_vf[@]}"; do
   device_mac_addresses+=("$(vf_mac_address "$vf_pci_addr")")
 done
 
+# we pass mac address downstream
 DEVICE_MAC_ADDRESSES=$(printf "%s " "${device_mac_addresses[@]}")
 DEVICE_MAC_ADDRESSES=${DEVICE_MAC_ADDRESSES% }
 export DEVICE_MAC_ADDRESSES
@@ -298,6 +317,8 @@ if (( numa_node > 0 )); then
 fi
 
 
+validate_numa "$numa_node" selected_target_vf
+
 docker_run_command=(docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
 -e TARGET_VFS="$SELECTED_VF" \
@@ -315,9 +336,5 @@ docker_run_command=(docker run \
 -it --privileged \
 --rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh)
 
-#for command_part in "${docker_run_command[@]}"; do
-#    echo "$command_part"
-#done
-2>/dev/null
 # Execute the docker run command
 "${docker_run_command[@]}"
