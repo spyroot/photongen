@@ -57,7 +57,7 @@ function test_adapter_numa() {
         "0000:03:00.0"
         "bd:00.1"
         "3f:01.0"
-        "0000:04:00.0"  # Non-existing PCI address for negative test
+        "0000:44:00.0"  # Non-existing PCI address for negative test
         "0000:03"       # Partial PCI address for negative test
         "0000:03:02:"   # Invalid PCI address for negative test
         "" # Invalid NUMA node for negative test
