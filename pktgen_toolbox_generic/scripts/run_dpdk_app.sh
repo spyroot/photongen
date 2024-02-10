@@ -241,12 +241,6 @@ if [[ $HUGEPAGE_SIZE != "1G" && $HUGEPAGE_SIZE != "2048" ]]; then
     usage
 fi
 
-# Validate hugepage mount point
-if [[ ! -d $HUGEPAGE_MOUNT ]]; then
-    echo "Error: Hugepage mount point '$HUGEPAGE_MOUNT' does not exist or is not a directory." >&2
-    usage
-fi
-
 docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
 -e TARGET_VFS="$SELECTED_VF" \
