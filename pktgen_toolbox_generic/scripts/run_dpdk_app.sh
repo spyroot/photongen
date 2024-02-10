@@ -196,17 +196,19 @@ function vf_mac_address() {
 #   $2: Array of selected network adapter PCI addresses
 # Outputs:
 #   Prints an error message if any adapter is not in the specified NUMA node
-validate_numa() {
-    local selected_numa=$1
-    local -n adapters=$2
-
-    for adapter in "${adapters[@]}"; do
-        local adapter_numa=$(adapter_numa "$adapter")
-        if [[ "$adapter_numa" != "$selected_numa" ]]; then
-            echo "Error: Adapter $adapter is not in NUMA node $selected_numa" >&2
-            exit 1
-        fi
-    done
+function adapter_numa() {
+    local _pci_addr=$1
+    local adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
+    if [ -z "$adapter_numa_node" ]; then
+        # NUMA node information is not available
+        echo "-1"
+    elif [[ "$adapter_numa_node" =~ ^[0-4]$ ]]; then
+        # NUMA node information is valid
+        echo "$adapter_numa_node"
+    else
+        # NUMA node information is invalid
+        echo "-1"
+    fi
 }
 
 if [[ ! $numa_node =~ ^[0-9]+$ ]]; then
