@@ -138,6 +138,11 @@ function test_validate_numa() {
     local negative_case_numa="0"  # NUMA node for negative cases
 
     local empty_array=()  # Empty array of network adapters
+    local invalid_numa="invalid_numa"  # Invalid NUMA node
+    local mixed_numa=(
+        "0000:03:00.0"  # pf in numa 0
+        "0000:40:00.1"  # gpu in numa 2
+    )
 
     # Test validate_numa function for positive cases
     if ! validate_numa "$positive_case_numa_numa01" positive_case_pci01; then
@@ -168,7 +173,22 @@ function test_validate_numa() {
     fi
 
     if validate_numa "$negative_case_numa" empty_array; then
-        echo "validate_numa test failed: Expected error for empty array case but function returned success"
+        echo "validate_numa test failed: Expected error for empty array case 4 but function returned success"
+        test_passed=false
+    fi
+
+    if validate_numa "$invalid_numa" positive_case_pci01; then
+        echo "validate_numa test failed: Expected error for invalid NUMA node case 5 but function returned success"
+        test_passed=false
+    fi
+
+    if validate_numa "$invalid_numa" positive_case_pci01; then
+        echo "validate_numa test failed: Expected error for invalid NUMA node case 6 but function returned success"
+        test_passed=false
+    fi
+
+    if validate_numa "$positive_case_numa_numa01" mixed_numa; then
+        echo "validate_numa test failed: Expected error for mixed NUMA nodes case 7 but function returned success"
         test_passed=false
     fi
 
