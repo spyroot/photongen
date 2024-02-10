@@ -48,8 +48,8 @@ generate_core_mapping() {
         TX_CORES=("${CORES_ARRAY[@]:$START_IDX + CORES_PER_TASK:$CORES_PER_TASK}")
 
         # Convert arrays to strings
-        RX_CORES_STR=$(IFS=','; echo "${RX_CORES[*]}"; IFS=' ')
-        TX_CORES_STR=$(IFS=','; echo "${TX_CORES[*]}"; IFS=' ')
+        RX_CORES_STR=$(IFS='/'; echo "${RX_CORES[*]}"; IFS=' ')
+        TX_CORES_STR=$(IFS='/'; echo "${TX_CORES[*]}"; IFS=' ')
 
         # Adjust formatting for single port scenario
         if [ "$NUM_PORTS" -eq 1 ]; then
