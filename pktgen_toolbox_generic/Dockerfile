@@ -65,7 +65,7 @@ COPY *.sh /
 COPY yamllint_config ~/.config/yamllint/config
 
 RUN git clone https://github.com/sharkdp/fd.git ~/fd_find && \
-    cd ~/fd_find && make && make install && cd / && ~/fd_find
+    cd ~/fd_find
 
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
 RUN go install github.com/justjanne/powerline-go@latest
