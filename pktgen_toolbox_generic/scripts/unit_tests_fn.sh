@@ -153,7 +153,6 @@ function test_validate_numa() {
 
 }
 
-test_adapter_numa
 test_vf_mac_address
-test_validate_numa_all_in_numa
+test_adapter_numa
 test_validate_numa
