@@ -105,7 +105,7 @@ ALL_CORES=${ALL_CORES% }
 export ALL_CORES
 
 
-echo "Starting pkt gen selected cores $SELECTED_VF selected VFs $SELECTED_VF"
+echo "Starting pkt gen selected cores $SELECTED_CORES selected VFs $SELECTED_VF"
 
 #echo "$selected_target_vf"
 #docker run \
