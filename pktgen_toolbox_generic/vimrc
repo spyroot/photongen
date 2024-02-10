@@ -19,7 +19,7 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'vim-ctrlspace/vim-ctrlspace'
 Plug 'cdelledonne/vim-cmake'
 
-let g:ycm_global_ycm_extra_conf = '/root/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf = '/root/.vim/plugged/YouCompleteMe/.ycm_extra_conf.py'
 
 call plug#end()
 
@@ -34,7 +34,7 @@ let g:python3_host_prog="/usr/bin/python3"
 
 let g:ycm_server_keep_logfiles = 1
 let g:ycm_server_log_level = 'debug'
-let g:ycm_global_ycm_extra_conf = '/root/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+let g:ycm_global_ycm_extra_conf = 'root/.vim/plugged/YouCompleteMe/.ycm_extra_conf.py'
 set encoding=utf-8
 
 au BufWrite * :Autoformat
