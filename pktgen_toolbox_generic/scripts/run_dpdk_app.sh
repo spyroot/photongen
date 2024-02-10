@@ -143,14 +143,13 @@ core_list() {
 #   Prints the NUMA node information for the adapter
 function adapter_numa() {
     local _pci_addr=$1
-    adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
-    echo "$adapter_numa_node"
+    local adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
     if [ -z "$adapter_numa_node" ]; then
-        # Print a message indicating that NUMA node information is not available
-        echo "Adapter NUMA node information is not available"
+        echo "-1"
+    elif [[ "$adapter_numa_node" =~ ^[0-4]$ ]]; then
+        echo "$adapter_numa_node"
     else
-        # Print the NUMA node information along with a descriptive message
-        echo "Adapter NUMA node: $adapter_numa_node"
+        echo "-1"
     fi
 }
 
@@ -158,7 +157,7 @@ function adapter_numa() {
 # of random CPU cores from a given NUMA node.
 # Use prefect multiplier for example one core per TX and RX on each port
 # for 2 port it 9 core total 1 for master 8 spread 1/2:3/4 and port 2 5/6:7/8
-cores_from_numa(){
+function cores_from_numa() {
 	local _numa_node=$1
 	local _num_cores_to_select=$2
 	local cpu_list_str=$(numactl -H | grep -E "^node $_numa_node cpus:" | cut -d: -f2)
@@ -192,23 +191,21 @@ function vf_mac_address() {
 
 # Function to check if all network adapters are in the specified NUMA node
 # Args:
-#   $1: Selected target NUMA node
+#   $1: Selected NUMA node
 #   $2: Array of selected network adapter PCI addresses
 # Outputs:
 #   Prints an error message if any adapter is not in the specified NUMA node
-function adapter_numa() {
-    local _pci_addr=$1
-    local adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
-    if [ -z "$adapter_numa_node" ]; then
-        # NUMA node information is not available
-        echo "-1"
-    elif [[ "$adapter_numa_node" =~ ^[0-4]$ ]]; then
-        # NUMA node information is valid
-        echo "$adapter_numa_node"
-    else
-        # NUMA node information is invalid
-        echo "-1"
-    fi
+function validate_numa() {
+    local selected_numa=$1
+    local -n adapters=$2
+
+    for adapter in "${adapters[@]}"; do
+        local adapter_numa=$(adapter_numa "$adapter")
+        if [[ "$adapter_numa" != "$selected_numa" ]]; then
+            echo "Error: Adapter $adapter is not in NUMA node $selected_numa" >&2
+            exit 1
+        fi
+    done
 }
 
 if [[ ! $numa_node =~ ^[0-9]+$ ]]; then
