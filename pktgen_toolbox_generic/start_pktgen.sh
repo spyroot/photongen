@@ -25,7 +25,9 @@ HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 
-
+# This function spread all cores expect allocate to master
+# to all ports note it spread evently so each tx and rx get
+# same number of cores on each port.
 generate_core_mapping() {
     local NUM_PORTS=$1
     local SELECTED_CORES=$2
@@ -79,6 +81,13 @@ if ! mountpoint -q "$HUGEPAGE_MOUNT"; then
 fi
 
 echo "Hugepages allocated and mounted successfully:"
+echo "Hugepages allocated and mounted successfully:"
+echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages)"
+echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages) * HUGEPAGE_SIZE / 1024 )) MB"
+
+# Additionally, you can show the current hugepages settings from /proc/meminfo
+echo "Current hugepages settings from /proc/meminfo:"
+grep -i hugepages /proc/meminfo
 
 # Bind each target VF to the specified PMD
 for vf in $TARGET_VFS; do

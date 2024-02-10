@@ -15,6 +15,7 @@
 #
 # - Memory that we want to pass. i.e a memory for particular
 #   socket from where we selected cores
+#
 # Autor Mus spyroot@gmail.com
 
 # from numa 0, select 4 cores at random
@@ -28,7 +29,7 @@ ALLOCATE_SOCKET_MEMORY=64
 DPDK_PMD_TYPE=vfio-pci
 
 NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
-HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
+HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 
 
@@ -42,6 +43,9 @@ usage() {
     echo "  -b <BUS_FILTER>                BUS filter for selecting VFs (default: $BUS_FILTER)"
     echo "  -m <ALLOCATE_SOCKET_MEMORY>    Memory to allocate per socket in MB (default: $ALLOCATE_SOCKET_MEMORY)"
     echo "  -p <DPDK_PMD_TYPE>             DPDK PMD type (default: $DPDK_PMD_TYPE)"
+    echo "  -g <NUM_HUGEPAGES>             Number of hugepages (default: $NUM_HUGEPAGES)"
+    echo "  -s <HUGEPAGE_SIZE>             Hugepage size in kB (default: $HUGEPAGE_SIZE)"
+    echo "  -t <HUGEPAGE_MOUNT>            Hugepage mount point (default: $HUGEPAGE_MOUNT)"
     echo "  -h                             Display this help and exit"
     exit 1
 }
@@ -55,6 +59,9 @@ while getopts "n:c:v:b:m:p:h" opt; do
         b) BUS_FILTER=${OPTARG} ;;
         m) ALLOCATE_SOCKET_MEMORY=${OPTARG} ;;
         p) DPDK_PMD_TYPE=${OPTARG} ;;
+        g) NUM_HUGEPAGES=${OPTARG} ;;
+        s) HUGEPAGE_SIZE=${OPTARG} ;;
+        t) HUGEPAGE_MOUNT=${OPTARG} ;;
         h) usage ;;
         \?) echo "Invalid option: $OPTARG" 1>&2; usage ;;
         :) echo "Invalid option: $OPTARG requires an argument" 1>&2; usage ;;
@@ -108,9 +115,8 @@ core_list() {
 
 # This function selects a specified number
 # of random CPU cores from a given NUMA node.
-# Args:
-#   $1: The NUMA node from which to select cores.
-#   $2: The number of cores to select from that NUMA node.
+# Use prefect multiplier for example one core per TX and RX on each port
+# for 2 port it 9 core total 1 for master 8 spread 1/2:3/4 and port 2 5/6:7/8
 cores_from_numa(){
 	local _numa_node=$1
 	local _num_cores_to_select=$2
@@ -147,7 +153,7 @@ declare -a selected_target_vf
 declare -a device_mac_addresses
 
 core_list=$(core_list)
-selected_cores=$(cores_from_numa $numa_node $num_cores_to_select)
+selected_cores=$(cores_from_numa "$numa_node" "$num_cores_to_select")
 readarray -t selected_vf < <(select_vf_dpdk "$BUS_FILTER")
 
 for i in $(shuf -i 0-$((${#selected_vf[@]}-1)) -n "$num_vf_to_select"); do
@@ -189,5 +195,6 @@ docker run \
 -e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
 -e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
+-e SOCKMEM="64,64,64,64"
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh
