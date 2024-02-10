@@ -51,6 +51,10 @@ read -ra CORES_ARRAY <<<"$SELECTED_CORES"
 IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
 unset IFS
 
+PCI_LIST=()
+for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
+done
+
 NUM_PORTS=${#PCI_LIST[@]}
 echo "Num ports mapping: $NUM_PORTS"
 NUM_WORKER_CORES=$((${#SORTED_CORES[@]} - 1))
@@ -83,9 +87,6 @@ echo "Core mapping: $CORE_MAPPING"
 echo "NUM_WORKER_CORES mapping: $NUM_WORKER_CORES"
 
 CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
-PCI_LIST=()
-for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
-done
 
 echo "calling pktgen with CORE_LIST: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
