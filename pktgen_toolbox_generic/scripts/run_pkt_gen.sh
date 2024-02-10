@@ -8,6 +8,7 @@ numa_node=0
 num_cores_to_select=4
 num_vf_to_select=2
 BUS_FILTER="0000:03"
+ALLOCATE_SOCKET_MEMORY=64
 
 # Select vf based on PMD driver and PMD BUS
 # Note this function uses container ( you change to dpdk-devbind.py
@@ -119,7 +120,8 @@ $DEVICE_MAC_ADDRESSES"
 docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
 -e TARGET_VFS="$SELECTED_VF" \
--e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES"
+-e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES" \
+-e ALLOCATE_SOCKET_MEMORY=ALLOCATE_SOCKET_MEMORY \
 -it --privileged --rm \
 spyroot/pktgen_toolbox_generic:latest:latest /bin/bash
 
