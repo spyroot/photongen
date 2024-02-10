@@ -6,6 +6,7 @@ source shared_functions.sh
 test_vf_mac_address() {
     local test_passed=true
 
+    # list of inputs
     local pci_addresses=(
         # PCI address corresponds to MAC address: 74:56:3c:42:f9:88
         "0000:03:02.2"  # MAC Address: 74:56:3c:42:f9:88
@@ -13,8 +14,10 @@ test_vf_mac_address() {
         "0000:03:02.0"  # MAC Address: 74:56:3c:42:f9:89
         # PCI address corresponds to MAC address: 5e:d3:25:e5:6c:f0
         "0000:03:02.4"  # MAC Address: 5e:d3:25:e5:6c:f0
+        ""
       )
-    # Define expected MAC addresses corresponding to the PCI addresses above
+
+    # expected MAC addresses corresponding to the PCI addresses above
     local expected_mac_addresses=(
         "da:07:79:7a:69:54"
         "1a:50:a2:68:75:0b"
@@ -25,9 +28,9 @@ test_vf_mac_address() {
 
 
     for ((i = 0; i < ${#pci_addresses[@]}; i++)); do
+
         local pci_address="${pci_addresses[$i]}"
         local expected_mac="${expected_mac_addresses[$i]}"
-
         local actual_mac
         actual_mac=$(vf_mac_address "$pci_address")
 
