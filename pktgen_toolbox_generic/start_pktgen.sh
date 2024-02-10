@@ -92,10 +92,9 @@ done
 PCI_LIST=()
 for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
 done
+NUM_PORTS=$(( ${#PCI_LIST[@]} / 2 ))
 
-NUM_PORTS=${#PCI_LIST[@]}
 echo "Num ports mapping: $NUM_PORTS"
-
 read -ra CORES_ARRAY <<<"$SELECTED_CORES"
 IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
 unset IFS
