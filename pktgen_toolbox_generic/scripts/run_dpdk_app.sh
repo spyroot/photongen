@@ -243,9 +243,26 @@ if ! command -v dmidecode &> /dev/null; then
     exit 1
 fi
 
+# calculate number of memory channel
 NUM_CHANNELS=$(dmidecode -t memory dmidecode -t memory 2>/dev/null \
 | grep "Locator:" | grep Bank | sort -u | wc -l)
 
+# re-adjust memory
+case $numa_node in
+    0)
+        SOCKET_MEMORY="1024,0,0,0"
+        ;;
+    1)
+        SOCKET_MEMORY="0,1024,0,0"
+        ;;
+    2)
+        SOCKET_MEMORY="0,0,1024,0"
+        ;;
+    *)
+        echo "Error: Unsupported NUMA node: $numa_node" >&2
+        exit 1
+        ;;
+esac
 
 
 docker run \
