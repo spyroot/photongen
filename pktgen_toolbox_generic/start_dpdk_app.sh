@@ -142,7 +142,7 @@ for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
 done
 NUM_PORTS=$(( ${#PCI_LIST[@]} / 2 ))
 
-echo "- Number of ports: $NUM_PORTS"
+echo " - Number of ports: $NUM_PORTS"
 read -ra CORES_ARRAY <<<"$SELECTED_CORES"
 IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
 unset IFS
@@ -157,9 +157,8 @@ echo " - Core mapping: $CORE_MAPPING"
 
 CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
 
-echo "calling pktgen with CORE_LIST: \
+echo " Calling $DPDK_APP with Core selection: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
-
 
 dpdk_app_args=(
     "-l" "$CORE_LIST"
