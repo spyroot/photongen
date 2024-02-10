@@ -99,12 +99,12 @@ function test_adapter_numa() {
     fi
 }
 
-# function test
+
 function test_validate_numa() {
     local test_passed=true
 
     # positive case all adapter in numa 0 for numa 0 ok for any other numa not ok
-    local positive_cast_pci01=(
+    local positive_case_pci01=(
         "0000:03:00.0"  # pf
         "00003:00.1"    # vf
     )
@@ -129,19 +129,6 @@ function test_validate_numa() {
     )
 
     # negative case array empty for numa should return 0
-    local negative_case_pci02=(
-        ""
-    )
-
-    local positive_case_numa_numa01=(
-        "0"  # Expected NUMA node for "0000:03:00.0"
-    )
-
-    local positive_case_numa_numa02=(
-        "2"  # Expected NUMA node for "3f:01.0"
-    )
-
-# negative case array empty for numa should return 0
     local negative_case_pci03=(
         ""
     )
@@ -152,7 +139,7 @@ function test_validate_numa() {
     local negative_case_numa="0"  # NUMA node for negative cases
 
     # Test validate_numa function for positive cases
-    validate_numa "$positive_case_numa_numa01" "${positive_cast_pci01[@]}"
+    validate_numa "$positive_case_numa_numa01" "${positive_case_pci01[@]}"
     if [ $? -ne 0 ]; then
         echo "validate_numa test failed: Expected success for positive case 1 but function returned error"
         test_passed=false
@@ -189,6 +176,7 @@ function test_validate_numa() {
         echo "validate_numa test failed: Some tests failed"
     fi
 }
+
 
 test_vf_mac_address
 test_adapter_numa
