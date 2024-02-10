@@ -291,17 +291,13 @@ docker_run_command=(docker run \
 -e SOCKET_MEMORY="$SOCKET_MEMORY" \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -e NUM_CHANNELS="$NUM_CHANNELS" \
+-e NUMAS="$SOCKETS" \
 -it --privileged \
 --rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh)
 
-if [[ -n "$SOCKETS" ]]; then
-    echo "Passing NUMAS=$SOCKETS to Docker container"
-    docker_run_command+=( -e "NUMAS=$SOCKETS" )
-fi
-
-for command_part in "${docker_run_command[@]}"; do
-    echo "$command_part"
-done
+#for command_part in "${docker_run_command[@]}"; do
+#    echo "$command_part"
+#done
 
 # Execute the docker run command
 "${docker_run_command[@]}"
