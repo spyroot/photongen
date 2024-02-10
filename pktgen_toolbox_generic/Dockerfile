@@ -58,6 +58,7 @@ RUN git clone --recursive https://github.com/jqlang/jq.git ~/jq && \
 RUN pip3 install yamllint gitlab_lint
 RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellcheck
 COPY *.sh /
+COPY yamllint_config ~/.config/yamllint/config
 
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
 ENV PATH="/root/go/bin:${PATH}"
