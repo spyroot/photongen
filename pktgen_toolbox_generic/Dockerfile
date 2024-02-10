@@ -25,7 +25,7 @@ RUN git clone https://github.com/vim/vim.git && \
     --enable-python3interp vi_cv_path_python3="/usr/bin/python3" \
     --enable-cscope --enable-multibyte --enable-perlinterp --enable-luainterp --prefix=/usr && \
     make -j 32 && \
-    make install \
+    make install && \
     cd .. && rm -rf vim
 
 WORKDIR /root/
