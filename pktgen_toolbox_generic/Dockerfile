@@ -50,8 +50,8 @@ RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda init
 RUN yum install -y python3-curses && pip3 install 'glances[all]'
 
 RUN git clone https://github.com/libnet/libnet.git ~/libnet && cd ~/libnet && \
-    ./autogen.sh && ./configure > configure.log && make -j 32 && make install && \
-    cd .. $$ rm -rf ~/libnet
+    ./autogen.sh && ./configure > configure.log && make -j 32 && make install \
+    && cd .. && rm -rf ~/libnet
 
 RUN git clone https://github.com/netsniff-ng/netsniff-ng.git ~/netsniff && \
     cd ~/netsniff && ./configure > configure.log && make -j 32 && make install && \
@@ -63,7 +63,7 @@ RUN yum clean all
 
 RUN git clone --recursive https://github.com/jqlang/jq.git ~/jq && \
 		cd ~/jq && autoreconf -i && \
-		./configure && make -j 32 && make install && rm -rf ~/jq
+		./configure && make -j 32 && make install && cd .. && rm -rf ~/jq
 
 RUN pip3 install yamllint gitlab_lint pynvim jedi
 RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellcheck
