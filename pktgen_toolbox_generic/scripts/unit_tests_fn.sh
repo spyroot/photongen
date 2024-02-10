@@ -131,8 +131,9 @@ function test_validate_numa() {
 
         local selected_pci_array=("$selected_pci")
 
-        # Call the validate_numa function
-        local error_message=$(validate_numa "$selected_numa" selected_pci_array)
+         # Call the validate_numa function
+        local error_message=$(validate_numa "$selected_numa" "${selected_pci_array[@]}")
+
         # Check if the function returned an error message when it should have passed
         if [ -n "$error_message" ] && [ "$selected_numa" != "-1" ]; then
             echo "validate_numa test failed: Unexpected error message '$error_message' for selected PCI address '$selected_pci'"
