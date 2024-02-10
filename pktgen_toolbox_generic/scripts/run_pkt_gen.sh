@@ -27,6 +27,50 @@ BUS_FILTER="0000:03"
 ALLOCATE_SOCKET_MEMORY=64
 DPDK_PMD_TYPE=vfio-pci
 
+NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
+HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
+HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
+
+# Display help message
+usage() {
+    echo "Usage: $0 [options]"
+    echo "Options:"
+    echo "  -n <numa_node>                 NUMA node to select cores from (default: $numa_node)"
+    echo "  -c <num_cores_to_select>       Number of cores to select (default: $num_cores_to_select)"
+    echo "  -v <num_vf_to_select>          Number of VFs to select (default: $num_vf_to_select)"
+    echo "  -b <BUS_FILTER>                BUS filter for selecting VFs (default: $BUS_FILTER)"
+    echo "  -m <ALLOCATE_SOCKET_MEMORY>    Memory to allocate per socket in MB (default: $ALLOCATE_SOCKET_MEMORY)"
+    echo "  -p <DPDK_PMD_TYPE>             DPDK PMD type (default: $DPDK_PMD_TYPE)"
+    echo "  -h                             Display this help and exit"
+    exit 1
+}
+
+# Parse command-line options
+while getopts "n:c:v:b:m:p:h" opt; do
+    case ${opt} in
+        n) numa_node=${OPTARG} ;;
+        c) num_cores_to_select=${OPTARG} ;;
+        v) num_vf_to_select=${OPTARG} ;;
+        b) BUS_FILTER=${OPTARG} ;;
+        m) ALLOCATE_SOCKET_MEMORY=${OPTARG} ;;
+        p) DPDK_PMD_TYPE=${OPTARG} ;;
+        h) usage ;;
+        \?) echo "Invalid option: $OPTARG" 1>&2; usage ;;
+        :) echo "Invalid option: $OPTARG requires an argument" 1>&2; usage ;;
+    esac
+done
+
+# Shift off the options and optional --
+shift $((OPTIND -1))
+
+echo "Selected configurations:"
+echo "NUMA Node: $numa_node"
+echo "Number of Cores to Select: $num_cores_to_select"
+echo "Number of VFs to Select: $num_vf_to_select"
+echo "BUS Filter: $BUS_FILTER"
+echo "Socket Memory to Allocate: $ALLOCATE_SOCKET_MEMORY MB"
+echo "DPDK PMD Type: $DPDK_PMD_TYPE"
+
 # Select vf based on PMD driver and PMD BUS
 # Note this function uses container ( you change to dpdk-devbind.py
 function select_vf_dpdk {
@@ -138,6 +182,9 @@ docker run \
 -e TARGET_VFS="$SELECTED_VF" \
 -e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES" \
 -e ALLOCATE_SOCKET_MEMORY="$ALLOCATE_SOCKET_MEMORY" \
+-e NUM_HUGEPAGES="$NUM_HUGEPAGES" \
+-e HUGEPAGE_SIZE="$HUGEPAGE_SIZE" \
+-e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
 -e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh
