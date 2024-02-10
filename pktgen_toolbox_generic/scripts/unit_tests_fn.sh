@@ -182,9 +182,9 @@ function test_validate_numa() {
     local test_passed=true
 
     # positive case all adapter in numa 0 for numa 0 ok for any other numa not ok
-    local positive_case_pci01=(
-        "000003000"  # pf
-        "000003001"  # vf
+  local positive_case_pci01=(
+        "0000:03:00.0"  # pf
+        "0000:03:02.6"  # vf
     )
 
     declare -a selected_pci
