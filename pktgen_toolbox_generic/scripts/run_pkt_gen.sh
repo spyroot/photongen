@@ -9,7 +9,6 @@ num_cores_to_select=4
 num_vf_to_select=2
 BUS_FILTER="0000:03"
 
-
 # Select vf based on PMD driver and PMD BUS
 # Note this function uses container ( you change to dpdk-devbind.py
 function select_vf_dpdk {
@@ -36,7 +35,6 @@ function select_vf_dpdk {
     done
 }
 
-
 # This function retrieves a list of all CPU cores that
 # are currently bound to the system's physical CPUs.
 core_list() {
@@ -44,7 +42,6 @@ core_list() {
 	read -r -a core_list <<< "$core_list_str"
 	echo "${core_list[@]}"
 }
-
 
 # This function selects a specified number
 # of random CPU cores from a given NUMA node.
@@ -119,16 +116,15 @@ $SELECTED_CORES selected VFs \
 $SELECTED_VF device macs: \
 $DEVICE_MAC_ADDRESSES"
 
-#echo "$selected_target_vf"
-#docker run \
-#-e SELECTED_CORES=""$selected_cores"" \
-#-e TARGET_VFS="$selected_vfs"
-#-it --privileged --rm \
-#spyroot/pktgen_toolbox_generic:latest:latest run_pktgen.sh
+docker run \
+-e SELECTED_CORES="$SELECTED_CORES" \
+-e TARGET_VFS="$SELECTED_VF" \
+-e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES"
+-it --privileged --rm \
+spyroot/pktgen_toolbox_generic:latest:latest /bin/bash
 
 #pktgen \
 #-l 2-14 -n 4 --proc-type auto --log-level 7 --file-prefix pg -a 0000:23:02.0 -- -T -m "[4-7:10-13].0"
-_mac+=$(vf_mac_address)
 #
 #do echo "$vf";
 #done
