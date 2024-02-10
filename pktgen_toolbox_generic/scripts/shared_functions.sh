@@ -55,9 +55,11 @@ function validate_numa() {
         adapter_numa=$(adapter_numa "$adapter")
         if [[ "$adapter_numa" != "$selected_numa" ]]; then
             echo "Error: Adapter $adapter is not in NUMA node $selected_numa" >&2
-            exit 1
+            return 1
         fi
     done
+
+  return 0
 }
 
 
