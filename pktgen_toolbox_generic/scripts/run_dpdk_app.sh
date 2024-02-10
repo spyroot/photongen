@@ -299,5 +299,9 @@ if [[ -n "$SOCKETS" ]]; then
     docker_run_command+=( -e "NUMAS=$SOCKETS" )
 fi
 
+for command_part in "${docker_run_command[@]}"; do
+    echo "$command_part"
+done
+
 # Execute the docker run command
 "${docker_run_command[@]}"
