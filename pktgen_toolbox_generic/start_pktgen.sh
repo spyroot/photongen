@@ -48,21 +48,17 @@ for vf in $TARGET_VFS; do
 done
 
 CORE_LIST=$(echo "$SELECTED_CORES" | tr ' ' ',')
-PCI_LIST=""
-for vf in $TARGET_VFS; do
-	PCI_LIST+="-a $vf "
+PCI_LIST=()
+for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
 done
 
-echo "calling pktgen -l "$CORE_LIST" \
--n 4 \
---proc-type auto \
---log-level "$LOG_LEVEL" \
-"$PCI_LIST" \
--- -T"
+echo "calling pktgen with CORE_LIST: \
+$CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
 
 pktgen -l "$CORE_LIST" \
 -n 4 \
 --proc-type auto \
 --log-level "$LOG_LEVEL" \
-"$PCI_LIST" \
+"${PCI_LIST[@]}" \
 -- -T
+
