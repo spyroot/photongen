@@ -28,10 +28,11 @@ BUS_FILTER="0000:03"
 ALLOCATE_SOCKET_MEMORY=512
 DPDK_PMD_TYPE=vfio-pci
 
-NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
+# since we using 2 port we allocate
+NUM_HUGEPAGES=${NUM_HUGEPAGES:-8192}
 HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
-
+SOCKET_MEMORY=1024,0,0,0
 
 # Display help message
 usage() {
@@ -87,7 +88,7 @@ function select_vf_dpdk {
 
     local output="$(docker run -it --privileged --rm \
                     spyroot/pktgen_toolbox_generic:latest dpdk-devbind.py -s \
-                    | grep $DPDK_PMD_TYPE | grep Virtual)"
+                    | grep "$DPDK_PMD_TYPE" | grep Virtual)"
 
     local pci_devices
     readarray -t pci_devices <<< "$(echo "$output" | awk \
@@ -195,6 +196,6 @@ docker run \
 -e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
 -e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
--e SOCKET_MEMORY="1024,0,0,0" \
+-e SOCKET_MEMORY=$SOCKET_MEMORY \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh

@@ -124,9 +124,10 @@ if [[ -n "$SOCKET_MEMORY" ]]; then
     cmd+=(--socket-mem="$SOCKET_MEMORY")
 fi
 
-if [[ -n "$ALLOCATE_SOCKET_MEMORY" ]]; then
-    cmd+=(-m "$ALLOCATE_SOCKET_MEMORY")
-fi
+# legacy
+#if [[ -n "$ALLOCATE_SOCKET_MEMORY" ]]; then
+#    cmd+=(-m "$ALLOCATE_SOCKET_MEMORY")
+#fi
 
 cmd+=(-- -T)
 cmd+=(-m "$CORE_MAPPING")
