@@ -80,11 +80,17 @@ echo "available cores:"
 for core in "${core_list[@]}"; do echo "$core"
 done
 
-docker run \
--e SELECTED_CORES=""$selected_cores"" \
--e TARGET_VFS="$selected_vfs"
--it --privileged --rm \
-spyroot/pktgen_toolbox_generic:latest:latest run_pktgen.sh
+
+selected_vf=$(select_vf_dpdk "$BUS_FILTER")
+BUS_FILTER="0000:03"
+selected_vf=$(select_vf_dpdk "$BUS_FILTER")
+
+
+#docker run \
+#-e SELECTED_CORES=""$selected_cores"" \
+#-e TARGET_VFS="$selected_vfs"
+#-it --privileged --rm \
+#spyroot/pktgen_toolbox_generic:latest:latest run_pktgen.sh
 
 #pktgen \
 #-l 2-14 -n 4 --proc-type auto --log-level 7 --file-prefix pg -a 0000:23:02.0 -- -T -m "[4-7:10-13].0"
