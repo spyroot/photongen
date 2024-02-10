@@ -53,10 +53,16 @@ for vf in $TARGET_VFS; do
 	PCI_LIST+="-a $vf "
 done
 
-echo "pktgen -l "$CORE_LIST" \
+echo "calling pktgen -l "$CORE_LIST" \
 -n 4 \
 --proc-type auto \
 --log-level "$LOG_LEVEL" \
 "$PCI_LIST" \
 -- -T"
 
+pktgen -l "$CORE_LIST" \
+-n 4 \
+--proc-type auto \
+--log-level "$LOG_LEVEL" \
+"$PCI_LIST" \
+-- -T
