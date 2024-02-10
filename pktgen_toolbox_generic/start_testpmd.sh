@@ -73,4 +73,5 @@ dpdk-testpmd -l "$CORE_LIST" \
   --rxq="$RXQ" \
   --rxd="$RXD" \
   --txq="$TXQ" \
-  --txd="$TXD"
+  --txd="$TXD" \
+  "$EXTRA_ARGS"

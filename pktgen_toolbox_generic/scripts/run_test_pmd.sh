@@ -13,6 +13,8 @@
 #   to see initial what kernel located via kernel driver
 #   hence based on SELECTED VF we construct SELECTED MAC
 #
+#  pass extra args via --
+# -- --rxq=4 --rxd=512 --txq=4 --txd=512
 # - Memory that we want to pass. i.e a memory for particular
 #   socket from where we selected cores
 # Autor Mus spyroot@gmail.com
@@ -59,6 +61,8 @@ while getopts "n:c:v:b:m:p:h" opt; do
         :) echo "Invalid option: $OPTARG requires an argument" 1>&2; usage ;;
     esac
 done
+
+EXTRA_ARGS="$@"
 
 # Shift off the options and optional --
 shift $((OPTIND -1))
@@ -185,6 +189,7 @@ docker run \
 -e NUM_HUGEPAGES="$NUM_HUGEPAGES" \
 -e HUGEPAGE_SIZE="$HUGEPAGE_SIZE" \
 -e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
--e DPDK_APP="pkt_gen" \
+-e DPDK_APP="start_testpmd" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
+-e EXTRA_ARGS="$EXTRA_ARGS" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_testpmd.sh
