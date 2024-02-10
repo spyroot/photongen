@@ -71,9 +71,11 @@ num_cores_to_select=4
 num_vf_to_select=2
 BUS_FILTER="0000:03"
 
+declare -a selected_target_vf
+
 core_list=$(core_list)
 selected_cores=$(cores_from_numa $numa_node $num_cores_to_select)
-selected_vf=$(select_vf_dpdk "$BUS_FILTER")
+readarray -t selected_vf < <(select_vf_dpdk "$BUS_FILTER")
 
 for i in $(shuf -i 0-$((${#selected_vf[@]}-1)) -n "$num_vf_to_select"); do
   selected_target_vf+=("${selected_vf[$i]}")
