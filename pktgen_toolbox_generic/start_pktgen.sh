@@ -30,7 +30,7 @@ HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 NUM_CHANNELS=${NUM_CHANNELS:-2}
 SOCKETS=""  # assume single socket if not specified
-DPDK_APP=${HUGEPAGE_MOUNT:-pktgen}
+DPDK_APP=${DPDK_APP:-pktgen}
 
 # if hugepage is not 1G we assume it 2048KB
 if [ "$HUGEPAGE_SIZE" == "1G" ]; then
