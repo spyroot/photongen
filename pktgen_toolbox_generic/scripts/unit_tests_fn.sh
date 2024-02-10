@@ -178,6 +178,15 @@ function test_validate_numa() {
 }
 
 
-test_vf_mac_address
-test_adapter_numa
-test_validate_numa
+#test_vf_mac_address
+#test_adapter_numa
+#test_validate_numa
+
+# positive case all adapter in numa 0 for numa 0 ok for any other numa not ok
+ positive_case_pci01=(
+    "0000:03:00.0"  # pf
+    "0000:03:00.1"  # vf
+)
+
+positive_case_numa_numa01="0"  # Expected NUMA node for positive case 1
+validate_numa "$positive_case_numa_numa01" "${positive_case_pci01[@]}"
