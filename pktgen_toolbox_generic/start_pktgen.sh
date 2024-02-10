@@ -63,25 +63,22 @@ echo "Num worker cores mapping: $NUM_WORKER_CORES"
 CORES_PER_PORT=$((NUM_WORKER_CORES / NUM_PORTS))
 EXTRA_CORES=$((NUM_WORKER_CORES % NUM_PORTS))
 
-for (( port=0; port<NUM_PORTS; port++ )); do
-    # Calculate the end core index for this port
-    END_CORE=$((START_CORE + CORES_PER_PORT - 1))
+for ((port=0; port<NUM_PORTS; port++)); do
+    # Determine the slice of cores for this port
+    START_IDX=$((port * 4)) # 4 cores per port
+    END_IDX=$((START_IDX + 3))
 
-    # Add an extra core to this port if there are any leftovers
-    if (( EXTRA_CORES > 0 )); then
-        END_CORE=$((END_CORE + 1))
-        EXTRA_CORES=$((EXTRA_CORES - 1))
+    # Construct the mapping string for this port
+    RX_CORES="${CORES_ARRAY[@]:$START_IDX:2}" # First half for RX
+    TX_CORES="${CORES_ARRAY[@]:$START_IDX+2:2}" # Second half for TX
+
+    # Append to core mapping string
+    if [[ -n "$CORE_MAPPING" ]]; then
+        CORE_MAPPING+=", "
     fi
-
-    # Construct the core mapping for this port
-    if (( port > 0 )); then
-        CORE_MAPPING+=" "
-    fi
-    CORE_MAPPING+="[${SORTED_CORES[@]:START_CORE:END_CORE-START_CORE+1}].$port"
-
-    # Update START_CORE for the next port
-    START_CORE=$((END_CORE + 1))
+    CORE_MAPPING+="[${RX_CORES[*]}:${TX_CORES[*]}].$port"
 done
+
 
 echo "Core mapping: $CORE_MAPPING"
 echo "NUM_WORKER_CORES mapping: $NUM_WORKER_CORES"
