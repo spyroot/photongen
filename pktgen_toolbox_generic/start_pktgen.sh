@@ -17,5 +17,5 @@ for vf in $TARGET_VFS; do
     PCI_LIST+="-a $vf "
 done
 
-echo $CORE_LIST
-echo $PCI_LIST
+echo "$CORE_LIST"
+echo "$PCI_LIST"
