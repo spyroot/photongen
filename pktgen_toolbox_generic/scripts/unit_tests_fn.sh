@@ -44,8 +44,8 @@ test_vf_mac_address() {
     fi
 }
 
-#actual_mac=$(vf_mac_address "0000:33:02.04")
+actual_mac=$(vf_mac_address "")
 #actual_mac=$(vf_mac_address "0000:03:02")
-#echo "actual $actual_mac"
+echo "actual $actual_mac"
 ## Run the test
 test_vf_mac_address
