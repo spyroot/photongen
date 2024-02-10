@@ -43,7 +43,7 @@ DPDK_APP=${DPDK_APP:-pktgen}
 
 # Display help message
 usage() {
-    echo "Usage: $0 [options]"
+    echo "Usage: $0 [options] [-- extra_arguments]"
     echo "Options:"
     echo "  -a <DPDK_APP>                  DPDK application (default: $DPDK_APP)"
     echo "  -n <numa_node>                 NUMA node to select cores from (default: $numa_node)"
@@ -56,6 +56,12 @@ usage() {
     echo "  -s <HUGEPAGE_SIZE>             Hugepage size in kB (default: $HUGEPAGE_SIZE)"
     echo "  -t <HUGEPAGE_MOUNT>            Hugepage mount point (default: $HUGEPAGE_MOUNT)"
     echo "  -h                             Display this help and exit"
+    echo "You can specify extra arguments to be passed to the DPDK application"
+    echo "using '--' followed by the arguments, or by setting the EXTRA_ARGS"
+    echo "Example we want pass -N to pkt gen '-- -N' or we set an EXTRA_ARGS"
+    echo "export EXTRA_ARGS=\"-n\"  we want pass -N to pkt gen '-- -N' or we set an EXTRA_ARGS"
+    echo "environment variable."
+
     exit 1
 }
 
@@ -223,4 +229,5 @@ docker run \
 -e SOCKET_MEMORY=$SOCKET_MEMORY \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -e NUM_CHANNELS="$NUM_CHANNELS" \
--it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh
+-it --privileged \
+--rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh
