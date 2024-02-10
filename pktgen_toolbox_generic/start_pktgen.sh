@@ -51,6 +51,32 @@ read -ra CORES_ARRAY <<<"$SELECTED_CORES"
 IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
 unset IFS
 
+NUM_WORKER_CORES=$((${#SORTED_CORES[@]} - 1))
+CORES_PER_PORT=$((NUM_WORKER_CORES / NUM_PORTS))
+EXTRA_CORES=$((NUM_WORKER_CORES % NUM_PORTS))
+
+for (( port=0; port<NUM_PORTS; port++ )); do
+    # Calculate the end core index for this port
+    END_CORE=$((START_CORE + CORES_PER_PORT - 1))
+
+    # Add an extra core to this port if there are any leftovers
+    if (( EXTRA_CORES > 0 )); then
+        END_CORE=$((END_CORE + 1))
+        EXTRA_CORES=$((EXTRA_CORES - 1))
+    fi
+
+    # Construct the core mapping for this port
+    if (( port > 0 )); then
+        CORE_MAPPING+=" "
+    fi
+    CORE_MAPPING+="[${SORTED_CORES[@]:START_CORE:END_CORE-START_CORE+1}].$port"
+
+    # Update START_CORE for the next port
+    START_CORE=$((END_CORE + 1))
+done
+
+echo "Core mapping: $CORE_MAPPING"
+
 CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
 PCI_LIST=()
 for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
