@@ -23,6 +23,7 @@
 NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
 HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
+$LOG_LEVEL=${$LOG_LEVEL:7}
 
 # Check if hugepage mount directory exists, if not create it
 if [ ! -d "$HUGEPAGE_MOUNT" ]; then
@@ -34,6 +35,7 @@ echo "$NUM_HUGEPAGES" > /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/
 
 # Check if hugetlbfs is already mounted at the specified directory
 if ! mountpoint -q "$HUGEPAGE_MOUNT"; then
+	# Mount the hugetlbfs
 	mount -t hugetlbfs nodev "$HUGEPAGE_MOUNT"
 fi
 
@@ -48,8 +50,12 @@ done
 CORE_LIST=$(echo "$SELECTED_CORES" | tr ' ' ',')
 PCI_LIST=""
 for vf in $TARGET_VFS; do
-    PCI_ADDRESSES+="$vf "
+	PCI_LIST+="-a $vf "
 done
-PCI_LIST="-a ${PCI_ADDRESSES% }"
 
-pktgen -l "$CORE_LIST" -n 4 --proc-type auto --log-level "$LOG_LEVEL" -a "$PCI_LIST" -- -T
+pktgen -l "$CORE_LIST" \
+-n 4 \
+--proc-type auto \
+--log-level "$LOG_LEVEL" -a "$PCI_LIST" \
+-- -T
+
