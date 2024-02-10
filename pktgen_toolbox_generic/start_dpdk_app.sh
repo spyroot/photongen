@@ -192,6 +192,7 @@ if [[ "$DPDK_APP" == "pktgen" ]]; then
    # args that we compute,  extra if client need pass anything
     pktgen_args=(
         "-T"
+        "-N"
         "-m" "$CORE_MAPPING"
     )
 

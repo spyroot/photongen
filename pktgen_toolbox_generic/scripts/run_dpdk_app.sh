@@ -136,6 +136,25 @@ core_list() {
 	echo "${core_list[@]}"
 }
 
+# Function to retrieve NUMA node information for a given PCI address
+# Args:
+#   $1: PCI address of the adapter
+# Outputs:
+#   Prints the NUMA node information for the adapter
+
+function adapter_numa() {
+    local _pci_addr=$1
+    adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
+    echo "Adapter NUMA node: $adapter_numa_node"
+    if [ -z "$adapter_numa_node" ]; then
+        # Print a message indicating that NUMA node information is not available
+        echo "Adapter NUMA node information is not available"
+    else
+        # Print the NUMA node information along with a descriptive message
+        echo "Adapter NUMA node: $adapter_numa_node"
+    fi
+}
+
 # This function selects a specified number
 # of random CPU cores from a given NUMA node.
 # Use prefect multiplier for example one core per TX and RX on each port
@@ -278,6 +297,7 @@ if (( numa_node > 0 )); then
     esac
 fi
 
+
 docker_run_command=(docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
 -e TARGET_VFS="$SELECTED_VF" \
@@ -298,6 +318,6 @@ docker_run_command=(docker run \
 #for command_part in "${docker_run_command[@]}"; do
 #    echo "$command_part"
 #done
-
+2>/dev/null
 # Execute the docker run command
 "${docker_run_command[@]}"
