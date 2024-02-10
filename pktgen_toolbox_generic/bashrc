@@ -1,7 +1,7 @@
 GOPATH=~/go
 
 function _update_ps1() {
-	eval "$($GOPATH/bin/powerline-go -error $? -shell bash -eval -modules-right git)"
+	eval "$($GOPATH/bin/powerline-go -error $? -shell bash -eval -modules-right git -cwd-max-depth=3 -hostname-only-if-ssh)"
 }
 
 if [ -f "$GOPATH/bin/powerline-go" ]; then

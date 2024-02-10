@@ -7,13 +7,13 @@ FROM spyroot/dpdk_generic_tester:latest
 LABEL maintainer="Mustafa Bayramov <spyroot@gmail.com>"
 LABEL description="A packet generation and dev toolbox it include iperf3, netsniff-ng, Intel MLC, fio, DPKD and many other tools"
 
-RUN yum install -y lua lua-devel lua-libs \
+RUN yum install -y tree lua lua-devel lua-libs \
 	fio python3-curses ncurses ncurses-devel \
 	ncurses-compat ncurses-libs ncurses-terminfo \
 	userspace-rcu userspace-rcu-devel libnetfilter_conntrack libsodium libsodium-devel \
  	libnetconf2 libnetconf2-devel libnl libnl-devel \
-	libnetfilter_conntrack-devel go rust cppcheck python3-autopep8 \
-    	nodejs nodejs-devel fontconfig
+	libnetfilter_conntrack-devel go rust cppcheck python3-autopep8  \
+    nodejs nodejs-devel fontconfig
 
 WORKDIR /root/
 RUN git clone https://github.com/vim/vim.git && \
@@ -32,7 +32,7 @@ COPY bashrc ~/.bashrc
 RUN curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 RUN vim -c "PlugInstall" -c "qa!"
-RUN python3 /root/.vim/plugged/YouCompleteMe/install.py --system-libclang --clang-completer --force-sudo
+RUN python3 /root/.vim/plugged/YouCompleteMe/install.py --clang-completer --clangd-completer --go-completer --rust-completer --force-sudo
 
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 RUN /root/.fzf/install --key-bindings --completion --update-rc
@@ -63,6 +63,9 @@ RUN pip3 install yamllint gitlab_lint pynvim jedi
 RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellcheck
 COPY *.sh /
 COPY yamllint_config ~/.config/yamllint/config
+
+RUN git git clone https://github.com/sharkdp/fd.git ~/fd_find && \
+    cd ~/fd_find && make && make install && cd / && ~/fd_find
 
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
 RUN go install github.com/justjanne/powerline-go@latest
