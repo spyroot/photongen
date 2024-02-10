@@ -8,12 +8,9 @@ test_vf_mac_address() {
 
     # list of inputs
     local pci_addresses=(
-        # PCI address corresponds to MAC address: 74:56:3c:42:f9:88
-        "0000:03:02.2"  # MAC Address: 74:56:3c:42:f9:88
-        # PCI address corresponds to MAC address: 74:56:3c:42:f9:89
-        "0000:03:02.0"  # MAC Address: 74:56:3c:42:f9:89
-        # PCI address corresponds to MAC address: 5e:d3:25:e5:6c:f0
-        "0000:03:02.4"  # MAC Address: 5e:d3:25:e5:6c:f0
+        "0000:03:02.2"
+        "0000:03:02.0"
+        "0000:03:02.4"
         ""
       )
 
@@ -22,10 +19,8 @@ test_vf_mac_address() {
         "da:07:79:7a:69:54"
         "1a:50:a2:68:75:0b"
         "c2:3a:01:e2:c0:9c"
-        ""
         ""  # Empty string for non-existing PCI address
     )
-
 
     for ((i = 0; i < ${#pci_addresses[@]}; i++)); do
 
