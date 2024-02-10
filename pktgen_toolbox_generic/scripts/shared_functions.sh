@@ -50,6 +50,13 @@ function validate_numa() {
     local selected_numa=$1
     local -n adapters=$2
 
+    # if the array of adapters is empty
+    if [ ${#adapters[@]} -eq 0 ]; then
+        echo "Error: Empty array of network adapters" >&2
+        return 1
+    fi
+
+
     for adapter in "${adapters[@]}"; do
         local adapter_numa
         adapter_numa=$(adapter_numa "$adapter")
