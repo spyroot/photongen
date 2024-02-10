@@ -85,7 +85,12 @@ selected_vf=$(select_vf_dpdk "$BUS_FILTER")
 BUS_FILTER="0000:03"
 selected_vf=$(select_vf_dpdk "$BUS_FILTER")
 
-echo "$selected_vf""
+num_vf_to_select=2
+for i in $(shuf -i 0-$((${#selected_vf[@]}-1)) -n "$num_vf_to_select"); do
+  selected_target_vf+=("${core_list[$i]}")
+done
+
+echo "$selected_target_vf"
 
 #docker run \
 #-e SELECTED_CORES=""$selected_cores"" \
