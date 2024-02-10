@@ -76,6 +76,7 @@ for (( port=0; port<NUM_PORTS; port++ )); do
 done
 
 echo "Core mapping: $CORE_MAPPING"
+echo "NUM_WORKER_CORES mapping: $NUM_WORKER_CORES"
 
 CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
 PCI_LIST=()
