@@ -247,6 +247,8 @@ fi
 NUM_CHANNELS=$(dmidecode -t memory dmidecode -t memory 2>/dev/null \
 | grep "Locator:" | grep Bank | sort -u | wc -l)
 
+#read -ra NUMAS_ARRAY <<<"$NUMAS"
+
 # re-adjust memory
 case $numa_node in
     0)
@@ -294,7 +296,8 @@ docker_run_command=(docker run \
 
 # Add SOCKETS option if it's set
 if [[ -n "$SOCKETS" ]]; then
-    docker_run_command+=(-e "SOCKETS=$SOCKETS")
+	echo "SOCKETS SET $SOCKETS"
+	socker_run_command+=( -e "NUMAS=$SOCKETS" )  # Corrected this line
 fi
 
 # Execute the docker run command

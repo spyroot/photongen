@@ -29,7 +29,7 @@ HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 NUM_CHANNELS=${NUM_CHANNELS:-2}
-SOCKETS=${SOCKETS:-""}
+NUMAS=${NUMAS:-""}
 DPDK_APP=${DPDK_APP:-pktgen}
 
 # if hugepage is not 1G we assume it 2048KB
@@ -90,7 +90,7 @@ function allocate_hugepages_single() {
 
 # Function to allocate hugepages for dual-socket system
 function allocate_hugepages_multi_socket() {
-    for node in $SOCKETS; do
+    for node in $NUMAS; do
         echo "$NUM_HUGEPAGES" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
         echo "Number of hugepages for $node: $(< "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_SIZE}kB/nr_hugepages")"
         echo "Total size of hugepages for $node: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages) * HUGEPAGE_SIZE )) kB"
@@ -106,11 +106,11 @@ mount_huge_if_needed() {
     fi
 
     # Allocate hugepages based on system configuration
-    if [ -z "$SOCKETS" ]; then
+    if [ -z "$NUMAS" ]; then
          echo "Single socket"
         allocate_hugepages_single
     else
-        echo "Allocate from NUMA $SOCKETS"
+        echo "Allocate from NUMA $NUMAS"
         allocate_hugepages_multi_socket
     fi
 
