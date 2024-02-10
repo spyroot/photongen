@@ -32,6 +32,7 @@ NUM_CHANNELS=${NUM_CHANNELS:-2}
 NUMAS=${NUMAS:-""}
 DPDK_APP=${DPDK_APP:-pktgen}
 
+echo "- Start a on a numa $NUMAS"
 # if hugepage is not 1G we assume it 2048KB
 if [ "$HUGEPAGE_SIZE" == "1G" ]; then
     HUGEPAGE_DIR="/dev/hugepages1G"

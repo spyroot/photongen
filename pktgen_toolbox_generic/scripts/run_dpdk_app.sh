@@ -294,10 +294,8 @@ docker_run_command=(docker run \
 -it --privileged \
 --rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh)
 
-# Add SOCKETS option if it's set
 if [[ -n "$SOCKETS" ]]; then
-	echo "SOCKETS SET $SOCKETS"
-	socker_run_command+=( -e "NUMAS=$SOCKETS" )  # Corrected this line
+	socker_run_command+=( -e "NUMAS=$SOCKETS" )
 fi
 
 # Execute the docker run command
