@@ -195,6 +195,6 @@ docker run \
 -e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
 -e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
--e SOCKMEM="64,64,64,64"
+-e SOCKMEM="64,64,64,64" \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh
