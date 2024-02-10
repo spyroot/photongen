@@ -144,6 +144,11 @@ function test_validate_numa() {
         "0000:40:00.1"  # gpu in numa 2
     )
 
+    local mixed_numa2=(
+        "0000:40:00.1"  # gpu in numa 2
+        "0000:03:00.0"  # pf in numa 0
+    )
+
     # Test validate_numa function for positive cases
     if ! validate_numa "$positive_case_numa_numa01" positive_case_pci01; then
         echo "validate_numa test failed: Expected success for positive case 1 but function returned error"
@@ -189,6 +194,11 @@ function test_validate_numa() {
 
     if validate_numa "$positive_case_numa_numa01" mixed_numa; then
         echo "validate_numa test failed: Expected error for mixed NUMA nodes case 7 but function returned success"
+        test_passed=false
+    fi
+
+    if validate_numa "$positive_case_numa_numa01" mixed_numa2; then
+        echo "validate_numa test failed: Expected error for mixed NUMA nodes case 8 but function returned success"
         test_passed=false
     fi
 
