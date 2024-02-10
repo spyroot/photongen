@@ -25,7 +25,7 @@ num_vf_to_select=2
 
 # our PF
 BUS_FILTER="0000:03"
-ALLOCATE_SOCKET_MEMORY=64
+ALLOCATE_SOCKET_MEMORY=512
 DPDK_PMD_TYPE=vfio-pci
 
 NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
@@ -50,8 +50,8 @@ usage() {
     exit 1
 }
 
-# Parse command-line options
-while getopts "n:c:v:b:m:p:h" opt; do
+# parse command-line options
+while getopts "n:c:v:b:m:p:g:s:t:h" opt; do
     case ${opt} in
         n) numa_node=${OPTARG} ;;
         c) num_cores_to_select=${OPTARG} ;;
@@ -195,6 +195,6 @@ docker run \
 -e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
 -e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
--e SOCKMEM="1024,0,0,0" \
+-e SOCKET_MEMORY="1024,0,0,0" \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh

@@ -118,10 +118,14 @@ CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
 echo "calling pktgen with CORE_LIST: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
 
-cmd=(pktgen -l "$CORE_LIST" -n 4 --proc-type auto --log-level "$LOG_LEVEL" "${PCI_LIST[@]}")
+cmd=(pktgen -l "$CORE_LIST" -n 1 --proc-type auto --log-level "$LOG_LEVEL" "${PCI_LIST[@]}")
 
-if [[ -n "$SOCKMEM" ]]; then
-    cmd+=(--socket-mem="$SOCKMEM")
+if [[ -n "$SOCKET_MEMORY" ]]; then
+    cmd+=(--socket-mem="$SOCKET_MEMORY")
+fi
+
+if [[ -n "$ALLOCATE_SOCKET_MEMORY" ]]; then
+    cmd+=(-m="$ALLOCATE_SOCKET_MEMORY")
 fi
 
 cmd+=(-- -T)
