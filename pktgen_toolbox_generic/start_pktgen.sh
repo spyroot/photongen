@@ -30,10 +30,10 @@ SOCKETS=""  # assume single socket if not specified
 # if hugepage is not 1G we assume it 2048KB
 if [ "$HUGEPAGE_SIZE" == "1G" ]; then
     HUGEPAGE_DIR="/dev/hugepages1G"
-    export HUGEPAGE_KB_SIZE="1048576kB"
+    export HUGEPAGE_KB_SIZE="1048576"
 else
     HUGEPAGE_DIR="/dev/hugepages2M"
-    export HUGEPAGE_KB_SIZE="2048kB"
+    export HUGEPAGE_KB_SIZE="2048"
 fi
 
 # This function spread all cores expect allocate to master
@@ -78,13 +78,13 @@ generate_core_mapping() {
 }
 
 function allocate_hugepages_single() {
-    echo "$NUM_HUGEPAGES_SINGLE" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}/nr_hugepages"
+    echo "$NUM_HUGEPAGES_SINGLE" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
 }
 
 # Function to allocate hugepages for dual-socket system
 function allocate_hugepages_multi_socket() {
     for node in $SOCKETS; do
-        echo "$NUM_HUGEPAGES_DUAL" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}/nr_hugepages"
+        echo "$NUM_HUGEPAGES_DUAL" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
     done
 }
 
@@ -109,8 +109,8 @@ mount_huge_if_needed() {
     fi
 
     echo "Hugepages allocated and mounted successfully:"
-    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"/nr_hugepages)"
-    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
+    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}"/nr_hugepages)"
+    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
     echo "Current hugepages settings from /proc/meminfo:"
     grep -i hugepages /proc/meminfo
 }
