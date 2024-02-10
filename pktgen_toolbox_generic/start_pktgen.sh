@@ -57,6 +57,6 @@ echo "pktgen -l "$CORE_LIST" \
 -n 4 \
 --proc-type auto \
 --log-level "$LOG_LEVEL" \
--a "$PCI_LIST" \
+"$PCI_LIST" \
 -- -T"
 
