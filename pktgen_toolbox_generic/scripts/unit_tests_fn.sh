@@ -31,7 +31,7 @@ test_vf_mac_address() {
 
         # Check if the actual MAC address matches the expected MAC address
         if [ "$actual_mac" != "$expected_mac" ]; then
-            echo "vf_mac_address test failed: Expected MAC address '$expected_mac'
+            echo "vf_mac_address test failed: Expected MAC address '$expected_mac' for '$pci_address'
             but got '$actual_mac' for PCI address '$pci_address'"
             test_passed=false
         fi
