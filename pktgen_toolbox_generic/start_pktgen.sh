@@ -78,13 +78,13 @@ generate_core_mapping() {
 }
 
 function allocate_hugepages_single() {
-    echo "$NUM_HUGEPAGES_SINGLE" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+    echo "$NUM_HUGEPAGES_SINGLE" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}/nr_hugepages"
 }
 
 # Function to allocate hugepages for dual-socket system
 function allocate_hugepages_multi_socket() {
     for node in $SOCKETS; do
-        echo "$NUM_HUGEPAGES_DUAL" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+        echo "$NUM_HUGEPAGES_DUAL" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}/nr_hugepages"
     done
 }
 
