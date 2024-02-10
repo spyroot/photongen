@@ -25,6 +25,12 @@ HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 
+# defaults
+RXQ=${RXQ:-4}
+RXD=${RXD:-4}
+TXQ=${TXQ:-4}
+TXD=${TXD:-4}
+
 # Check if hugepage mount directory exists, if not create it
 if [ ! -d "$HUGEPAGE_MOUNT" ]; then
 	mkdir -p "$HUGEPAGE_MOUNT"
@@ -63,6 +69,8 @@ dpdk-testpmd -l "$CORE_LIST" \
 -n 4 \
 --proc-type auto \
 --log-level "$LOG_LEVEL" \
-"${PCI_LIST[@]}" \
--- -T
-
+"${PCI_LIST[@]}" --interactive \
+  --rxq="$RXQ" \
+  --rxd="$RXD" \
+  --txq="$TXQ" \
+  --txd="$TXD"
