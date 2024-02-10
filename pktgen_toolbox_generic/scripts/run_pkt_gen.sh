@@ -16,6 +16,8 @@
 # - Memory that we want to pass. i.e a memory for particular
 #   socket from where we selected cores
 #
+# if you want to enable NUMA pass in extra -N
+# if you want to enable socket support using default server values localhost:0x5606 pass -G
 # Autor Mus spyroot@gmail.com
 
 # from numa 0, select 4 cores at random
@@ -186,6 +188,13 @@ $SELECTED_CORES selected VFs \
 $SELECTED_VF device macs: \
 $DEVICE_MAC_ADDRESSES"
 
+if ! command -v dmidecode &> /dev/null; then
+    echo "Error: dmidecode is not installed. Please install dmidecode and try again."
+    exit 1
+fi
+
+NUM_CHANNELS=$(dmidecode -t memory | grep "Locator:" | grep Bank | sort -u | wc -l)
+
 docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
 -e TARGET_VFS="$SELECTED_VF" \
@@ -193,9 +202,10 @@ docker run \
 -e ALLOCATE_SOCKET_MEMORY="$ALLOCATE_SOCKET_MEMORY" \
 -e NUM_HUGEPAGES="$NUM_HUGEPAGES" \
 -e HUGEPAGE_SIZE="$HUGEPAGE_SIZE" \
--e HUGEPAGE_MOUNT="HUGEPAGE_MOUNT" \
+-e HUGEPAGE_MOUNT="$HUGEPAGE_MOUNT" \
 -e DPDK_APP="pkt_gen" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
 -e SOCKET_MEMORY=$SOCKET_MEMORY \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
+-e NUM_CHANNEL="$NUM_CHANNELS" \
 -it --privileged --rm spyroot/pktgen_toolbox_generic:latest /start_pktgen.sh
