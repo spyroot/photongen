@@ -13,6 +13,7 @@ test_vf_mac_address() {
         "0000:03:02.4"
         ""
         "0000:03"  # partial pci
+        "03:02.4"  # without 0000
       )
 
     # expected MAC addresses corresponding to the PCI addresses above
@@ -22,6 +23,7 @@ test_vf_mac_address() {
         "c2:3a:01:e2:c0:9c"
         ""
         ""
+        "c2:3a:01:e2:c0:9c"
     )
 
     for ((i = 0; i < ${#pci_addresses[@]}; i++)); do
