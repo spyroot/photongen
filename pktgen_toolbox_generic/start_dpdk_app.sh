@@ -86,6 +86,7 @@ generate_core_mapping() {
 
 function allocate_hugepages_single() {
     echo "$NUM_HUGEPAGES" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+    echo "$NUM_HUGEPAGES" > "/sys/devices/system/node/node0/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
     echo " - Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages)"
     echo " - Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
 }
