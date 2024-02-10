@@ -138,50 +138,6 @@ core_list() {
 	echo "${core_list[@]}"
 }
 
-# Function to retrieve NUMA node information for a given PCI address
-# Args:
-#   $1: PCI address of the adapter
-# Outputs:
-#   Prints the NUMA node information for the adapter
-function adapter_numa() {
-    local _pci_addr=$1
-    local adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
-    if [ -z "$adapter_numa_node" ]; then
-        echo "-1"
-    elif [[ "$adapter_numa_node" =~ ^[0-4]$ ]]; then
-        echo "$adapter_numa_node"
-    else
-        echo "-1"
-    fi
-}
-
-# This function selects a specified number
-# of random CPU cores from a given NUMA node.
-# Use prefect multiplier for example one core per TX and RX on each port
-# for 2 port it 9 core total 1 for master 8 spread 1/2:3/4 and port 2 5/6:7/8
-function cores_from_numa() {
-	local _numa_node=$1
-	local _num_cores_to_select=$2
-	local cpu_list_str=$(numactl -H | grep -E "^node $_numa_node cpus:" | cut -d: -f2)
-	local core_list=()
-	read -r -a core_list <<< "$cpu_list_str" # Convert string to array
-
-    # if core is less than or equal to available cores
-    if [ "${#core_list[@]}" -lt "$_num_cores_to_select" ]; then
-	    echo "Error: Requested more cores than available." >&2
-	    return 1
-    fi
-
-    local selected_cores=()
-    # Select random cores
-    for i in $(shuf -i 0-$((${#core_list[@]}-1)) -n "$_num_cores_to_select"); do
-	    selected_cores+=("${core_list[$i]}")
-    done
-
-    echo "${selected_cores[@]}"
-}
-
-
 if [[ ! $numa_node =~ ^[0-9]+$ ]]; then
     echo "Error: NUMA node must be a positive integer." >&2
     usage

@@ -3,6 +3,7 @@
 source shared_functions.sh
 
 # Function to test vf_mac_address function
+# for edge cases
 test_vf_mac_address() {
     local test_passed=true
 
@@ -49,6 +50,7 @@ test_vf_mac_address() {
 }
 
 # Function to test the adapter_numa function
+# for edge case postive / negative etc
 function test_adapter_numa() {
     local test_passed=true
 
@@ -97,5 +99,62 @@ function test_adapter_numa() {
     fi
 }
 
+# function test
+function test_validate_numa() {
+    local test_passed=true
+
+    # Define an array of PCI addresses to test
+    local selected_pci_addresses=(
+        "0000:03:00.0"  # pf
+        "00003:00.1"    # vf
+        "0000:40:00.1"  # gpu in numa 2
+        "0000:44:00.0"  # Non-existing PCI address for negative test
+        "0000:03"       # Partial PCI address for negative test
+        "0000:03:02:"   # Invalid PCI address for negative test
+        "" # Invalid NUMA node for negative test
+    )
+
+    local selected_numa_nodes=(
+        "0"  # Expected NUMA node for "0000:03:00.0"
+        "0"  # Expected NUMA node for "bd:00.1"
+        "2"  # Expected NUMA node for "3f:01.0"
+        "-1" # Expected NUMA node for "0000:44:00.0"
+        "-1" # Expected NUMA node for "0000:03"
+        "-1" # Expected NUMA node for "0000:03:02:"
+        "-1" # Expected NUMA node for ""
+    )
+
+    # Test validate_numa function
+    for ((i = 0; i < ${#selected_pci_addresses[@]}; i++)); do
+        local selected_pci="${selected_pci_addresses[$i]}"
+        local selected_numa="${selected_numa_nodes[$i]}"
+
+        local selected_pci_array=("$selected_pci")
+
+        # Call the validate_numa function
+        local error_message=$(validate_numa "$selected_numa" selected_pci_array)
+        # Check if the function returned an error message when it should have passed
+        if [ -n "$error_message" ] && [ "$selected_numa" != "-1" ]; then
+            echo "validate_numa test failed: Unexpected error message '$error_message' for selected PCI address '$selected_pci'"
+            test_passed=false
+        fi
+
+        # Check if the function did not return an error message when it should have failed
+        if [ -z "$error_message" ] && [ "$selected_numa" == "-1" ]; then
+            echo "validate_numa test failed: Expected error message for selected PCI address '$selected_pci'"
+            test_passed=false
+        fi
+    done
+
+    if [ "$test_passed" = true ]; then
+        echo "validate_numa test passed: All tests passed successfully"
+    else
+        echo "validate_numa test failed: Some tests failed"
+    fi
+
+}
+
 test_adapter_numa
 test_vf_mac_address
+test_validate_numa_all_in_numa
+test_validate_numa
