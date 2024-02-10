@@ -139,32 +139,32 @@ function test_validate_numa() {
     local negative_case_numa="0"  # NUMA node for negative cases
 
     # Test validate_numa function for positive cases
-    validate_numa "$positive_case_numa_numa01" "${positive_case_pci01[@]}"
+    validate_numa "$positive_case_numa_numa01" positive_case_pci01
     if [ $? -ne 0 ]; then
         echo "validate_numa test failed: Expected success for positive case 1 but function returned error"
         test_passed=false
     fi
 
-    validate_numa "$positive_case_numa_numa02" "${positive_case_pci02[@]}"
+    validate_numa "$positive_case_numa_numa02" positive_case_pci02
     if [ $? -ne 0 ]; then
         echo "validate_numa test failed: Expected success for positive case 2 but function returned error"
         test_passed=false
     fi
 
     # Test validate_numa function for negative cases
-    validate_numa "$negative_case_numa" "${negative_case_pci01[@]}"
+    validate_numa "$negative_case_numa" negative_case_pci01
     if [ $? -eq 0 ]; then
         echo "validate_numa test failed: Expected error for negative case 1 but function returned success"
         test_passed=false
     fi
 
-    validate_numa "$negative_case_numa" "${negative_case_pci02[@]}"
+    validate_numa "$negative_case_numa" negative_case_pci02
     if [ $? -eq 0 ]; then
         echo "validate_numa test failed: Expected error for negative case 2 but function returned success"
         test_passed=false
     fi
 
-    validate_numa "$negative_case_numa" "${negative_case_pci03[@]}"
+    validate_numa "$negative_case_numa" negative_case_pci03
     if [ $? -ne 0 ]; then
         echo "validate_numa test failed: Expected success for negative case 3 but function returned error"
         test_passed=false
@@ -177,46 +177,32 @@ function test_validate_numa() {
     fi
 }
 
-
-function test_validate_numa() {
-    local test_passed=true
-
-    # positive case all adapter in numa 0 for numa 0 ok for any other numa not ok
-  local positive_case_pci01=(
-        "0000:03:00.0"
-        "0000:03:02.6"
-    )
-
-    declare -a selected_pci
-    local positive_case_numa_numa01="0"
-    selected_pci=("${positive_case_pci01[@]}")
-
-    # Test validate_numa function for positive case
-    validate_numa "$positive_case_numa_numa01" positive_case_pci01
-    if [ $? -ne 0 ]; then
-        echo "validate_numa test failed: Expected success for positive case 1 but function returned error"
-        test_passed=false
-    fi
-
-    if [ "$test_passed" = true ]; then
-        echo "validate_numa test passed: All tests passed successfully"
-    else
-        echo "validate_numa test failed: Some tests failed"
-    fi
-}
+#
+#function test_validate_numa() {
+#    local test_passed=true
+#
+#    # positive case all adapter in numa 0 for numa 0 ok for any other numa not ok
+#  local positive_case_pci01=(
+#        "0000:03:00.0"
+#        "0000:03:02.6"
+#    )
+#
+#    # Test validate_numa function for positive case
+#    validate_numa "$positive_case_numa_numa01" positive_case_pci01
+#    if [ $? -ne 0 ]; then
+#        echo "validate_numa test failed: Expected success for positive case 1 but function returned error"
+#        test_passed=false
+#    fi
+#
+#    if [ "$test_passed" = true ]; then
+#        echo "validate_numa test passed: All tests passed successfully"
+#    else
+#        echo "validate_numa test failed: Some tests failed"
+#    fi
+#}
 
 
+test_vf_mac_address
+test_adapter_numa
 test_validate_numa
-##test_vf_mac_address
-##test_adapter_numa
-##test_validate_numa
-#
-## positive case all adapter in numa 0 for numa 0 ok for any other numa not ok
-#positive_case_pci01=(
-#    "000003000"  # pf
-#    "000003001"  # vf
-#)
-#
-#
-#positive_case_numa_numa01="0"  # Expected NUMA node for positive case 1
-#validate_numa "$positive_case_numa_numa01" "${positive_case_pci01[@]}"
+
