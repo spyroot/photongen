@@ -117,7 +117,7 @@ RUN yum install -y gcc meson git wget numactl make curl \
 	findutils vim-extra elfutils-devel dtc dtc-devel doxygen \
 	libbpf libbpf-devel bpftool iperf iputils govmomi traceroute \
 	htop kmod-devel kmod linux-api-headers linux-tools dmidecode ethtool \
-	pciutils pciutils-devel hwloc kexec-tools
+	pciutils pciutils-devel hwloc kexec-tools python3-autopep8
  
 
 # Stage one we build first ipsec mb lib
@@ -183,7 +183,7 @@ RUN yum clean all
 RUN yum -y install python3-libcap-ng python3-devel
 RUN pip3 install pyelftools sphinx
 
-ENV PATH="/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${PATH}"
+ENV PATH="/root/go/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:${PATH}"
 
 CMD ["ldconfig; /bin/bash"]
 

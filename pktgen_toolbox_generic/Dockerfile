@@ -13,7 +13,7 @@ RUN yum install -y lua lua-devel lua-libs \
 	userspace-rcu userspace-rcu-devel libnetfilter_conntrack libsodium libsodium-devel \
  	libnetconf2 libnetconf2-devel libnl libnl-devel \
 	libnetfilter_conntrack-devel go rust cppcheck python3-autopep8 \
-    nodejs nodejs-devel fontconfig
+    	nodejs nodejs-devel fontconfig
 
 WORKDIR /root/
 RUN git clone https://github.com/vim/vim.git && \
@@ -67,18 +67,14 @@ COPY yamllint_config ~/.config/yamllint/config
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
 RUN go install github.com/justjanne/powerline-go@latest
 
-ENV PATH="/root/go/bin:${PATH}"
-ENV TERM=xterm-256color
-ENV LC_CTYPE=UTF-8
-ENV COLORTERM=truecolor
-ENV LANG=en_US.UTF-8
-ENV LS_COLORS="di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43"
-ENV LSCOLORS=Gxfxcxdxbxegedabagacad
-ENV EDITOR=vim
 RUN git clone https://github.com/powerline/fonts.git --depth=1 ~/fs && \
     cd ~/fs && ./install.sh && cd / && rm -rf ~/fs
-
 RUN vim -c "PlugUpdate" -c "qa!"
+
+#docker exec -it --env COLUMNS=`tput cols` --env LINES=`tput lines` container_name bash
+
+COPY bashrc /root/bashrc_template
+RUN cat /root/bashrc_template >> /root/.bashrc
 
 WORKDIR /
 CMD ["ldconfig; /bin/bash"]
