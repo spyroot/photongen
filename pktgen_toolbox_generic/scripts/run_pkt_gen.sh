@@ -129,11 +129,11 @@ $DEVICE_MAC_ADDRESSES"
 #pktgen \
 #-l 2-14 -n 4 --proc-type auto --log-level 7 --file-prefix pg -a 0000:23:02.0 -- -T -m "[4-7:10-13].0"
 _mac+=$(vf_mac_address)
-
-do echo "$vf";
-done
-
-echo "Starting pkt gen selected cores $SELECTED_CORES selected VFs $SELECTED_VF"
+#
+#do echo "$vf";
+#done
+#
+#echo "Starting pkt gen selected cores $SELECTED_CORES selected VFs $SELECTED_VF"
 
 #echo "$selected_target_vf"
 #docker run \
