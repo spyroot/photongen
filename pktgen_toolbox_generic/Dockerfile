@@ -71,13 +71,13 @@ RUN git clone https://github.com/powerline/fonts.git --depth=1 ~/fs && \
 RUN git clone https://github.com/sharkdp/fd.git ~/fd_find && \
     cd ~/fd_find && make && make install && cd / && rm -rf ~/fd_find
 
-RUN pip3 install yamllint gitlab_lint pynvim jedi
-RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellcheck
-COPY *.sh /
-COPY yamllint_config ~/.config/yamllint/config
-
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
 RUN go install github.com/justjanne/powerline-go@latest
+RUN pip3 install yamllint gitlab_lint pynvim jedi
+RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellcheck
+
+COPY *.sh /
+COPY yamllint_config ~/.config/yamllint/config
 
 RUN vim -c "PlugUpdate" -c "qa!"
 
