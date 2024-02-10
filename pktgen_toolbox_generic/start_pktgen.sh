@@ -25,6 +25,48 @@ HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 
+
+generate_core_mapping() {
+    local NUM_PORTS=$1
+    local SELECTED_CORES=$2
+    local CORES_ARRAY CORES_PER_PORT CORES_PER_TASK CORE_MAPPING START_IDX RX_CORES TX_CORES RX_CORES_STR TX_CORES_STR
+
+    # Convert selected cores to an array
+    read -ra CORES_ARRAY <<< "$SELECTED_CORES"
+
+    # Calculate cores per port
+    CORES_PER_PORT=$(( ${#CORES_ARRAY[@]} / NUM_PORTS ))
+    CORES_PER_TASK=$(( CORES_PER_PORT / 2 )) # Half for RX, half for TX
+
+    # Initialize CORE_MAPPING
+    CORE_MAPPING=""
+
+    # Generate core mapping for each port
+    for (( port=0; port<NUM_PORTS; port++ )); do
+        START_IDX=$(( port * CORES_PER_PORT ))
+        RX_CORES=("${CORES_ARRAY[@]:$START_IDX:$CORES_PER_TASK}")
+        TX_CORES=("${CORES_ARRAY[@]:$START_IDX + CORES_PER_TASK:$CORES_PER_TASK}")
+
+        # Convert arrays to strings
+        RX_CORES_STR=$(IFS=','; echo "${RX_CORES[*]}"; IFS=' ')
+        TX_CORES_STR=$(IFS=','; echo "${TX_CORES[*]}"; IFS=' ')
+
+        # Adjust formatting for single port scenario
+        if [ "$NUM_PORTS" -eq 1 ]; then
+            CORE_MAPPING+="[${RX_CORES_STR}:${TX_CORES_STR}]"
+        else
+            CORE_MAPPING+="[${RX_CORES_STR}:${TX_CORES_STR}].$port"
+        fi
+
+        # Append comma between ports if not the last port
+        if [ "$((port + 1))" -lt "$NUM_PORTS" ]; then
+            CORE_MAPPING+=", "
+        fi
+    done
+
+    echo "$CORE_MAPPING"
+}
+
 # Check if hugepage mount directory exists, if not create it
 if [ ! -d "$HUGEPAGE_MOUNT" ]; then
 	mkdir -p "$HUGEPAGE_MOUNT"
@@ -47,44 +89,26 @@ for vf in $TARGET_VFS; do
 	dpdk-devbind.py --bind="$DPDK_PMD_TYPE" "$vf"
 done
 
-read -ra CORES_ARRAY <<<"$SELECTED_CORES"
-IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
-unset IFS
-
 PCI_LIST=()
 for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
 done
 
 NUM_PORTS=${#PCI_LIST[@]}
 echo "Num ports mapping: $NUM_PORTS"
+
+read -ra CORES_ARRAY <<<"$SELECTED_CORES"
+IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
+unset IFS
+
 NUM_WORKER_CORES=$((${#SORTED_CORES[@]} - 1))
+WORKER_CORES=("${SORTED_CORES[@]:1:$NUM_WORKER_CORES}")
+SELECTED_WORKER_CORES=$(IFS=' '; echo "${WORKER_CORES[*]}"; IFS=$'\n')
+
+CORE_MAPPING=$(generate_core_mapping "$NUM_PORTS" "$SELECTED_WORKER_CORES")
 echo "Num worker cores mapping: $NUM_WORKER_CORES"
-
-CORES_PER_PORT=$((NUM_WORKER_CORES / NUM_PORTS))
-EXTRA_CORES=$((NUM_WORKER_CORES % NUM_PORTS))
-
-for ((port=0; port<NUM_PORTS; port++)); do
-    # Determine the slice of cores for this port
-    START_IDX=$((port * 4)) # 4 cores per port
-    END_IDX=$((START_IDX + 3))
-
-    # Construct the mapping string for this port
-    RX_CORES="${CORES_ARRAY[@]:$START_IDX:2}" # First half for RX
-    TX_CORES="${CORES_ARRAY[@]:$START_IDX+2:2}" # Second half for TX
-
-    # Append to core mapping string
-    if [[ -n "$CORE_MAPPING" ]]; then
-        CORE_MAPPING+=", "
-    fi
-    CORE_MAPPING+="[${RX_CORES[*]}:${TX_CORES[*]}].$port"
-done
-
-
 echo "Core mapping: $CORE_MAPPING"
-echo "NUM_WORKER_CORES mapping: $NUM_WORKER_CORES"
 
 CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
-
 echo "calling pktgen with CORE_LIST: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
 
