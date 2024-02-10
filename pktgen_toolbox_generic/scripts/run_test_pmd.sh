@@ -64,7 +64,6 @@ done
 
 # Shift off the options and optional --
 shift $((OPTIND -1))
-shift $((OPTIND -1))
 EXTRA_ARGS="$*"
 
 echo "Selected configurations:"
@@ -82,7 +81,7 @@ function select_vf_dpdk {
 
     local output="$(docker run -it --privileged --rm \
                     spyroot/pktgen_toolbox_generic:latest dpdk-devbind.py -s \
-                    | grep $DPDK_PMD_TYPE | grep Virtual)"
+                    | grep "$DPDK_PMD_TYPE" | grep Virtual)"
 
     local pci_devices
     readarray -t pci_devices <<< "$(echo "$output" | awk \

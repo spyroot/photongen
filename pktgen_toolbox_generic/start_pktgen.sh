@@ -25,6 +25,16 @@ HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 LOG_LEVEL=${LOG_LEVEL:-7}
 NUM_CHANNELS=${NUM_CHANNELS:-2}
+SOCKETS=""  # assume single socket if not specified
+
+# if hugepage is not 1G we assume it 2048KB
+if [ "$HUGEPAGE_SIZE" == "1G" ]; then
+    HUGEPAGE_DIR="/dev/hugepages1G"
+    export HUGEPAGE_KB_SIZE="1048576kB"
+else
+    HUGEPAGE_DIR="/dev/hugepages2M"
+    export HUGEPAGE_KB_SIZE="2048kB"
+fi
 
 # This function spread all cores expect allocate to master
 # to all ports note it spread evently so each tx and rx get
@@ -67,28 +77,46 @@ generate_core_mapping() {
     echo "$CORE_MAPPING"
 }
 
-# Check if hugepage mount directory exists, if not create it
-if [ ! -d "$HUGEPAGE_MOUNT" ]; then
-	mkdir -p "$HUGEPAGE_MOUNT"
-fi
+function allocate_hugepages_single() {
+    echo "$NUM_HUGEPAGES_SINGLE" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+}
 
-# Allocate hugepages
-echo "$NUM_HUGEPAGES" > /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages
+# Function to allocate hugepages for dual-socket system
+function allocate_hugepages_multi_socket() {
+    for node in $SOCKETS; do
+        echo "$NUM_HUGEPAGES_DUAL" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+    done
+}
 
-# Check if hugetlbfs is already mounted at the specified directory
-if ! mountpoint -q "$HUGEPAGE_MOUNT"; then
-	# Mount the hugetlbfs
-	mount -t hugetlbfs nodev "$HUGEPAGE_MOUNT"
-fi
+# Function to mount hugetlbfs if needed and allocate/mount hugepages
+mount_huge_if_needed() {
+    # Check if hugepage mount directory exists, if not create it
+    if [ ! -d "$HUGEPAGE_MOUNT" ]; then
+        mkdir -p "$HUGEPAGE_MOUNT"
+    fi
 
-echo "Hugepages allocated and mounted successfully:"
-echo "Hugepages allocated and mounted successfully:"
-echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages)"
-echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages) * HUGEPAGE_SIZE / 1024 )) MB"
+    # Allocate hugepages based on system configuration
+    if [ -z "$SOCKETS" ]; then
+        allocate_hugepages_single
+    else
+        allocate_hugepages_dual
+    fi
 
-# Additionally, you can show the current hugepages settings from /proc/meminfo
-echo "Current hugepages settings from /proc/meminfo:"
-grep -i hugepages /proc/meminfo
+    # Check if hugetlbfs is already mounted at the specified directory
+    if ! mountpoint -q "$HUGEPAGE_MOUNT"; then
+        # Mount the hugetlbfs
+        mount -t hugetlbfs nodev "$HUGEPAGE_MOUNT"
+    fi
+
+    echo "Hugepages allocated and mounted successfully:"
+    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"/nr_hugepages)"
+    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
+    echo "Current hugepages settings from /proc/meminfo:"
+    grep -i hugepages /proc/meminfo
+}
+
+# mount hugetlbfs if needed and allocate/mount hugepages
+mount_huge_if_needed
 
 # Bind each target VF to the specified PMD
 for vf in $TARGET_VFS; do
@@ -144,4 +172,3 @@ fi
 
 echo "Executing command: ${cmd[*]}"
 "${cmd[@]}"
-

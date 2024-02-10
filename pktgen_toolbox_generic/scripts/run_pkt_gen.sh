@@ -1,15 +1,18 @@
 #!/bin/bash
 # This a generic ELA wrapper.  Most of all DPDK app require
+#
 # a) list of core
 # b) list of DPDK device
 # c) huge pages allocated for app
 # d) some sort of mapping core to port , or nxCore to TX and RX etc
+# e) number of memory channel
+# f) NUMA mapping.
 #
 # Hence this a generic wrapper that you can call before ELA
 # - to select N random core from a given NUMA
 # - to select N random VF from a some PF ( or consider all PFs)
 # - pass to a container original MAC ( note container doesn't need to bind to DPDK)
-#   if OS already did bind ( Multus etc) do that. it a bit hard to get MAC hence we need
+#   if OS already did bind ( Multus CNI etc) do that. it a bit hard to get MAC hence we need
 #   to see initial what kernel located via kernel driver
 #   hence based on SELECTED VF we construct SELECTED MAC
 #
@@ -64,8 +67,15 @@ while getopts "n:c:v:b:m:p:g:s:t:h" opt; do
         m) ALLOCATE_SOCKET_MEMORY=${OPTARG} ;;
         p) DPDK_PMD_TYPE=${OPTARG} ;;
         g) NUM_HUGEPAGES=${OPTARG} ;;
-        s) HUGEPAGE_SIZE=${OPTARG} ;;
-        t) HUGEPAGE_MOUNT=${OPTARG} ;;
+        s)
+            if [[ ${OPTARG} == "1G" || ${OPTARG} == "2048" ]]; then
+                HUGEPAGE_SIZE=${OPTARG}
+            else
+                echo "Error: Invalid hugepage size specified. Please use either '1G' or '2048'." >&2
+                exit 1
+            fi
+            ;;
+          t) HUGEPAGE_MOUNT=${OPTARG} ;;
         h) usage ;;
         \?) echo "Invalid option: $OPTARG" 1>&2; usage ;;
         :) echo "Invalid option: $OPTARG requires an argument" 1>&2; usage ;;
