@@ -65,19 +65,20 @@ RUN git clone --recursive https://github.com/jqlang/jq.git ~/jq && \
 		cd ~/jq && autoreconf -i && \
 		./configure && make -j 32 && make install && cd .. && rm -rf ~/jq
 
+RUN git clone https://github.com/powerline/fonts.git --depth=1 ~/fs && \
+    cd ~/fs && ./install.sh && cd / && rm -rf ~/fs
+
+RUN git clone https://github.com/sharkdp/fd.git ~/fd_find && \
+    cd ~/fd_find && make && make install && cd / && rm -rf ~/fd_find
+
 RUN pip3 install yamllint gitlab_lint pynvim jedi
 RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellcheck
 COPY *.sh /
 COPY yamllint_config ~/.config/yamllint/config
 
-RUN git clone https://github.com/sharkdp/fd.git ~/fd_find && \
-    cd ~/fd_find && make && make install && cd / && rm -rf ~/fd_find
-
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
 RUN go install github.com/justjanne/powerline-go@latest
 
-RUN git clone https://github.com/powerline/fonts.git --depth=1 ~/fs && \
-    cd ~/fs && ./install.sh && cd / && rm -rf ~/fs
 RUN vim -c "PlugUpdate" -c "qa!"
 
 #docker exec -it --env COLUMNS=`tput cols` --env LINES=`tput lines` container_name bash
