@@ -23,7 +23,7 @@
 NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
 HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB
 HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
-LOG_LEVEL=${$LOG_LEVEL:7}
+LOG_LEVEL=${LOG_LEVEL:7}
 
 # Check if hugepage mount directory exists, if not create it
 if [ ! -d "$HUGEPAGE_MOUNT" ]; then
