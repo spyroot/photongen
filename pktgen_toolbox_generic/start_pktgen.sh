@@ -102,22 +102,15 @@ unset IFS
 NUM_WORKER_CORES=$((${#SORTED_CORES[@]} - 1))
 WORKER_CORES=("${SORTED_CORES[@]:1:$NUM_WORKER_CORES}")
 SELECTED_WORKER_CORES=$(IFS=' '; echo "${WORKER_CORES[*]}"; IFS=$'\n')
-
 CORE_MAPPING=$(generate_core_mapping "$NUM_PORTS" "$SELECTED_WORKER_CORES")
+
 echo "Num worker cores mapping: $NUM_WORKER_CORES"
 echo "Core mapping: $CORE_MAPPING"
 
 CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
+
 echo "calling pktgen with CORE_LIST: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
-
-#pktgen -l "$CORE_LIST" \
-#-n 4 \
-#--proc-type auto \
-#--log-level "$LOG_LEVEL" \
-#"${PCI_LIST[@]}" \
-#--socket-mem
-#-- -T
 
 cmd=(pktgen -l "$CORE_LIST" -n 4 --proc-type auto --log-level "$LOG_LEVEL" "${PCI_LIST[@]}")
 
@@ -126,6 +119,7 @@ if [[ -n "$SOCKMEM" ]]; then
 fi
 
 cmd+=(-- -T)
+cmd+=(-m "$CORE_MAPPING")
 
 if [[ -n "$EXTRA_ARGS" ]]; then
     read -ra EXTRA_ARGS_ARR <<< "$EXTRA_ARGS"
