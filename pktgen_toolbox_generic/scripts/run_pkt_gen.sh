@@ -92,8 +92,22 @@ done
 echo "Selected VF(s):"
 for vf in "${selected_target_vf[@]}"; do echo "$vf"; done
 
-#echo "$selected_target_vf"
+SELECTED_VF=$(printf "%s " "${selected_target_vf[@]}")
+SELECTED_VF=${SELECTED_VF% }
+export SELECTED_VF
 
+SELECTED_CORES=$(printf "%s " "${selected_cores[@]}")
+SELECTED_CORES=${SELECTED_CORES% }
+export SELECTED_CORES
+
+ALL_CORES=$(printf "%s " "${core_list[@]}")
+ALL_CORES=${ALL_CORES% }
+export ALL_CORES
+
+
+echo "Starting pkt gen selected cores $SELECTED_VF selected VFs $SELECTED_VF"
+
+#echo "$selected_target_vf"
 #docker run \
 #-e SELECTED_CORES=""$selected_cores"" \
 #-e TARGET_VFS="$selected_vfs"
