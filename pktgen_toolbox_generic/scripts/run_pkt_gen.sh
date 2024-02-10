@@ -68,27 +68,25 @@ cores_from_numa(){
 # from numa 0, select 4 cores at random
 numa_node=0
 num_cores_to_select=4
+num_vf_to_select=2
+BUS_FILTER="0000:03"
 
+core_list=$(core_list)
 selected_cores=$(cores_from_numa $numa_node $num_cores_to_select)
+selected_vf=$(select_vf_dpdk "$BUS_FILTER")
+
+for i in $(shuf -i 0-$((${#selected_vf[@]}-1)) -n "$num_vf_to_select"); do
+  selected_target_vf+=("${selected_vf[$i]}")
+done
+
 echo "cores from node $numa_node:"
 for cpu in $selected_cores; do echo "$cpu"
 done
-
-core_list=$(core_list)
 
 echo "available cores:"
 for core in "${core_list[@]}"; do echo "$core"
 done
 
-
-selected_vf=$(select_vf_dpdk "$BUS_FILTER")
-BUS_FILTER="0000:03"
-selected_vf=$(select_vf_dpdk "$BUS_FILTER")
-
-num_vf_to_select=2
-for i in $(shuf -i 0-$((${#selected_vf[@]}-1)) -n "$num_vf_to_select"); do
-  selected_target_vf+=("${core_list[$i]}")
-done
 
 echo "$selected_target_vf"
 
