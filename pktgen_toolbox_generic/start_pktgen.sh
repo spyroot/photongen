@@ -31,14 +31,13 @@ generate_core_mapping() {
     local SELECTED_CORES=$2
     local CORES_ARRAY CORES_PER_PORT CORES_PER_TASK CORE_MAPPING START_IDX RX_CORES TX_CORES RX_CORES_STR TX_CORES_STR
 
-    # Convert selected cores to an array
+    #  to an array
     read -ra CORES_ARRAY <<< "$SELECTED_CORES"
 
-    # Calculate cores per port
     CORES_PER_PORT=$(( ${#CORES_ARRAY[@]} / NUM_PORTS ))
-    CORES_PER_TASK=$(( CORES_PER_PORT / 2 )) # Half for RX, half for TX
+    # Half for RX, half for TX
+    CORES_PER_TASK=$(( CORES_PER_PORT / 2 ))
 
-    # Initialize CORE_MAPPING
     CORE_MAPPING=""
 
     # Generate core mapping for each port
@@ -47,7 +46,6 @@ generate_core_mapping() {
         RX_CORES=("${CORES_ARRAY[@]:$START_IDX:$CORES_PER_TASK}")
         TX_CORES=("${CORES_ARRAY[@]:$START_IDX + CORES_PER_TASK:$CORES_PER_TASK}")
 
-        # Convert arrays to strings
         RX_CORES_STR=$(IFS='/'; echo "${RX_CORES[*]}"; IFS=' ')
         TX_CORES_STR=$(IFS='/'; echo "${TX_CORES[*]}"; IFS=' ')
 
@@ -58,7 +56,6 @@ generate_core_mapping() {
             CORE_MAPPING+="[${RX_CORES_STR}:${TX_CORES_STR}].$port"
         fi
 
-        # Append comma between ports if not the last port
         if [ "$((port + 1))" -lt "$NUM_PORTS" ]; then
             CORE_MAPPING+=", "
         fi
