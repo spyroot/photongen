@@ -181,24 +181,6 @@ function cores_from_numa() {
     echo "${selected_cores[@]}"
 }
 
-# Function to check if all network adapters are in the specified NUMA node
-# Args:
-#   $1: Selected NUMA node
-#   $2: Array of selected network adapter PCI addresses
-# Outputs:
-#   Prints an error message if any adapter is not in the specified NUMA node
-function validate_numa() {
-    local selected_numa=$1
-    local -n adapters=$2
-
-    for adapter in "${adapters[@]}"; do
-        local adapter_numa=$(adapter_numa "$adapter")
-        if [[ "$adapter_numa" != "$selected_numa" ]]; then
-            echo "Error: Adapter $adapter is not in NUMA node $selected_numa" >&2
-            exit 1
-        fi
-    done
-}
 
 if [[ ! $numa_node =~ ^[0-9]+$ ]]; then
     echo "Error: NUMA node must be a positive integer." >&2
