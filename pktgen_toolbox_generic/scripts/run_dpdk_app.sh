@@ -30,7 +30,7 @@ num_vf_to_select=2
 
 # our PF
 BUS_FILTER="0000:03"
-ALLOCATE_SOCKET_MEMORY=512
+ALLOCATE_SOCKET_MEMORY=1024
 DPDK_PMD_TYPE=vfio-pci
 
 # since we using 2 port we allocate
@@ -250,16 +250,16 @@ NUM_CHANNELS=$(dmidecode -t memory dmidecode -t memory 2>/dev/null \
 # re-adjust memory
 case $numa_node in
     0)
-        SOCKET_MEMORY="1024,0,0,0"
+        SOCKET_MEMORY="$ALLOCATE_SOCKET_MEMORY,0,0,0"
         ;;
     1)
-        SOCKET_MEMORY="0,1024,0,0"
+        SOCKET_MEMORY="0,$ALLOCATE_SOCKET_MEMORY,0,0"
         ;;
     2)
-        SOCKET_MEMORY="0,0,1024,0"
+        SOCKET_MEMORY="0,0,$ALLOCATE_SOCKET_MEMORY,0"
         ;;
     3)
-        SOCKET_MEMORY="0,0,0,1024"
+        SOCKET_MEMORY="0,0,0,$ALLOCATE_SOCKET_MEMORY"
         ;;
     *)
         echo "Error: Unsupported NUMA node: $numa_node" >&2
@@ -267,8 +267,16 @@ case $numa_node in
         ;;
 esac
 
+if (( numa_node > 0 )); then
+    case $numa_node in
+        1) SOCKETS="1" ;;
+        2) SOCKETS="2" ;;
+        3) SOCKETS="3" ;;
+        *) echo "Warning: Unsupported NUMA node value. Defaulting to original SOCKET_MEMORY." ;;
+    esac
+fi
 
-docker run \
+docker_run_command=(docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
 -e TARGET_VFS="$SELECTED_VF" \
 -e DEVICE_MAC_ADDRESSES="$DEVICE_MAC_ADDRESSES" \
@@ -278,8 +286,16 @@ docker run \
 -e HUGEPAGE_MOUNT="$HUGEPAGE_MOUNT" \
 -e DPDK_APP="$DPDK_APP" \
 -e DPDK_PMD_TYPE="$DPDK_PMD_TYPE" \
--e SOCKET_MEMORY=$SOCKET_MEMORY \
+-e SOCKET_MEMORY="$SOCKET_MEMORY" \
 -e EXTRA_ARGS="$EXTRA_ARGS" \
 -e NUM_CHANNELS="$NUM_CHANNELS" \
 -it --privileged \
---rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh
+--rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh)
+
+# Add SOCKETS option if it's set
+if [[ -n "$SOCKETS" ]]; then
+    docker_run_command+=(-e "SOCKETS=$SOCKETS")
+fi
+
+# Execute the docker run command
+"${docker_run_command[@]}"
