@@ -258,6 +258,9 @@ case $numa_node in
     2)
         SOCKET_MEMORY="0,0,1024,0"
         ;;
+    3)
+        SOCKET_MEMORY="0,0,0,1024"
+        ;;
     *)
         echo "Error: Unsupported NUMA node: $numa_node" >&2
         exit 1
