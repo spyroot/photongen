@@ -4,6 +4,10 @@ function vf_mac_address() {
     local _pci_address=$1
     local _mac_address
 
+    if [[ $_pci_address =~ ^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-9a-fA-F]{1}$ ]]; then
+        _pci_address="0000:$_pci_address"
+    fi
+
     # Check if the PCI address matches the expected format (0000:XX:XX.X)
     if [[ $_pci_address =~ ^0000:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}\.[0-9a-fA-F]{1}$ ]]; then
         _mac_address=$(dmesg | grep "$_pci_address" | grep 'MAC' | awk '{print $NF}' | grep -Eo '([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}' | tail -n 1)
