@@ -1,0 +1,9 @@
+GOPATH=~/go
+
+function _update_ps1() {
+	eval "$($GOPATH/bin/powerline-go -error $? -shell bash -eval -modules-right git)"
+}
+
+if [ -f "$GOPATH/bin/powerline-go" ]; then
+	PROMPT_COMMAND="_update_ps1; $PROMPT_COMMAND"
+fi

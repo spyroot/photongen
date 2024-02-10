@@ -12,12 +12,14 @@ RUN yum install -y lua lua-devel lua-libs \
 	ncurses-compat ncurses-libs ncurses-terminfo \
 	userspace-rcu userspace-rcu-devel libnetfilter_conntrack libsodium libsodium-devel \
  	libnetconf2 libnetconf2-devel libnl libnl-devel \
-	libnetfilter_conntrack-devel go rust cppcheck 
+	libnetfilter_conntrack-devel go rust cppcheck python3-autopep8 \
+    nodejs nodejs-devel fontconfig
 
 WORKDIR /root/
 RUN git clone https://github.com/vim/vim.git && \
     cd vim && \
     ./configure --with-features=huge \
+    --enable-shared \
     --enable-python3interp vi_cv_path_python3="/usr/bin/python3" \
     --enable-cscope --enable-multibyte --enable-perlinterp --enable-luainterp --prefix=/usr && \
     make -j 32 && \
@@ -25,6 +27,8 @@ RUN git clone https://github.com/vim/vim.git && \
 
 WORKDIR /root/
 COPY vimrc /root/.vimrc
+COPY bashrc ~/.bashrc
+
 RUN curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
     https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 RUN vim -c "PlugInstall" -c "qa!"
@@ -55,12 +59,14 @@ RUN git clone --recursive https://github.com/jqlang/jq.git ~/jq && \
 		cd ~/jq && autoreconf -i && \
 		./configure && make -j 32 && make install && rm -rf ~/jq
 
-RUN pip3 install yamllint gitlab_lint
+RUN pip3 install yamllint gitlab_lint pynvim jedi
 RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda install -y shellcheck
 COPY *.sh /
 COPY yamllint_config ~/.config/yamllint/config
 
 RUN go install github.com/google/yamlfmt/cmd/yamlfmt@latest && /root/go/bin/yamlfmt
+RUN go install github.com/justjanne/powerline-go@latest
+
 ENV PATH="/root/go/bin:${PATH}"
 ENV TERM=xterm-256color
 ENV LC_CTYPE=UTF-8
@@ -69,6 +75,8 @@ ENV LANG=en_US.UTF-8
 ENV LS_COLORS="di=1;36:ln=35:so=32:pi=33:ex=31:bd=34;46:cd=34;43:su=30;41:sg=30;46:tw=30;42:ow=30;43"
 ENV LSCOLORS=Gxfxcxdxbxegedabagacad
 ENV EDITOR=vim
+RUN git clone https://github.com/powerline/fonts.git --depth=1 ~/fs && \
+    cd ~/fs && ./install.sh && cd / && rm -rf ~/fs
 
 RUN vim -c "PlugUpdate" -c "qa!"
 
