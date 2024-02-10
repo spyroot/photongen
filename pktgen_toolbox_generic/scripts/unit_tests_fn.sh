@@ -165,7 +165,7 @@ function test_validate_numa() {
     fi
 
     validate_numa "$negative_case_numa" negative_case_pci03
-    if [ $? -eq 0 ]; then
+    if validate_numa "$negative_case_numa" negative_case_pci03; then
         echo "validate_numa test failed: Expected success for negative case 3 but function returned error"
         test_passed=false
     fi
