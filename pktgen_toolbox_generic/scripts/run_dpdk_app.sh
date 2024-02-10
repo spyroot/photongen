@@ -172,6 +172,36 @@ function vf_mac_address() {
     echo "$_mac_address"
 }
 
+if [[ ! $numa_node =~ ^[0-9]+$ ]]; then
+    echo "Error: NUMA node must be a positive integer." >&2
+    usage
+fi
+
+if [[ ! $num_cores_to_select =~ ^[0-9]+$ || $num_cores_to_select -lt 1 ]]; then
+    echo "Error: Number of cores to select must be a positive integer." >&2
+    usage
+fi
+
+if [[ ! $num_vf_to_select =~ ^[0-9]+$ || $num_vf_to_select -lt 1 ]]; then
+    echo "Error: Number of VFs to select must be a positive integer." >&2
+    usage
+fi
+
+if [[ ! $NUM_HUGEPAGES =~ ^[0-9]+$ || $NUM_HUGEPAGES -lt 1 ]]; then
+    echo "Error: Number of hugepages must be a positive integer." >&2
+    usage
+fi
+
+if [[ $HUGEPAGE_SIZE != "1G" && $HUGEPAGE_SIZE != "2048" ]]; then
+    echo "Error: Invalid hugepage size specified. Please use either '1G' or '2048'." >&2
+    usage
+fi
+
+if ! numactl -H | grep -q "node $numa_node "; then
+    echo "Error: NUMA node $numa_node does not exist on the system." >&2
+    exit 1
+fi
+
 declare -a selected_target_vf
 declare -a device_mac_addresses
 
@@ -216,30 +246,7 @@ fi
 NUM_CHANNELS=$(dmidecode -t memory dmidecode -t memory 2>/dev/null \
 | grep "Locator:" | grep Bank | sort -u | wc -l)
 
-if [[ ! $numa_node =~ ^[0-9]+$ ]]; then
-    echo "Error: NUMA node must be a positive integer." >&2
-    usage
-fi
 
-if [[ ! $num_cores_to_select =~ ^[0-9]+$ || $num_cores_to_select -lt 1 ]]; then
-    echo "Error: Number of cores to select must be a positive integer." >&2
-    usage
-fi
-
-if [[ ! $num_vf_to_select =~ ^[0-9]+$ || $num_vf_to_select -lt 1 ]]; then
-    echo "Error: Number of VFs to select must be a positive integer." >&2
-    usage
-fi
-
-if [[ ! $NUM_HUGEPAGES =~ ^[0-9]+$ || $NUM_HUGEPAGES -lt 1 ]]; then
-    echo "Error: Number of hugepages must be a positive integer." >&2
-    usage
-fi
-
-if [[ $HUGEPAGE_SIZE != "1G" && $HUGEPAGE_SIZE != "2048" ]]; then
-    echo "Error: Invalid hugepage size specified. Please use either '1G' or '2048'." >&2
-    usage
-fi
 
 docker run \
 -e SELECTED_CORES="$SELECTED_CORES" \
