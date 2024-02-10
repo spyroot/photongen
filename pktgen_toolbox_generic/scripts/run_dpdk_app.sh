@@ -41,6 +41,8 @@ HUGEPAGE_MOUNT=${HUGEPAGE_MOUNT:-/mnt/huge}
 SOCKET_MEMORY=1024,0,0,0
 DPDK_APP=${DPDK_APP:-pktgen}
 
+source shared_functions.sh
+
 # Display help message
 usage() {
     echo "Usage: $0 [options] [-- extra_arguments]"
@@ -177,16 +179,6 @@ function cores_from_numa() {
     done
 
     echo "${selected_cores[@]}"
-}
-
-# Function return mac address of device
-# note if device already bounded to DPDK this is most reliable way to get it
-function vf_mac_address() {
-    local _pci_address=$1
-    local _mac_address
-    _mac_address=$(dmesg | grep "$_pci_address" | \
-    grep 'MAC' | awk '{print $NF}' | grep -Eo '([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}' | tail -n 1)
-    echo "$_mac_address"
 }
 
 # Function to check if all network adapters are in the specified NUMA node
