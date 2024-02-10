@@ -49,7 +49,6 @@ function adapter_numa() {
 function validate_numa() {
     local selected_numa=$1
     local -n adapters=$2
-
     for adapter in "${adapters[@]}"; do
         local adapter_numa
         adapter_numa=$(adapter_numa "$adapter")
