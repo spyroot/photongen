@@ -8,12 +8,14 @@ LABEL maintainer="Mustafa Bayramov <spyroot@gmail.com>"
 LABEL description="A packet generation and dev toolbox it include iperf3, netsniff-ng, Intel MLC, fio, DPKD and many other tools"
 
 RUN yum install -y tree lua lua-devel lua-libs \
-	fio python3-curses ncurses ncurses-devel \
-	ncurses-compat ncurses-libs ncurses-terminfo \
-	userspace-rcu userspace-rcu-devel libnetfilter_conntrack libsodium libsodium-devel \
- 	libnetconf2 libnetconf2-devel libnl libnl-devel \
-	libnetfilter_conntrack-devel go rust cppcheck python3-autopep8  \
-    nodejs nodejs-devel fontconfig
+    fio python3-curses ncurses ncurses-devel \
+    ncurses-compat ncurses-libs ncurses-terminfo \
+    userspace-rcu userspace-rcu-devel libnetfilter_conntrack libsodium libsodium-devel \
+    libnetconf2 libnetconf2-devel libnl libnl-devel \
+    libnetfilter_conntrack-devel go rust cppcheck python3-autopep8  \
+    nodejs nodejs-devel fontconfig && \
+    yum clean all && \
+    rm -rf /var/cache/yum
 
 WORKDIR /root/
 RUN git clone https://github.com/vim/vim.git && \
@@ -23,7 +25,8 @@ RUN git clone https://github.com/vim/vim.git && \
     --enable-python3interp vi_cv_path_python3="/usr/bin/python3" \
     --enable-cscope --enable-multibyte --enable-perlinterp --enable-luainterp --prefix=/usr && \
     make -j 32 && \
-    make install
+    make install \
+    cd .. && rm -rf vim
 
 WORKDIR /root/
 COPY vimrc /root/.vimrc
@@ -47,9 +50,12 @@ RUN eval "$(~/miniconda/bin/conda shell.bash hook)" && conda init
 RUN yum install -y python3-curses && pip3 install 'glances[all]'
 
 RUN git clone https://github.com/libnet/libnet.git ~/libnet && cd ~/libnet && \
-    ./autogen.sh && ./configure > configure.log && make -j 32 && make install
+    ./autogen.sh && ./configure > configure.log && make -j 32 && make install \
+    cd .. && ~/libnet
+
 RUN git clone https://github.com/netsniff-ng/netsniff-ng.git ~/netsniff && \
-    cd ~/netsniff && ./configure > configure.log && make -j 32 && make install
+    cd ~/netsniff && ./configure > configure.log && make -j 32 && make install \
+    cd .. && rm -rf netsniff
 
 RUN rm -rf ~/mlc/Windows && rm -rf ~/mlc_v3.11.tgz && \
     rm -rf /root/build && rm -rf /root/vim && rm -rf /root/intel-ipsec-mb
@@ -75,7 +81,6 @@ RUN git clone https://github.com/powerline/fonts.git --depth=1 ~/fs && \
 RUN vim -c "PlugUpdate" -c "qa!"
 
 #docker exec -it --env COLUMNS=`tput cols` --env LINES=`tput lines` container_name bash
-
 COPY bashrc /root/bashrc_template
 RUN cat /root/bashrc_template >> /root/.bashrc
 
