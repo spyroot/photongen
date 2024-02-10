@@ -19,7 +19,7 @@
 
 # from numa 0, select 4 cores at random
 numa_node=0
-num_cores_to_select=4
+num_cores_to_select=5
 num_vf_to_select=2
 
 # our PF
