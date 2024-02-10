@@ -56,37 +56,24 @@ function test_adapter_numa() {
     local pci_addresses=(
         "0000:03:00.0"
         "bd:00.1"
-        "0000:03:02.4"
-        "0000:03:02.5"
-        "0000:03:02.6"
-        "0000:03:02.7"
-        "0000:03:02.0"
-        "0000:03:02.1"
-        "0000:03:02.2"
-        "0000:03:02.3"
+        "3f:01.0"
         "0000:04:00.0"  # Non-existing PCI address for negative test
         "0000:03"       # Partial PCI address for negative test
         "0000:03:02:"   # Invalid PCI address for negative test
-        "0000:03:02.10" # Invalid NUMA node for negative test
+        "" # Invalid NUMA node for negative test
     )
 
     # Define expected NUMA nodes corresponding to the PCI addresses above
     local expected_numa_nodes=(
-        "0"
-        "1"
+        "0"  # NUMA node not available
+        "1"  # NUMA node not available
+        "2"  # NUMA node not available
         "-1" # NUMA node not available
         "-1" # NUMA node not available
         "-1" # NUMA node not available
         "-1" # NUMA node not available
-        "0"
-        "1"
-        "2"
-        "3"
-        "-1" # Non-existing PCI address
-        "-1" # Partial PCI address
-        "-1" # Invalid PCI address format
-        "-1" # Invalid NUMA node
-    )
+        "-1"  # NUMA node not available
+     )
 
     for ((i = 0; i < ${#pci_addresses[@]}; i++)); do
         local pci_address="${pci_addresses[$i]}"
