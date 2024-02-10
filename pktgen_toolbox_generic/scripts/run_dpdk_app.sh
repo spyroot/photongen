@@ -144,7 +144,7 @@ core_list() {
 function adapter_numa() {
     local _pci_addr=$1
     adapter_numa_node=$(lspci -v -s "$_pci_addr" 2>/dev/null | grep "NUMA node" | awk '{print $6}' | tr -d ',')
-    echo "Adapter NUMA node: $adapter_numa_node"
+    echo "$adapter_numa_node"
     if [ -z "$adapter_numa_node" ]; then
         # Print a message indicating that NUMA node information is not available
         echo "Adapter NUMA node information is not available"
