@@ -62,10 +62,10 @@ while getopts "n:c:v:b:m:p:h" opt; do
     esac
 done
 
-EXTRA_ARGS="$@"
-
 # Shift off the options and optional --
 shift $((OPTIND -1))
+shift $((OPTIND -1))
+EXTRA_ARGS="$*"
 
 echo "Selected configurations:"
 echo "NUMA Node: $numa_node"

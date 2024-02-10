@@ -59,10 +59,26 @@ done
 echo "calling pktgen with CORE_LIST: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
 
-pktgen -l "$CORE_LIST" \
--n 4 \
---proc-type auto \
---log-level "$LOG_LEVEL" \
-"${PCI_LIST[@]}" \
--- -T
+#pktgen -l "$CORE_LIST" \
+#-n 4 \
+#--proc-type auto \
+#--log-level "$LOG_LEVEL" \
+#"${PCI_LIST[@]}" \
+#--socket-mem
+#-- -T
+
+cmd=(pktgen -l "$CORE_LIST" -n 4 --proc-type auto --log-level "$LOG_LEVEL" "${PCI_LIST[@]}")
+
+if [[ -n "$SOCKMEM" ]]; then
+    cmd+=(--socket-mem="$SOCKMEM")
+fi
+
+cmd+=(-- T)
+
+if [[ -n "$EXTRA_ARGS" ]]; then
+    read -ra EXTRA_ARGS_ARR <<< "$EXTRA_ARGS"
+    cmd+=("${EXTRA_ARGS_ARR[@]}")
+fi
+
+"${cmd[@]}"
 

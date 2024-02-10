@@ -65,14 +65,18 @@ done
 echo "calling dpdk-testpmd with CORE_LIST: \
 $CORE_LIST, PCI_LIST: ${PCI_LIST[*]}, LOG_LEVEL: $LOG_LEVEL"
 
-dpdk-testpmd -l "$CORE_LIST" \
--n 4 \
---proc-type auto \
---log-level "$LOG_LEVEL" \
-"${PCI_LIST[@]}" -- \
-  --interactive \
-  --rxq="$RXQ" \
-  --rxd="$RXD" \
-  --txq="$TXQ" \
-  --txd="$TXD" \
-  "$EXTRA_ARGS"
+
+cmd=(dpdk-testpmd -l "$CORE_LIST" -n 4 --proc-type auto --log-level "$LOG_LEVEL" "${PCI_LIST[@]}")
+
+if [[ -n "$SOCKMEM" ]]; then
+    cmd+=(--socket-mem="$SOCKMEM")
+fi
+
+cmd+=(-- -i)
+
+if [[ -n "$EXTRA_ARGS" ]]; then
+    read -ra EXTRA_ARGS_ARR <<< "$EXTRA_ARGS"
+    cmd+=("${EXTRA_ARGS_ARR[@]}")
+fi
+
+"${cmd[@]}"
