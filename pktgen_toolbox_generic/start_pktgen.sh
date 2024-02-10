@@ -73,12 +73,13 @@ if [[ -n "$SOCKMEM" ]]; then
     cmd+=(--socket-mem="$SOCKMEM")
 fi
 
-cmd+=("-- T")
+cmd+=(-- T)
 
 if [[ -n "$EXTRA_ARGS" ]]; then
     read -ra EXTRA_ARGS_ARR <<< "$EXTRA_ARGS"
     cmd+=("${EXTRA_ARGS_ARR[@]}")
 fi
 
+echo "Executing command: ${cmd[*]}"
 "${cmd[@]}"
 

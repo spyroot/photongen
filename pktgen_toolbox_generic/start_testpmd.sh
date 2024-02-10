@@ -79,4 +79,5 @@ if [[ -n "$EXTRA_ARGS" ]]; then
     cmd+=("${EXTRA_ARGS_ARR[@]}")
 fi
 
+echo "Executing command: ${cmd[*]}"
 "${cmd[@]}"
