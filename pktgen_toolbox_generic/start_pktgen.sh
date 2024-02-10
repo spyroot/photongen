@@ -125,7 +125,7 @@ if [[ -n "$SOCKET_MEMORY" ]]; then
 fi
 
 if [[ -n "$ALLOCATE_SOCKET_MEMORY" ]]; then
-    cmd+=(-m="$ALLOCATE_SOCKET_MEMORY")
+    cmd+=(-m "$ALLOCATE_SOCKET_MEMORY")
 fi
 
 cmd+=(-- -T)
