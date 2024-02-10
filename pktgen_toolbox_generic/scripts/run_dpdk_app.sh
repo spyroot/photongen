@@ -45,6 +45,7 @@ DPDK_APP=${DPDK_APP:-pktgen}
 usage() {
     echo "Usage: $0 [options]"
     echo "Options:"
+    echo "  -a <DPDK_APP>                  DPDK application (default: $DPDK_APP)"
     echo "  -n <numa_node>                 NUMA node to select cores from (default: $numa_node)"
     echo "  -c <num_cores_to_select>       Number of cores to select (default: $num_cores_to_select)"
     echo "  -v <num_vf_to_select>          Number of VFs to select (default: $num_vf_to_select)"
@@ -59,13 +60,14 @@ usage() {
 }
 
 # parse command-line options
-while getopts "n:c:v:b:m:p:g:s:t:h" opt; do
+while getopts "a:n:c:v:b:m:p:g:s:t:h" opt; do
     case ${opt} in
         n) numa_node=${OPTARG} ;;
         c) num_cores_to_select=${OPTARG} ;;
         v) num_vf_to_select=${OPTARG} ;;
         b) BUS_FILTER=${OPTARG} ;;
         m) ALLOCATE_SOCKET_MEMORY=${OPTARG} ;;
+        a) DPDK_APP=${OPTARG} ;;
         p) DPDK_PMD_TYPE=${OPTARG} ;;
         g) NUM_HUGEPAGES=${OPTARG} ;;
         s)
