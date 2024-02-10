@@ -77,9 +77,9 @@ cores_from_numa(){
 # note if device already bounded to DPDK this most
 # reliable way to get it
 function vf_mac_address() {
-  	local _pci_address=$1
-  	_mac_address=$(dmesg | gre"p $_pci_address" | \
-  	grep 'MAC' | awk '{print $NF}' | grep -Eo '([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}' | tail -n 1)
+    local _pci_address=$1
+    local _mac_address=$(dmesg | grep "$_pci_address" | \
+    grep 'MAC' | awk '{print $NF}' | grep -Eo '([[:xdigit:]]{2}:){5}[[:xdigit:]]{2}' | tail -n 1)
     echo "$_mac_address"
 }
 
