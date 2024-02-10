@@ -23,6 +23,8 @@
 #   socket from where we selected cores
 # Autor Mus spyroot@gmail.com
 
+echo "- Start on NUMA $NUMAS"
+
 # Check for environment variables and use defaults if not provided
 NUM_HUGEPAGES=${NUM_HUGEPAGES:-1024}
 HUGEPAGE_SIZE=${HUGEPAGE_SIZE:-2048}  # Size in kB

@@ -295,7 +295,7 @@ docker_run_command=(docker run \
 --rm spyroot/pktgen_toolbox_generic:latest /start_dpdk_app.sh)
 
 if [[ -n "$SOCKETS" ]]; then
-	socker_run_command+=( -e "NUMAS=$SOCKETS" )
+      docker_run_command+=( -e "NUMAS=$SOCKETS" )
 fi
 
 # Execute the docker run command
