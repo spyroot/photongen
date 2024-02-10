@@ -85,6 +85,7 @@ selected_vf=$(select_vf_dpdk "$BUS_FILTER")
 BUS_FILTER="0000:03"
 selected_vf=$(select_vf_dpdk "$BUS_FILTER")
 
+echo "$selected_vf""
 
 #docker run \
 #-e SELECTED_CORES=""$selected_cores"" \
