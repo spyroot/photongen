@@ -51,7 +51,7 @@ RUN yum install -y python3-curses && pip3 install 'glances[all]'
 
 RUN git clone https://github.com/libnet/libnet.git ~/libnet && cd ~/libnet && \
     ./autogen.sh && ./configure > configure.log && make -j 32 && make install && \
-    cd .. && ~/libnet $$ rm -rf ~/libnet
+    cd .. $$ rm -rf ~/libnet
 
 RUN git clone https://github.com/netsniff-ng/netsniff-ng.git ~/netsniff && \
     cd ~/netsniff && ./configure > configure.log && make -j 32 && make install && \
