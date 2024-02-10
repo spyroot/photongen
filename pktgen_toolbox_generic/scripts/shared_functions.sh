@@ -10,6 +10,7 @@ function vf_mac_address() {
         return
     fi
 
+    # Check if the PCI address matches the expected formats
     if [[ $_pci_address =~ ^[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:\.[0-9a-fA-F]{1,2}$ ]]; then
         _pci_address="0000:$_pci_address"
     elif [[ ! $_pci_address =~ ^0000:[0-9a-fA-F]{2}:[0-9a-fA-F]{2}:\.[0-9a-fA-F]{1,2}$ ]]; then
