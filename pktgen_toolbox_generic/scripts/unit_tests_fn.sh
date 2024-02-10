@@ -187,9 +187,9 @@ function test_validate_numa() {
         "000003001"  # vf
     )
 
-    local positive_case_numa_numa01="0"  # Expected NUMA node for positive case 1
-
-    local selected_pci=("${positive_case_pci01[@]}")
+    declare -a selected_pci
+    local positive_case_numa_numa01="0"
+    selected_pci=("${positive_case_pci01[@]}")
 
     # Test validate_numa function for positive case
     validate_numa "$positive_case_numa_numa01" "${selected_pci[@]}"
