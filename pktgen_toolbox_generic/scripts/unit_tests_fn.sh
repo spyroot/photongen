@@ -19,7 +19,7 @@ test_vf_mac_address() {
         "da:07:79:7a:69:54"
         "1a:50:a2:68:75:0b"
         "c2:3a:01:e2:c0:9c"
-        ""  # Empty string for non-existing PCI address
+        ""
     )
 
     for ((i = 0; i < ${#pci_addresses[@]}; i++)); do
@@ -44,7 +44,8 @@ test_vf_mac_address() {
     fi
 }
 
-actual_mac=$(vf_mac_address "0000:33:02.04")
-echo "actual $actual_mac"
+#actual_mac=$(vf_mac_address "0000:33:02.04")
+#actual_mac=$(vf_mac_address "0000:03:02")
+#echo "actual $actual_mac"
 ## Run the test
-#test_vf_mac_address
+test_vf_mac_address
