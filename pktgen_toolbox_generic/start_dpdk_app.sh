@@ -84,12 +84,16 @@ generate_core_mapping() {
 
 function allocate_hugepages_single() {
     echo "$NUM_HUGEPAGES" > "/sys/kernel/mm/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages)"
+    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
 }
 
 # Function to allocate hugepages for dual-socket system
 function allocate_hugepages_multi_socket() {
     for node in $SOCKETS; do
         echo "$NUM_HUGEPAGES" > "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_KB_SIZE}kB/nr_hugepages"
+        echo "Number of hugepages for $node: $(< "/sys/devices/system/node/node$node/hugepages/hugepages-${HUGEPAGE_SIZE}kB/nr_hugepages")"
+        echo "Total size of hugepages for $node: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_SIZE}"kB/nr_hugepages) * HUGEPAGE_SIZE )) kB"
     done
 }
 
@@ -114,8 +118,6 @@ mount_huge_if_needed() {
     fi
 
     echo "Hugepages allocated and mounted successfully:"
-    echo "Number of hugepages: $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages)"
-    echo "Total size of hugepages: $(( $(< /sys/kernel/mm/hugepages/hugepages-"${HUGEPAGE_KB_SIZE}kB"/nr_hugepages) * HUGEPAGE_KB_SIZE )) MB"
     echo "Current hugepages settings from /proc/meminfo:"
     grep -i hugepages /proc/meminfo
 }
