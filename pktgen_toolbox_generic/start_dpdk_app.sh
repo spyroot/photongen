@@ -99,6 +99,7 @@ function allocate_hugepages_multi_socket() {
 
 # Function to mount hugetlbfs if needed and allocate/mount hugepages
 mount_huge_if_needed() {
+
     # Check if hugepage mount directory exists, if not create it
     if [ ! -d "$HUGEPAGE_MOUNT" ]; then
         mkdir -p "$HUGEPAGE_MOUNT"
@@ -106,9 +107,11 @@ mount_huge_if_needed() {
 
     # Allocate hugepages based on system configuration
     if [ -z "$SOCKETS" ]; then
+         echo "Single socket"
         allocate_hugepages_single
     else
-        allocate_hugepages_dual
+        echo "Allocate from NUMA $SOCKETS"
+        allocate_hugepages_multi_socket
     fi
 
     # Check if hugetlbfs is already mounted at the specified directory
