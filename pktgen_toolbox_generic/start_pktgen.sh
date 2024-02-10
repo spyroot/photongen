@@ -47,7 +47,11 @@ for vf in $TARGET_VFS; do
 	dpdk-devbind.py --bind="$DPDK_PMD_TYPE" "$vf"
 done
 
-CORE_LIST=$(echo "$SELECTED_CORES" | tr ' ' ',')
+read -ra CORES_ARRAY <<<"$SELECTED_CORES"
+IFS=$'\n' SORTED_CORES=($(sort -n <<<"${CORES_ARRAY[*]}"))
+unset IFS
+
+CORE_LIST=$(echo "${SORTED_CORES[*]}" | tr ' ' ',')
 PCI_LIST=()
 for vf in $TARGET_VFS; do PCI_LIST+=("-a" "$vf")
 done
