@@ -1,0 +1,50 @@
+call plug#begin()
+Plug 'cocopon/iceberg.vim'
+Plug 'ycm-core/YouCompleteMe'
+Plug 'Chiel92/vim-autoformat'
+Plug 'vim-syntastic/syntastic'
+Plug 'maralla/validator.vim'
+Plug 'ycm-core/YouCompleteMe'
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'pixelneo/vim-python-docstring'
+Plug 'cocopon/pgmnt.vim'
+Plug 'ekalinin/Dockerfile.vim'
+Plug 'dense-analysis/ale'
+Plug 'jiangmiao/auto-pairs'
+Plug 'rhysd/vim-clang-format'
+Plug 'vim-airline/vim-airline'
+
+let g:ycm_global_ycm_extra_conf = 'root/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+
+call plug#end()
+
+if exists('+colorscheme') && exists('g:colors_name') && g:colors_name == ''
+    colorscheme iceberg
+endif
+
+let g:ycm_server_keep_logfiles = 1
+let g:ycm_server_log_level = 'debug'
+let g:ycm_global_ycm_extra_conf = 'root/.vim/bundle/YouCompleteMe/third_party/ycmd/cpp/ycm/.ycm_extra_conf.py'
+set encoding=utf-8
+au BufWrite * :Autoformat
+
+set paste
+filetype plugin indent on
+set guifont=Hack\ 11
+let g:AutoPairsShortcutToggle = '<C-P>'
+
+autocmd FileType c ClangFormatAutoEnable
+autocmd FileType cpp ClangFormatAutoEnable
+autocmd FileType h ClangFormatAutoEnable
+
+" commenting
+" Commenting blocks of code.
+autocmd FileType c,cpp,java,scala let b:comment_leader = '// '
+autocmd FileType sh,ruby,python   let b:comment_leader = '# '
+autocmd FileType conf,fstab       let b:comment_leader = '# '
+autocmd FileType tex              let b:comment_leader = '% '
+autocmd FileType mail             let b:comment_leader = '> '
+autocmd FileType vim              let b:comment_leader = '" '
+noremap <silent> ,cc :<C-B>silent <C-E>s/^/<C-R>=escape(b:comment_leader,'\/')<CR>/<CR>:nohlsearch<CR>
+noremap <silent> ,cu :<C-B>silent <C-E>s/^\V<C-R>=escape(b:comment_leader,'\/')<CR>//e<CR>:nohlsearch<CR>
+

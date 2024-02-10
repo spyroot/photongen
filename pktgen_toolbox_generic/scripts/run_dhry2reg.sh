@@ -1,0 +1,1 @@
+docker run -it --privileged --rm spyroot/pktgen_toolbox:latest /ub_dhry2reg.sh
