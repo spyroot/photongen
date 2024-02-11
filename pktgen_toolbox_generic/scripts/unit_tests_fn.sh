@@ -305,7 +305,7 @@ function test_cores_in_numa() {
     # Test positive cases
     for cores_str in "${positive_cases[@]}"; do
         IFS=' ' read -r -a cores <<< "$cores_str"
-        if ! cores_in_numa "$selected_numa" cores; then
+        if ! is_cores_in_numa "$selected_numa" cores; then
             echo "test_cores_in_numa failed: Expected success for cores $cores_str in NUMA $selected_numa but function returned error"
             test_passed=false
         fi
@@ -314,7 +314,7 @@ function test_cores_in_numa() {
     # Test negative cases
     for cores_str in "${negative_cases[@]}"; do
         IFS=' ' read -r -a cores <<< "$cores_str"
-        if cores_in_numa "$selected_numa" cores; then
+        if is_cores_in_numa "$selected_numa" cores; then
             echo "test_cores_in_numa failed: Expected error for cores $cores_str not in NUMA $selected_numa but function returned success"
             test_passed=false
         fi
