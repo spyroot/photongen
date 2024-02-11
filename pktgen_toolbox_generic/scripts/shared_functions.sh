@@ -163,7 +163,7 @@ function cores_from_numa() {
 #   Returns true (0) if all cores belong to the specified NUMA node, otherwise false (1)
 function is_cores_in_numa() {
     local selected_numa=$1
-    local -n cores=$2
+    local -a cores=("${!2}")
 
     for core in "${cores[@]}"; do
         local core_numa
