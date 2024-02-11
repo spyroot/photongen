@@ -69,15 +69,49 @@ function validate_numa() {
   return 0
 }
 
+# Function to retrieve the list of CPU cores belonging to a specific NUMA node.
+#
+# Arguments:
+#   $1: The NUMA node to retrieve CPU cores for.
+#
+# Returns:
+#   On success, it returns an array containing the CPU cores.
+#   On failure, it prints an error message and exits with status 1.
+#
+# Example Usage:
+#   get_cores_for_numa 0  # Retrieve CPU cores for NUMA node 0.
+#   get_cores_for_numa 1  # Retrieve CPU cores for NUMA node 1.
+function get_cores_for_numa() {
+    local _numa_node=$1
+    local numa_cores
+    numa_cores=$(numactl -H | grep -E "^node $_numa_node cpus:" | cut -d: -f2)
+    local numa_core_array=()
+    read -r -a numa_core_array <<< "$numa_cores"
+    echo "${numa_core_array[@]}"
+}
 
 # This function selects a specified number
 # of random CPU cores from a given NUMA node.
+#
 # Use prefect multiplier for example one core per TX and RX on each port
 # for 2 port it 9 core total 1 for master 8 spread 1/2:3/4 and port 2 5/6:7/8
+# Arguments:
+#   $1: The NUMA node from which to select CPU cores.
+#   $2: The number of CPU cores to select.
+#
+# Returns:
+#   On success, it returns a space-separated string of selected CPU cores.
+#   On failure, it returns an error message and exits with status 1.
+#
+# Example Usage:
+#   cores_from_numa 0 4  # Select 4 random CPU cores from NUMA node 0.
+#   cores_from_numa 1 8  # Select 8 random CPU cores from NUMA node 1.
+
 function cores_from_numa() {
 	local _numa_node=$1
 	local _num_cores_to_select=$2
 	local cpu_list_str
+
 	cpu_list_str=$(numactl -H | grep -E "^node $_numa_node cpus:" | cut -d: -f2)
 	local core_list=()
 	read -r -a core_list <<< "$cpu_list_str" # Convert string to array
@@ -95,4 +129,66 @@ function cores_from_numa() {
     done
 
     echo "${selected_cores[@]}"
+}
+
+# Function to check if all CPU cores belong to a specific NUMA node
+# Args:
+#   $1: Selected NUMA node
+#   $2: Array of selected CPU cores
+# Outputs:
+#   Returns true (0) if all cores belong to the specified NUMA node, otherwise false (1)
+function cores_in_numa() {
+    local selected_numa=$1
+    local -n cores=$2
+
+    for core in "${cores[@]}"; do
+        local core_numa
+        core_numa=$(core_numa "$core")
+        if [ "$core_numa" != "$selected_numa" ]; then
+            return 1 # false
+        fi
+    done
+
+    return 0
+}
+
+# Function to mask CPU cores that belong to a specific NUMA node.
+#
+# Arguments:
+#   $1: The NUMA node to check against.
+#   $2: An array of CPU cores to be masked.
+#
+# Returns:
+#   On success, it returns a space-separated string of CPU cores after masking.
+#   On failure, it prints an error message and exits with status 1.
+#
+# Example Usage:
+#   mask_cores_from_numa 0 "${core_list[@]}"  # Mask CPU cores in NUMA node 0.
+#   mask_cores_from_numa 1 "${core_list[@]}"  # Mask CPU cores in NUMA node 1.
+
+function mask_cores_from_numa() {
+    local _numa_node=$1
+    shift  # Remove the NUMA node argument from the parameter list
+    local _core_list=("$@")
+
+
+    local numa_core_array=($(get_cores_for_numa "$_numa_node"))
+
+    # Iterate through the given CPU core list and mask the cores that belong to the NUMA node
+    local masked_cores=()
+    for core in "${_core_list[@]}"; do
+        local core_in_numa=false
+        for numa_core in "${numa_core_array[@]}"; do
+            if [[ "$core" == *"$numa_core"* ]]; then
+                core_in_numa=true
+                break
+            fi
+        done
+        # Add the core to the masked_cores array if it does not belong to the NUMA node
+        if ! $core_in_numa; then
+            masked_cores+=("$core")
+        fi
+    done
+
+    echo "${masked_cores[@]}"
 }

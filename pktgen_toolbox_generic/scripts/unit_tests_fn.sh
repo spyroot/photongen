@@ -209,7 +209,40 @@ function test_validate_numa() {
     fi
 }
 
+function test_cores_from_numa() {
+
+    local test_passed=true
+    # Test case: Select 4 cores from NUMA node 0
+    local selected_cores=$(cores_from_numa 0 4)
+    local num_selected_cores=$(echo "$selected_cores" | wc -w)
+    if [ "$num_selected_cores" -ne 4 ]; then
+        echo "test_cores_from_numa failed: Expected 4 cores but got $num_selected_cores"
+        test_passed=false
+    fi
+
+    # Test case: Select 8 cores from NUMA node 1
+    selected_cores=$(cores_from_numa 1 8)
+    num_selected_cores=$(echo "$selected_cores" | wc -w)
+    if [ "$num_selected_cores" -ne 8 ]; then
+        echo "test_cores_from_numa failed: Expected 8 cores but got $num_selected_cores"
+        test_passed=false
+    fi
+
+    # Test case: Select 10 cores from NUMA node 2 (more than available)
+    selected_cores=$(cores_from_numa 2 10)
+    if [ "$selected_cores" != "Error: Requested more cores than available." ]; then
+        echo "test_cores_from_numa failed: Expected error message but got: $selected_cores"
+        test_passed=false
+    fi
+
+    if [ "$test_passed" = true ]; then
+        echo "test_cores_from_numa passed: All tests passed successfully"
+    else
+        echo "test_cores_from_numa failed: Some tests failed"
+    fi
+}
+
 test_vf_mac_address
 test_adapter_numa
 test_validate_numa
-
+test_cores_from_numa
