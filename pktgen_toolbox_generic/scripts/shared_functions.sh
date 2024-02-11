@@ -84,13 +84,13 @@ function validate_numa() {
 function get_cores_for_numa() {
     local _numa_node=$1
     local numa_cores
+
     if [[ ! "$_numa_node" =~ ^[0-9]+$ ]]; then
       echo "Error: Invalid NUMA node argument '$_numa_node'. NUMA node must be a non-negative integer." >&2
       return 1
     fi
 
     numa_cores=$(numactl -H | grep -E "^node $_numa_node cpus:" | cut -d: -f2)
-
 
     local numa_core_array=()
     read -r -a numa_core_array <<< "$numa_cores"

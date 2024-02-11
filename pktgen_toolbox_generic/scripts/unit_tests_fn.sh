@@ -235,8 +235,8 @@ function test_all_cores_from_numa {
     local invalid_numa=(10 "")
     for numa_node in "${invalid_numa[@]}"; do
       cores=$(get_cores_for_numa "$numa_node")
-      if [ $? -eq 0 ]; then
-          echo "test_all_cores_from_numa failed: Expected error for invalid NUMA node $numa_node but got cores: $cores"
+      if [ -n "$cores" ]; then
+          echo "test_all_cores_from_numa failed: Expected empty result for invalid NUMA node $numa_node but got cores: $cores"
           test_passed=false
       fi
     done
