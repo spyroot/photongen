@@ -180,7 +180,9 @@ function is_cores_in_numa() {
     local selected_numa=$1
     local -a cores=("${!2}")
 
-    local numa_cores=($(cores_in_numa "$selected_numa"))
+    local numa_cores
+    numa_cores=$(cores_in_numa "$selected_numa")
+    IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
 
     for core in "${cores[@]}"; do
         if ! array_contains "$core" "${numa_cores[@]}"; then
@@ -212,6 +214,7 @@ function mask_cores_from_numa() {
 
 
     local numa_core_array=($(cores_in_numa "$_numa_node"))
+    IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
 
     # Iterate through the given CPU core list and mask the cores that belong to the NUMA node
     local masked_cores=()
