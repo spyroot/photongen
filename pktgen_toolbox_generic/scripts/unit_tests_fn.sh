@@ -364,4 +364,12 @@ test_all_cores_from_numa
 test_is_cores_in_numa
 test_mask_cores_from_numa
 
+
+# Mask cores from NUMA Node 0
+numa_node_to_mask=0
+core_list="0 1 2 3 4 5 6 7 8 9"  # Example core list including cores from NUMA Node 0 and others
+# Call mask_cores_from_numa function
+masked_cores=$(mask_cores_from_numa $numa_node_to_mask "$core_list")
+echo "Masked Cores from NUMA Node $numa_node_to_mask: $masked_cores"
+
 #test_cores_from_numa
