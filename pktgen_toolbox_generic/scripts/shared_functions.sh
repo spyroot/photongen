@@ -180,6 +180,7 @@ function is_cores_in_numa() {
     local selected_numa=$1
     local -a cores=("${!2}")
 
+    echo "Selected numa $selected_numa"
     local numa_cores
     numa_cores=$(cores_in_numa "$selected_numa")
     IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
