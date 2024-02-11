@@ -169,17 +169,10 @@ function is_cores_in_numa() {
     numa_cores=$(cores_in_numa "$selected_numa")
 
     for core in "${cores[@]}"; do
-        local core_found=false
-        for numa_core in "${numa_cores[@]}"; do
-            if [ "$core" == "$numa_core" ]; then
-                core_found=true
-                break
-            fi
-        done
-        if [ "$core_found" == false ]; then
-            return 1 # false
-        fi
-    done
+          if ! array_contains "$core" "${numa_cores[@]}"; then
+              return 1 # false
+          fi
+      done
 
     return 0
 }

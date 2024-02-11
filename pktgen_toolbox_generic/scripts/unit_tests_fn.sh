@@ -283,7 +283,7 @@ function test_cores_from_numa() {
     fi
 }
 
-function test_cores_in_numa() {
+function test_is_cores_in_numa() {
 
     local test_passed=true
     local positive_cases=(
@@ -331,6 +331,6 @@ test_vf_mac_address
 test_adapter_numa
 test_validate_numa
 test_all_cores_from_numa
-test_cores_in_numa
+test_is_cores_in_numa
 
 #test_cores_from_numa
