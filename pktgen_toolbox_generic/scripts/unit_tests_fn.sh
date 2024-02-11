@@ -293,39 +293,28 @@ function test_is_cores_in_numa() {
         "36 37 38 39 40 41 42 43 44 45 46 47 84 85 86 87 88 89 90 91 92 93 94 95"
     )
 
- local negative_cases=(
+    local negative_cases=(
         "0 1 2 3 4 5 6 7 8 9 10 11 12"  # Negative: Some cores from NUMA 0, some from NUMA 1
         "24 25 26 27 28 29 30 31 32 33 34 35 36"  # Negative: Cores from NUMA 2 and NUMA 3 mixed
         "60 61 62 63 64 65 66 67 68 69 70 71 72"  # Negative: Cores from NUMA 1 and NUMA 2 mixed
         ""  # Negative: Empty core list
     )
 
-    local selected_numa="0 1 2 3"
+    local selected_numa=(0 1 2 3)
 
     # Test positive cases
-    for ((i = 0; i < ${#selected_numa[@]}; i++)); do
-      if ! is_cores_in_numa "${selected_numa[i]}" "${positive_cases[i]}"; then
-          echo "test_cores_in_numa failed: Expected success for cores ${positive_cases[i]} in NUMA ${selected_numa[i]} but function returned error"
-          test_passed=false
-      fi
+    for i in "${!selected_numa[@]}"; do
+        if ! is_cores_in_numa "${selected_numa[$i]}" "${positive_cases[$i]}"; then
+            echo "Test failed: Expected success for cores ${positive_cases[$i]} in NUMA ${selected_numa[$i]}"
+            test_passed=false
+        fi
     done
 
+    # ...
 
-#    # Test negative cases
-#    for cores_str in "${negative_cases[@]}"; do
-#        IFS=' ' read -r -a cores <<< "$cores_str"
-#        if is_cores_in_numa "$selected_numa" cores; then
-#            echo "test_cores_in_numa failed: Expected error for cores $cores_str not in NUMA $selected_numa but function returned success"
-#            test_passed=false
-#        fi
-#    done
-
-    if [ "$test_passed" = true ]; then
-        echo "test_cores_in_numa passed: All tests passed successfully"
-    else
-        echo "test_cores_in_numa failed: Some tests failed"
-    fi
+    echo "Test passed: $test_passed"
 }
+
 
 test_vf_mac_address
 test_adapter_numa

@@ -178,22 +178,22 @@ function array_contains() {
 #   Returns true (0) if all cores belong to the specified NUMA node, otherwise false (1)
 function is_cores_in_numa() {
     local selected_numa=$1
-    local -a cores=$2
+    local -a cores=(${2}) # Assuming $2 is a space-separated string of cores
 
     echo "Selected numa $selected_numa"
     local numa_cores
     numa_cores=$(cores_in_numa "$selected_numa")
     IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
-    echo "$numa_core"
 
     for core in "${cores[@]}"; do
-        if ! array_contains "$core" "${numa_cores_arr[@]}"; then
+        if ! [[ " ${numa_cores_arr[*]} " =~ " ${core} " ]]; then
             return 1 # false
         fi
     done
 
-    return 0
+    return 0 # true
 }
+
 
 # Function to mask CPU cores that belong to a specific NUMA node.
 #
