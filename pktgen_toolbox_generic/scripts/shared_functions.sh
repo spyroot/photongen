@@ -183,14 +183,14 @@ function is_cores_in_numa() {
     # Handle empty core list scenario
     if [[ -z "$cores_string" ]]; then
         echo "Error: Empty core list for NUMA $selected_numa"
-        return 1 # False, because an empty list cannot be considered as all belonging to a specific NUMA
+        return 1 # false
     else
         read -r -a cores <<< "$cores_string"
     fi
 
-    local _numa_cores
-    _numa_cores=$(cores_in_numa "$selected_numa")
-    IFS=' ' read -r -a numa_cores_arr <<< "$_numa_cores"
+    local numa_cores
+    numa_cores=$(cores_in_numa "$selected_numa")
+    IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
 
     for core in "${cores[@]}"; do
         if ! [[ " ${numa_cores_arr[*]} " =~ " ${core} " ]]; then
