@@ -155,6 +155,21 @@ function cores_from_numa() {
     echo "${selected_cores[@]}"
 }
 
+function array_contains() {
+    local element="$1"
+    shift
+    local array=("$@")
+
+    for item in "${array[@]}"; do
+        if [ "$item" == "$element" ]; then
+            return 0 # true
+        fi
+    done
+
+    return 1 # false
+}
+
+
 # Function to check if all CPU cores belong to a specific NUMA node
 # Args:
 #   $1: Selected NUMA node
@@ -165,14 +180,13 @@ function is_cores_in_numa() {
     local selected_numa=$1
     local -a cores=("${!2}")
 
-    local numa_cores
-    numa_cores=$(cores_in_numa "$selected_numa")
+    local numa_cores=($(cores_in_numa "$selected_numa"))
 
     for core in "${cores[@]}"; do
-          if ! array_contains "$core" "${numa_cores[@]}"; then
-              return 1 # false
-          fi
-      done
+        if ! array_contains "$core" "${numa_cores[@]}"; then
+            return 1 # false
+        fi
+    done
 
     return 0
 }
