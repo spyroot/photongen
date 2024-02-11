@@ -155,6 +155,9 @@ function cores_from_numa() {
     echo "${selected_cores[@]}"
 }
 
+
+# Function check if array contains
+#
 function array_contains() {
     local element="$1"
     shift
@@ -183,7 +186,6 @@ function is_cores_in_numa() {
 
     # Handle empty core list scenario
     if [[ -z "$cores_string" ]]; then
-        echo "Error: Empty core list for NUMA $selected_numa"
         return 1 # false
     else
         read -r -a cores <<< "$cores_string"
@@ -216,31 +218,32 @@ function is_cores_in_numa() {
 # Example Usage:
 #   mask_cores_from_numa 0 "${core_list[@]}"  # Mask CPU cores in NUMA node 0.
 #   mask_cores_from_numa 1 "${core_list[@]}"  # Mask CPU cores in NUMA node 1.
-
 function mask_cores_from_numa() {
     local _numa_node=$1
-    shift  # Remove the NUMA node argument from the parameter list
+    shift
     local _core_list=("$@")
 
-
-    local numa_core_array=($(cores_in_numa "$_numa_node"))
-    IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
+    # Fetch the cores belonging to the specified NUMA node
+    local _numa_core_array=($(cores_in_numa "$_numa_node"))
 
     # Iterate through the given CPU core list and mask the cores that belong to the NUMA node
     local masked_cores=()
-    for core in "${_core_list[@]}"; do
+    for c in "${_core_list[@]}"; do
         local core_in_numa=false
-        for numa_core in "${numa_core_array[@]}"; do
-            if [[ "$core" == *"$numa_core"* ]]; then
+        for _numa_core in "${_numa_core_array[@]}"; do
+            if [[ "$c" == "$_numa_core" ]]; then
                 core_in_numa=true
                 break
             fi
         done
+
         # Add the core to the masked_cores array if it does not belong to the NUMA node
         if ! $core_in_numa; then
             masked_cores+=("$core")
         fi
     done
 
-    echo "${masked_cores[@]}"
+    # Output masked cores as a space-separated string
+    local IFS=' '
+    echo "${masked_cores[*]}"
 }

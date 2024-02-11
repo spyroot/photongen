@@ -322,11 +322,46 @@ function test_is_cores_in_numa() {
     echo "Test passed: $test_passed"
 }
 
+function test_mask_cores_from_numa() {
+    local positive_cases=(
+        "0 1 2 3 4 5 6 7 8 9 10 11 48 49 50 51 52 53 54 55 56 57 58 59"
+        "12 13 14 15 16 17 18 19 20 21 22 23 60 61 62 63 64 65 66 67 68 69 70 71"
+        "24 25 26 27 28 29 30 31 32 33 34 35 72 73 74 75 76 77 78 79 80 81 82 83"
+        "36 37 38 39 40 41 42 43 44 45 46 47 84 85 86 87 88 89 90 91 92 93 94 95"
+    )
+    local test_passed=true
+
+    # Iterate over each NUMA node and its corresponding cores
+    for numa_node in "${!positive_cases[@]}"; do
+        local cores_to_mask="${positive_cases[$numa_node]}"
+        local masked_cores=$(mask_cores_from_numa $numa_node "$cores_to_mask")
+
+        # Convert masked cores to an array to check if any core from the current NUMA node is present
+        local -a masked_cores_array=($masked_cores)
+
+        # Check each core in the original list for the current NUMA node
+        for core in $cores_to_mask; do
+            if [[ " ${masked_cores_array[*]} " =~ " ${core} " ]]; then
+                echo "Test failed: Core $core from NUMA $numa_node was not masked correctly."
+                test_passed=false
+                break
+            fi
+        done
+    done
+
+    if $test_passed; then
+        echo "All tests passed: Cores are correctly masked for each NUMA node."
+    else
+        echo "Some tests failed: Check the output for details."
+    fi
+}
+
 
 test_vf_mac_address
 test_adapter_numa
 test_validate_numa
 test_all_cores_from_numa
 test_is_cores_in_numa
+test_mask_cores_from_numa
 
 #test_cores_from_numa
