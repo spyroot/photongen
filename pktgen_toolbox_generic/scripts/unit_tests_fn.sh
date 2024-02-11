@@ -246,3 +246,7 @@ test_vf_mac_address
 test_adapter_numa
 test_validate_numa
 test_cores_from_numa
+
+numa_node=0
+cores=$(get_cores_for_numa "$numa_node")
+
