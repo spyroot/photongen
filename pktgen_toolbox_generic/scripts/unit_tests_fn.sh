@@ -225,7 +225,17 @@ function test_all_cores_from_numa {
         local expected=${expected_cores[$numa_node]}
         local actual=$(get_cores_for_numa "$numa_node")
         if [ "$actual" != "$expected" ]; then
-            echo "test_all_cores_from_numa failed: Expected cores $expected for NUMA node $numa_node but got $actual"
+            echo "test_all_cores_from_numa failed: Expected cores $expected
+            for NUMA node $numa_node but got $actual"
+            test_passed=false
+        fi
+    done
+
+    # Negative test cases for invalid NUMA nodes
+    local invalid_numa=(10 "")
+    for numa_node in "${invalid_numa[@]}"; do
+        if get_cores_for_numa "$numa_node"; then
+            echo "test_all_cores_from_numa failed: Expected error for invalid NUMA node $numa_node but got cores"
             test_passed=false
         fi
     done
