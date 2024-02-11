@@ -180,10 +180,17 @@ function is_cores_in_numa() {
     local selected_numa=$1
     local -a cores=(${2}) # Assuming $2 is a space-separated string of cores
 
-    echo "Selected numa $selected_numa"
-    local numa_cores
-    numa_cores=$(cores_in_numa "$selected_numa")
-    IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
+    # Handle empty core list scenario
+    if [[ -z "$cores_string" ]]; then
+        echo "Error: Empty core list for NUMA $selected_numa"
+        return 1 # False, because an empty list cannot be considered as all belonging to a specific NUMA
+    else
+        read -r -a cores <<< "$cores_string"
+    fi
+
+    local _numa_cores
+    _numa_cores=$(cores_in_numa "$selected_numa")
+    IFS=' ' read -r -a numa_cores_arr <<< "$_numa_cores"
 
     for core in "${cores[@]}"; do
         if ! [[ " ${numa_cores_arr[*]} " =~ " ${core} " ]]; then
