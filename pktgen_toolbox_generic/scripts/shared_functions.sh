@@ -81,7 +81,7 @@ function validate_numa() {
 # Example Usage:
 #   get_cores_for_numa 0  # Retrieve CPU cores for NUMA node 0.
 #   get_cores_for_numa 1  # Retrieve CPU cores for NUMA node 1.
-function get_cores_for_numa() {
+function cores_in_numa() {
     local _numa_node=$1
     local numa_cores
 
@@ -97,8 +97,25 @@ function get_cores_for_numa() {
     echo "${numa_core_array[@]}"
 }
 
-# This function selects a specified number
-# of random CPU cores from a given NUMA node.
+# Function to retrieve a list of all NUMA nodes available on the system.
+#
+# Usage: numa_nodes
+#
+# Returns:
+#   An array containing the list of all NUMA nodes available on the system.
+#
+# Example Usage:
+#   numa_nodes=($(get_numa_nodes))
+#   echo "Available NUMA nodes: ${numa_nodes[@]}"
+function numa_nodes() {
+    local numa_nodes_str
+    numa_nodes_str=$(numactl -H | grep -oP '(?<=node )\d+' | uniq)
+    read -r -a numa_nodes <<< "$numa_nodes_str"
+    echo "${numa_nodes[@]}"
+}
+
+# This function selects a specified number cores
+# at random from a given CPU numa node.
 #
 # Use prefect multiplier for example one core per TX and RX on each port
 # for 2 port it 9 core total 1 for master 8 spread 1/2:3/4 and port 2 5/6:7/8
@@ -179,7 +196,7 @@ function mask_cores_from_numa() {
     local _core_list=("$@")
 
 
-    local numa_core_array=($(get_cores_for_numa "$_numa_node"))
+    local numa_core_array=($(cores_in_numa "$_numa_node"))
 
     # Iterate through the given CPU core list and mask the cores that belong to the NUMA node
     local masked_cores=()
