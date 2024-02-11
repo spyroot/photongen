@@ -183,9 +183,10 @@ function is_cores_in_numa() {
     local numa_cores
     numa_cores=$(cores_in_numa "$selected_numa")
     IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
+    echo $numa_core
 
     for core in "${cores[@]}"; do
-        if ! array_contains "$core" "${numa_cores[@]}"; then
+        if ! array_contains "$core" "${numa_cores_arr[@]}"; then
             return 1 # false
         fi
     done
