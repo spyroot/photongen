@@ -367,9 +367,9 @@ test_mask_cores_from_numa
 
 # Mask cores from NUMA Node 0
 numa_node_to_mask=0
-core_list="0 1 2 3 4 5 6 7 8 9"  # Example core list including cores from NUMA Node 0 and others
+core_list1="0 1 2 3 4 5 6 7 8 9 10 11 48 49 50 51 52 53 54 55 56 57 58 59"
 # Call mask_cores_from_numa function
-masked_cores=$(mask_cores_from_numa $numa_node_to_mask "$core_list")
+masked_cores=$(mask_cores_from_numa $numa_node_to_mask "$core_list1")
 echo "Masked Cores from NUMA Node $numa_node_to_mask: $masked_cores"
 
 #test_cores_from_numa
