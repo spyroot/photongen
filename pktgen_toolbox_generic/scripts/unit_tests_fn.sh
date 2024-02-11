@@ -310,7 +310,14 @@ function test_is_cores_in_numa() {
         fi
     done
 
-    # ...
+    for i in "${!negative_cases[@]}"; do
+        if is_cores_in_numa "${selected_numa[$i]}" "${negative_cases[$i]}"; then
+            echo "Test failed: Expected failure for cores ${negative_cases[$i]} in NUMA ${selected_numa[$i]}"
+            test_passed=false
+        else
+            echo "Correctly identified negative case: ${negative_cases[$i]} for NUMA ${selected_numa[$i]}"
+        fi
+    done
 
     echo "Test passed: $test_passed"
 }
