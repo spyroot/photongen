@@ -178,22 +178,23 @@ function array_contains() {
 #   Returns true (0) if all cores belong to the specified NUMA node, otherwise false (1)
 function is_cores_in_numa() {
     local selected_numa=$1
-    local -a cores=(${2}) # Assuming $2 is a space-separated string of cores
+    local cores_string=$2
+    local -a cores=()
 
-#    # Handle empty core list scenario
-#    if [[ -z "$cores_string" ]]; then
-#        echo "Error: Empty core list for NUMA $selected_numa"
-#        return 1 # false
-#    else
-#        read -r -a cores <<< "$cores_string"
-#    fi
+    # Handle empty core list scenario
+    if [[ -z "$cores_string" ]]; then
+        echo "Error: Empty core list for NUMA $selected_numa"
+        return 1 # false
+    else
+        read -r -a cores <<< "$cores_string"
+    fi
 
     local numa_cores
     numa_cores=$(cores_in_numa "$selected_numa")
     IFS=' ' read -r -a numa_cores_arr <<< "$numa_cores"
 
-    for core in "${cores[@]}"; do
-        if ! [[ " ${numa_cores_arr[*]} " =~ " ${core} " ]]; then
+    for c in "${cores[@]}"; do
+        if ! [[ " ${numa_cores_arr[*]} " =~ " ${c} " ]]; then
             return 1 # false
         fi
     done
