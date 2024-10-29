@@ -1215,7 +1215,7 @@ function main() {
 
   build_mellanox_driver "$BUILD_MELLANOX_LOG" "$mellanox_build_location"
   build_intel_iavf "$BUILD_INTEL_LOG" "$iavf_build_location"
-  build_docker_images $BUILD_DOCKER_LOG "$DOCKER_IMAGE_PATH" "$DOCKER_IMAGE_NAME"
+#  build_docker_images $BUILD_DOCKER_LOG "$DOCKER_IMAGE_PATH" "$DOCKER_IMAGE_NAME"
   build_ipsec_lib "$BUILD_IPSEC_LOG"
   adjust_shared_libs
   build_install_pips_deb "$BUILD_PIP_LOG" "${PIP_PKG_REQUIRED[@]}"
