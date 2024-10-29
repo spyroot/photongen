@@ -42,9 +42,10 @@ DEFAULT_RELEASE="4.0"
 
 # a location form where to pull reference ISO
 DEFAULT_ISO_LOCATION_4_X86="https://drive.google.com/u/0/uc?id=101hVCV14ln0hkbjXZEI38L3FbcrvwUNB&export=download&confirm=1e-b"
-DEFAULT_ISO_PHOTON_5_X86="https://packages.vmware.com/photon/5.0/Beta/iso/photon-rt-5.0-9e778f409.iso"
+DEFAULT_ISO_PHOTON_5_X86="https://packages.vmware.com/photon/5.0/GA/iso/photon-rt-5.0-dde71ec57.x86_64.iso"
 DEFAULT_ISO_PHOTON_5_ARM="https://packages.vmware.com/photon/5.0/Beta/iso/photon-5.0-9e778f409-aarch64.iso"
-DEFAULT_PACAKGE_LOCATION="https://packages.vmware.com/photon/4.0/photon_updates_4.0_x86_64/x86_64/"
+DEFAULT_PACAKGE_LOCATION="https://packages.vmware.com/photon/5.0/photon_updates_5.0_x86_64/"
+# https://packages.vmware.com/photon/5.0/photon_updates_5.0_x86_64/
 DEFAULT_IMAGE_LOCATION=$DEFAULT_ISO_LOCATION_4_X86
 DEFAULT_DOCKER_IMAGE="spyroot/photon_iso_builder:latest"
 #
@@ -52,11 +53,11 @@ DEFAULT_RPM_DIR="direct_rpms"
 DEFAULT_GIT_DIR="git_images"
 DEFAULT_ARC_DIR="direct"
 
-AVX_VERSION=4.5.3
+AVX_VERSION=4.12.5
 MLNX_VER=5.4-1.0.3.0
 NL_VER="3.2.25"
 
-DPDK_VER="21.11.3"
+DPDK_VER="24.03.0"
 # 22.11, 22.11.1, 22.07, 22.03. 21.11, 21.11.3, 21.11.2
 
 MELLANOX_DOWNLOAD_URL="http://www.mellanox.com/downloads/ofed/MLNX_OFED-"$MLNX_VER"/MLNX_OFED_SRC-debian-"$MLNX_VER".tgz"
@@ -64,7 +65,7 @@ INTEL_DOWNLOAD_URL="https://downloadmirror.intel.com/738727/iavf-$AVX_VERSION.ta
 LIB_NL_DOWNLOAD="https://www.infradead.org/~tgr/libnl/files/libnl-$NL_VER.tar.gz"
 DPDK_DOWNLOAD="http://fast.dpdk.org/rel/dpdk-$DPDK_VER.tar.xz"
 
-SKIP_GIT="yes"
+SKIP_GIT="no"
 SKIP_RPMS_DOWNLOAD="no"
 SKIP_BUILD_CONTAINER="no"
 
@@ -169,7 +170,7 @@ function generate_kick_start() {
 
   local packages
   packages=$(cat $ADDITIONAL_PACKAGES)
-  jq --argjson p "$packages" '.additional_packages += $p' $current_ks_phase >ks.phase2.cfg
+  jq --argjson p "$packages" '.additional_packages += $p' "$current_ks_phase" >ks.phase2.cfg
   current_ks_phase="ks.phase2.cfg"
   jsonlint $current_ks_phase
 
@@ -189,12 +190,12 @@ function generate_kick_start() {
   fi
 
   # adjust /root partition if needed
-  jq --arg s "$DEFAULT_ROOT_SIZE" '.partitions[1].size=$s' $current_ks_phase >ks.phase5.cfg
+  jq --argjson s "$DEFAULT_ROOT_SIZE" '.partitions[1].size=$s' "$current_ks_phase" >ks.phase5.cfg
   current_ks_phase="ks.phase5.cfg"
   jsonlint $current_ks_phase
 
   # adjust /boot partition if needed
-  jq --arg s "$DEFAULT_BOOT_SIZE" '.partitions[2].size=$s' $current_ks_phase >ks.phase6.cfg
+  jq --argjson s "$DEFAULT_BOOT_SIZE" '.partitions[2].size=$s' "$current_ks_phase" >ks.phase6.cfg
   current_ks_phase="ks.phase6.cfg"
   jsonlint $current_ks_phase
 

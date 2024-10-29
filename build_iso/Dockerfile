@@ -23,14 +23,33 @@ RUN echo 'export TERM=xterm-256color' >> /root/.bashrc
 RUN echo 'export TERM=xterm-256color' >> /root/.zshrc
 
 # TODO fix arch for now M1 has issue
-RUN wget \
-    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
-    && mkdir /root/.conda \
-    && bash Miniconda3-latest-Linux-x86_64.sh -b \
-    && rm -f Miniconda3-latest-Linux-x86_64.sh
+#RUN wget \
+#    https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+#    && mkdir /root/.conda \
+#    && bash Miniconda3-latest-Linux-x86_64.sh -b \
+#    && rm -f Miniconda3-latest-Linux-x86_64.sh
 
 RUN apt-get install zsh-autosuggestions bash-completion -y
-RUN apt-get install terraform -y
+
+RUN apt-get update && apt-get install -y \
+    gnupg software-properties-common curl ca-certificates
+
+
+RUN update-ca-certificates
+RUN curl -fsSL --insecure https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
+RUN apt-get update && apt-get install jsonlint terraform -y
+RUN rm -f /etc/apt/sources.list.d/archive_uri-https_apt_releases_hashicorp_com-jammy.list
+RUN apt-get update && apt-get install -y nodejs npm
+RUN npm install -g jsonlint
+RUN apt-get install python3-demjson
+RUN apt-get install -y p7zip-full libarchive-tools
+
+# added so in mac os we can boot and check if need
+RUN apt-get install -y qemu qemu-kvm qemu-utils
+RUN apt-get install -y qemu-system-x86 git-lfs
+
 
 ENV LANG en_US.utf8
+ENV PHOTON_5_X86=yes
 
