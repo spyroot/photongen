@@ -1,8 +1,8 @@
 #!/bin/bash
-# This script will build custom ISO image.
-# and name it to DEFAULT_DST_IMAGE_NAME, this value shared in shared.bash.
-# unpack iso, re-adjust kickstart , repack back iso.
-#
+# This script will build custom Photon OS ISO image
+# for untended install. and name it to DEFAULT_DST_IMAGE_NAME,
+# this value shared in shared.bash. unpack iso, re-adjust kickstart ,
+# repack back iso.
 #
 # spyroot@gmail.com
 # Author Mustafa Bayramov
@@ -11,6 +11,7 @@ source shared.bash
 
 echo "$DEFAULT_SRC_IMAGE_NAME"
 echo "$DEFAULT_DST_IMAGE_NAME"
+USE_LFS="no"
 
 DEFAULT_SRC_ISO_DIR="/tmp/photon-iso"
 DEFAULT_DST_ISO_DIR="/tmp/photon-ks-iso"
@@ -124,54 +125,38 @@ fi
 
 isoinfo -R -l -i "$workspace_dir/$DEFAULT_DST_IMAGE_NAME"
 
-
 isoinfo -l -R -i "$workspace_dir/$DEFAULT_DST_IMAGE_NAME" | grep -E 'isolinux/ks.cfg|isolinux/isolinux.cfg|boot/grub2/grub.cfg' || echo "Warning: Some expected files may be missing in the ISO."
 log "ISO Size: $(du -h "$workspace_dir/$DEFAULT_DST_IMAGE_NAME" | cut -f1)"
-
 
 GITHUB_REPO="spyroot/photongen"
 GITHUB_TOKEN="your_github_token"
 GITHUB_PATH="$DEFAULT_DST_IMAGE_NAME"
 
-# Create a new branch (optional)
-BRANCH_NAME="upload-iso-$(date +%Y%m%d)"
-git checkout -b "$BRANCH_NAME"
+# After generating the ISO
+log "ISO successfully created: $workspace_dir/$DEFAULT_DST_IMAGE_NAME"
 
-# Configure git
-git config --global user.email "spyroot@gmail..com"
-git config --global user.name "spyroot"
+GITHUB_REPO="spyroot/photongen"
+GITHUB_TOKEN="your_github_token"
+GITHUB_PATH="$DEFAULT_DST_IMAGE_NAME"
 
-# Initialize git if it hasn't been initialized
-if [ ! -d ".git" ]; then
-  git init
+# After generating the ISO
+log "ISO successfully created: $workspace_dir/$DEFAULT_DST_IMAGE_NAME"
+
+if [ "$USE_LFS" == "yes" ]; then
+  git config --global user.email "spyroot@gmail.com"
+  git config --global user.name "spyroot"
+
+  BRANCH_NAME="upload-iso-$(date +%Y%m%d)"
+  git checkout -b "$BRANCH_NAME"
+
+  if [ ! -d ".git" ]; then
+    git init
+  fi
+
+  git lfs track "$DEFAULT_DST_IMAGE_NAME"
+  git add .gitattributes
+  git add "$workspace_dir/$DEFAULT_DST_IMAGE_NAME"
+  git commit -m "Add ISO file to LFS: $DEFAULT_DST_IMAGE_NAME"
+  git push https://"$GITHUB_TOKEN"@github.com/"$GITHUB_REPO".git "$BRANCH_NAME"
+  log "ISO pushed to GitHub: https://github.com/$GITHUB_REPO/tree/$BRANCH_NAME"
 fi
-
-git add "$workspace_dir/$DEFAULT_DST_IMAGE_NAME"
-git commit -m "Add ISO file: $DEFAULT_DST_IMAGE_NAME"
-git push https://"$GITHUB_TOKEN"@github.com/"$GITHUB_REPO".git "$BRANCH_NAME"
-log "ISO pushed to GitHub: https://github.com/$GITHUB_REPO/tree/$BRANCH_NAME"
-
-
-# Create a new branch (optional)
-BRANCH_NAME="upload-iso-$(date +%Y%m%d)"
-git checkout -b "$BRANCH_NAME"
-
-# Configure git
-git config --global user.email "you@example.com"
-git config --global user.name "Your Name"
-
-# Initialize git if it hasn't been initialized
-if [ ! -d ".git" ]; then
-  git init
-fi
-
-# Add the ISO file to the repository
-git add "$workspace_dir/$DEFAULT_DST_IMAGE_NAME"
-
-# Commit the changes
-git commit -m "Add ISO file: $DEFAULT_DST_IMAGE_NAME"
-
-# Push to GitHub
-git push https://"$GITHUB_TOKEN"@github.com/"$GITHUB_REPO".git "$BRANCH_NAME"
-
-log "ISO pushed to GitHub: https://github.com/$GITHUB_REPO/tree/$BRANCH_NAME"
